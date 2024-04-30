@@ -43,22 +43,57 @@ public class ChessBoardPieceClass {
     	
     	System.out.println("GETTING ALL PIECES GUARDING LOCATION (6, 7) " +
     		ChessPiece.convertRowColToStringLoc(6, 7) + " NOW:");
-    	int[] nloc = ChessPiece.convertStringLocToRowCol("H4");
+    	int[] nloc = ChessPiece.convertStringLocToRowCol("H5");
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
     	addpcs.add(new ChessPiece("QUEEN", "BLACK", nloc, gid, false));
     	//int[][] ignorelist = null;
     	System.out.println("NORMAL RESULTS WITHOUT ADDING ANY PIECES OR EXCLUDING ANY:");
     	ArrayList<ChessPiece> nrmlcps = ChessPiece.getPiecesGuardingLocation(6, 7, gid, null, null);//ignorelist, addpcs
     	System.out.println(nrmlcps);
-    	System.out.println("RESULTS WITH THE ADDITION OF A BLACK QUEEN AT (6, 7):");
+    	System.out.println();
+    	System.out.println("RESULTS WITH THE ADDITION OF A BLACK QUEEN AT (" + nloc[0] + ", " + nloc[1] + "):");
     	ArrayList<ChessPiece> nrmlwithaddpcs = ChessPiece.getPiecesGuardingLocation(6, 7, gid, null, addpcs);
     	//ignorelist, addpcs
     	System.out.println(nrmlwithaddpcs);
+    	System.out.println();
+    	boolean runigpwntst = true;
+    	if (runigpwntst)
+    	{
+    		System.out.println("RESULTS WITH IGNORING PAWN AT (6, 7), BUT INCLUDING BLACK QUEEN AT (" + nloc[0] + ", " +
+    			nloc[1] + "):");
+    	}
+    	int[][] ignorelist = new int[1][2];
+    	ignorelist[0][0] = 6;//6
+    	ignorelist[0][1] = 7;//5
+    	//int[] myintarr = new int[2];
+    	//System.out.println(ChessPiece.getNumItemsInList(myintarr));
+    	ArrayList<ChessPiece> nopwnwithaddpcs = null;
+    	if (runigpwntst)
+    	{
+    		nopwnwithaddpcs = ChessPiece.getPiecesGuardingLocation(6, 7, gid, ignorelist, addpcs);//7,4
+    		System.out.println(nopwnwithaddpcs);
+    		//now filter the list...
+    		//System.out.println(ChessPiece.filterListByColor(nopwnwithaddpcs, "BLACK"));
+    		//if more than zero, piece would be in check under certain setup
+    		System.out.println("addpcs = " + addpcs);
+    		ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    		//System.out.println(nwpcslist);
+    		printBoard(nwpcslist);
+    		//System.out.println(ChessPiece.isBoardValid(nwpcslist));
+    		System.out.println("DONE TESTING PRINT NEW SETUP BOARD!");
+    	}
+    	//else;//do nothing
     	
     	printBoard(gid);
     	//not true for all test cases, but must be true for this case
     	if (nrmlcps.size() + 1 == nrmlwithaddpcs.size());
     	else throw new IllegalStateException("ADDING A QUEEN TEST FAILED!");
+    	if (runigpwntst)
+    	{
+    		if (nrmlcps.size() == nopwnwithaddpcs.size());
+    		else throw new IllegalStateException("IGNORING A PAWN TEST FAILED!");
+    	}
+    	//else;//do nothing
     	System.out.println(ChessPiece.isBoardValid(gid));
     	
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
@@ -133,12 +168,8 @@ public class ChessBoardPieceClass {
     	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("A9")));
     }
     
-    public static void printBoard(int gid)
+    public static void printBoard(ArrayList<ChessPiece> mycps)
     {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		//else;//do nothing
-    	
-    	ArrayList<ChessPiece> mycps = ChessPiece.getAllPiecesWithGameID(gid);
     	//for (int c = 0; c < mycps.size(); c++) System.out.println(mycps.get(c));
     	System.out.println("mycps.size() = " + mycps.size());
     	String myabt = "ABCDEFGH";
@@ -168,6 +199,11 @@ public class ChessBoardPieceClass {
     		}
     		System.out.println("| " + (r + 1));
     	}
+    }
+    public static void printBoard(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		else printBoard(ChessPiece.getAllPiecesWithGameID(gid));
     }
     
     public static void setUpBoardForPawnPromotion(int gid)
