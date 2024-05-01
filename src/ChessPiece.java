@@ -15,7 +15,7 @@ class ChessPiece {
 	private int movecount = 0;
 	private boolean isfirstmove = true;
 	
-	public ChessPiece(String tp, String clr, int r, int c, int gid, boolean addit)
+	public ChessPiece(String tp, String clr, int r, int c, int gid, int initmvcnt, boolean addit)
 	{
 		if (tp == null || clr == null) throw new IllegalStateException("the given type and color must not be null!");
 		setRow(r);
@@ -25,19 +25,38 @@ class ChessPiece {
 		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		else this.gameID = gid;
 		if (addit) cps.add(this);
+		if (initmvcnt < 1);
+		else
+		{
+			this.movecount = initmvcnt;
+			isfirstmove = false;
+		}
 	}
-	public ChessPiece(String tp, String clr, int[] loc, int gid, boolean addit)
+	public ChessPiece(String tp, String clr, int r, int c, int gid, boolean addit)
 	{
-		this(tp, clr, loc[0], loc[1], gid, addit);
+		this(tp, clr, r, c, gid, 0, addit);
 	}
 	public ChessPiece(String tp, String clr, int r, int c, int gid)
 	{
-		this(tp, clr, r, c, gid, true);
+		this(tp, clr, r, c, gid, 0, true);
+	}
+	public ChessPiece(String tp, String clr, int[] loc, int gid, boolean addit)
+	{
+		this(tp, clr, loc[0], loc[1], gid, 0, addit);
 	}
 	public ChessPiece(String tp, String clr, int[] loc, int gid)
 	{
-		this(tp, clr, loc, gid, true);
+		this(tp, clr, loc[0], loc[1], gid, 0, true);
 	}
+	public ChessPiece(String tp, String clr, int[] loc, int gid, int initmvcnt, boolean addit)
+	{
+		this(tp, clr, loc[0], loc[1], gid, initmvcnt, addit);
+	}
+	public ChessPiece(String tp, String clr, int r, int c, int gid, int initmvcnt)
+	{
+		this(tp, clr, r, c, gid, initmvcnt, true);
+	}
+	
 	
 	public int getGameID()
 	{
@@ -216,6 +235,39 @@ class ChessPiece {
 		}
 		System.out.println();
 	}
+	
+	
+	public static int getNumItemsInList(ArrayList mylist)
+	{
+		if (mylist == null) return 0;
+		else return mylist.size();
+	}
+	public static int getNumItemsInList(Object[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(int[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(double[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(float[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(long[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	
 	
 	public static int[] convertStringLocToRowCol(String mlocstr)
 	{
@@ -437,6 +489,17 @@ class ChessPiece {
 		return getTypeOrColor(true);
 	}
 	
+	public static String getOppositeColor(String clrval)
+	{
+		if (clrval == null) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
+		else if (clrval.equals("WHITE")) return "BLACK";
+		else if (clrval.equals("BLACK")) return "WHITE";
+		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
+	}
+	
+	
+	//FILTER METHODS
+	
 	public static ArrayList<ChessPiece> filterListByColor(ArrayList<ChessPiece> mylist, String clrval)
 	{
 		if (itemIsOnGivenList(clrval, validColors));
@@ -457,27 +520,6 @@ class ChessPiece {
 			}
 			return myretlist;
 		}
-	}
-	
-	public static String getOppositeColor(String clrval)
-	{
-		if (clrval == null) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
-		else if (clrval.equals("WHITE")) return "BLACK";
-		else if (clrval.equals("BLACK")) return "WHITE";
-		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
-	}
-	
-	public static ArrayList<ChessPiece> getCurrentSidePieces(String clrval, int gid)
-	{
-		return filterListByColor(getAllPiecesWithGameID(gid), clrval);
-	}
-	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, int gid)
-	{
-		return getCurrentSidePieces(getOppositeColor(clrval), gid);
-	}
-	public ArrayList<ChessPiece> getMySidePieces()
-	{
-		return getCurrentSidePieces(getColor(), getGameID());
 	}
 	
 	public static ArrayList<ChessPiece> filterListByType(ArrayList<ChessPiece> mylist, String typeval)
@@ -512,100 +554,193 @@ class ChessPiece {
 		return filterListByColorAndType(typeval, clrval, getAllPiecesWithGameID(gid));
 	}
 	
-	public static ArrayList<ChessPiece> getAllOfType(String typeval, int gid)
+	
+	public static ArrayList<ChessPiece> getCurrentSidePieces(String clrval, ArrayList<ChessPiece> allpcs)
 	{
-		return filterListByType(getAllPiecesWithGameID(gid), typeval);
+		return filterListByColor(allpcs, clrval);
+	}
+	public static ArrayList<ChessPiece> getCurrentSidePieces(String clrval, int gid)
+	{
+		return getCurrentSidePieces(clrval, getAllPiecesWithGameID(gid));
+	}
+	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return getCurrentSidePieces(getOppositeColor(clrval), allpcs);
+	}
+	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, int gid)
+	{
+		return getOpposingSidePieces(clrval, getAllPiecesWithGameID(gid));
+	}
+	public ArrayList<ChessPiece> getMySidePieces()
+	{
+		return getCurrentSidePieces(getColor(), getGameID());
 	}
 	
+	
+	//GET ALL OF A CERTAIN TYPE
+	
+	public static ArrayList<ChessPiece> getAllOfType(String typeval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByType(allpcs, typeval);
+	}
+	public static ArrayList<ChessPiece> getAllOfType(String typeval, int gid)
+	{
+		return getAllOfType(typeval, getAllPiecesWithGameID(gid));
+	}
+	
+	
+	public static ArrayList<ChessPiece> getAllKings(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("KING", allpcs);
+	}
 	public static ArrayList<ChessPiece> getAllKings(int gid)
 	{
-		return getAllOfType("KING", gid);
+		return getAllKings(getAllPiecesWithGameID(gid));//return getAllOfType("KING", gid);
+	}
+	public static ArrayList<ChessPiece> getAllCastles(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("CASTLE", allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllCastles(int gid)
 	{
-		return getAllOfType("CASTLE", gid);
+		return getAllCastles(getAllPiecesWithGameID(gid));//return getAllOfType("CASTLE", gid);
+	}
+	public static ArrayList<ChessPiece> getAllRooks(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllCastles(allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllRooks(int gid)
 	{
 		return getAllCastles(gid);
 	}
+	public static ArrayList<ChessPiece> getAllQueens(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("QUEEN", allpcs);
+	}
 	public static ArrayList<ChessPiece> getAllQueens(int gid)
 	{
-		return getAllOfType("QUEEN", gid);
+		return getAllQueens(getAllPiecesWithGameID(gid));//return getAllOfType("QUEEN", gid);
+	}
+	public static ArrayList<ChessPiece> getAllKnights(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("KNIGHT", allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllKnights(int gid)
 	{
-		return getAllOfType("KNIGHT", gid);
+		return getAllKnights(getAllPiecesWithGameID(gid));//return getAllOfType("KNIGHT", gid);
+	}
+	public static ArrayList<ChessPiece> getAllBishops(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("BISHOP", allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllBishops(int gid)
 	{
-		return getAllOfType("BISHOP", gid);
+		return getAllBishops(getAllPiecesWithGameID(gid));//return getAllOfType("BISHOP", gid);
+	}
+	public static ArrayList<ChessPiece> getAllPawns(ArrayList<ChessPiece> allpcs)
+	{
+		return getAllOfType("PAWN", allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllPawns(int gid)
 	{
-		return getAllOfType("PAWN", gid);
+		return getAllPawns(getAllPiecesWithGameID(gid));//return getAllOfType("PAWN", gid);
 	}
 	
+	
+	public static ArrayList<ChessPiece> getAllKnightsOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllKnights(allpcs), clrval);
+	}
 	public static ArrayList<ChessPiece> getAllKnightsOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllKnights(gid), clrval);
+		return getAllKnightsOfColor(clrval, getAllKnights(gid));
+	}
+	public static ArrayList<ChessPiece> getAllKingsOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllKings(allpcs), clrval);
 	}
 	public static ArrayList<ChessPiece> getAllKingsOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllKings(gid), clrval);
+		return getAllKingsOfColor(clrval, getAllKings(gid));
+	}
+	public static ArrayList<ChessPiece> getAllCastlesOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllCastles(allpcs), clrval);
 	}
 	public static ArrayList<ChessPiece> getAllCastlesOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllCastles(gid), clrval);
+		return getAllCastlesOfColor(clrval, getAllCastles(gid));
+	}
+	public static ArrayList<ChessPiece> getAllRooksOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return getAllCastlesOfColor(clrval, allpcs);
 	}
 	public static ArrayList<ChessPiece> getAllRooksOfColor(String clrval, int gid)
 	{
 		return getAllCastlesOfColor(clrval, gid);
 	}
+	public static ArrayList<ChessPiece> getAllQueensOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllQueens(allpcs), clrval);
+	}
 	public static ArrayList<ChessPiece> getAllQueensOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllQueens(gid), clrval);
+		return getAllQueensOfColor(clrval, getAllQueens(gid));
+	}
+	public static ArrayList<ChessPiece> getAllBishopsOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllBishops(allpcs), clrval);
 	}
 	public static ArrayList<ChessPiece> getAllBishopsOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllBishops(gid), clrval);
+		return getAllBishopsOfColor(clrval, getAllBishops(gid));
+	}
+	public static ArrayList<ChessPiece> getAllPawnsOfColor(String clrval, ArrayList<ChessPiece> allpcs)
+	{
+		return filterListByColor(getAllPawns(allpcs), clrval);
 	}
 	public static ArrayList<ChessPiece> getAllPawnsOfColor(String clrval, int gid)
 	{
-		return filterListByColor(getAllPawns(gid), clrval);
+		return getAllPawnsOfColor(clrval, getAllPawns(gid));
 	}
 	
-	public static int getNumItemsInList(ArrayList mylist)
+	public static ChessPiece getCurrentSideKing(String clrval, ArrayList<ChessPiece> allpcs)
 	{
-		if (mylist == null) return 0;
-		else return mylist.size();
+		if (itemIsOnGivenList(clrval, validColors));
+		else throw new IllegalStateException("ILLEGAL COLOR (" + clrval + ") FOUND AND USED HERE!");
+		
+		ArrayList<ChessPiece> mysidepieces = getCurrentSidePieces(clrval, allpcs);
+		if (mysidepieces == null || mysidepieces.size() < 1) return null;
+		else
+		{
+			for (int x = 0; x < mysidepieces.size(); x++)
+			{
+				if (mysidepieces.get(x).getType().equals("KING")) return mysidepieces.get(x);
+			}
+			return null;
+		}
 	}
-	public static int getNumItemsInList(Object[] arr)
+	public static ChessPiece getCurrentSideKing(String clrval, int gid)
 	{
-		if (arr == null) return 0;
-		else return arr.length;
+		return getCurrentSideKing(clrval, getAllPiecesWithGameID(gid));
 	}
-	public static int getNumItemsInList(int[] arr)
+	public static ChessPiece getOppositeSideKing(String clrval, ArrayList<ChessPiece> allpcs)
 	{
-		if (arr == null) return 0;
-		else return arr.length;
+		return getCurrentSideKing(getOppositeColor(clrval), allpcs);
 	}
-	public static int getNumItemsInList(double[] arr)
+	public static ChessPiece getOppositeSideKing(String clrval, int gid)
 	{
-		if (arr == null) return 0;
-		else return arr.length;
+		return getOppositeSideKing(clrval, getAllPiecesWithGameID(gid));
 	}
-	public static int getNumItemsInList(float[] arr)
+	public ChessPiece getMySideKing()
 	{
-		if (arr == null) return 0;
-		else return arr.length;
-	}
-	public static int getNumItemsInList(long[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
+		if (getType().equals("KING")) return this;
+		else return getCurrentSideKing(getColor(), getGameID());
 	}
 	
+	
+	//THIS CANNOT TELL IF THE SET UP IS ILLEGAL OR NOT OR RATHER IT CANNOT TELL IF IT IS POSSIBLE OR NOT
+	//IT CAN TELL IF THERE ARE AN ILLEGAL NUMBER OF PIECES ON THE BOARD
 	public static boolean isBoardValid(ArrayList<ChessPiece> allpcs)
 	{
 		//each side must have at most 16 pieces total one of which must be a king
@@ -723,32 +858,6 @@ class ChessPiece {
 	public static boolean isBoardValid(int gid)
 	{
 		return isBoardValid(getAllPiecesWithGameID(gid));
-	}
-	
-	public static ChessPiece getCurrentSideKing(String clrval, int gid)
-	{
-		if (itemIsOnGivenList(clrval, validColors));
-		else throw new IllegalStateException("ILLEGAL COLOR (" + clrval + ") FOUND AND USED HERE!");
-		
-		ArrayList<ChessPiece> mysidepieces = getCurrentSidePieces(clrval, gid);
-		if (mysidepieces == null || mysidepieces.size() < 1) return null;
-		else
-		{
-			for (int x = 0; x < mysidepieces.size(); x++)
-			{
-				if (mysidepieces.get(x).getType().equals("KING")) return mysidepieces.get(x);
-			}
-			return null;
-		}
-	}
-	public static ChessPiece getOppositeSideKing(String clrval, int gid)
-	{
-		return getCurrentSideKing(getOppositeColor(clrval), gid);
-	}
-	public ChessPiece getMySideKing()
-	{
-		if (getType().equals("KING")) return this;
-		else return getCurrentSideKing(getColor(), getGameID());
 	}
 	
 	
@@ -2273,20 +2382,29 @@ class ChessPiece {
 	
 	
 	//can I be directly attacked by the opposing side?
-	public boolean inCheck()
+	public boolean inCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//can I be directly attacked by the opposing side?
-		ArrayList<ChessPiece> epcs = getEnemyPiecesGuardingLocationNoList(getRow(), getCol(), getGameID(), getColor());
+		ArrayList<ChessPiece> epcs = getEnemyPiecesGuardingLocation(getRow(), getCol(), getGameID(), getColor(),
+			ignorelist, addpcs);
 		if (getNumItemsInList(epcs) < 1) return false;
 		else return true;
 	}
+	public boolean inCheck()
+	{
+		return inCheck(null, null);
+	}
 	
-	public boolean isMySideInCheck()
+	public boolean isMySideInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//get my king
 		//then ask can I be directly attacked by the opposing side?
 		//if yes you are in check
-		return getMySideKing().inCheck();
+		return getMySideKing().inCheck(ignorelist, addpcs);
+	}
+	public boolean isMySideInCheck()
+	{
+		return isMySideInCheck(null, null);
 	}
 	
 	//NOT DONE YET...
@@ -2447,12 +2565,11 @@ class ChessPiece {
 		else throw new IllegalStateException("CANNOT PROMOTE THE PAWN!");
 	}
 	
-	//NOT DONE YET...
-	public boolean canPawnLeftOrRight(boolean useleft)
+	public boolean canPawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs)
 	{
 		//if no pawns for one side -> false
-		ArrayList<ChessPiece> wpns = getAllPawnsOfColor("WHITE", getGameID());
-		ArrayList<ChessPiece> bpns = getAllPawnsOfColor("BLACK", getGameID());
+		ArrayList<ChessPiece> wpns = getAllPawnsOfColor("WHITE", allpcs);
+		ArrayList<ChessPiece> bpns = getAllPawnsOfColor("BLACK", allpcs);
 		if (getNumItemsInList(wpns) < 1 || getNumItemsInList(bpns) < 1)
 		{
 			System.out.println("ONE SIDE HAS NO PAWNS! THERE MUST BE AT LEAST ONE PAWN ON EACH SIDE NEAR " +
@@ -2464,11 +2581,11 @@ class ChessPiece {
 		if (getType().equals("PAWN"))
 		{
 			//THIS IS WHEN AN OPPOSING PAWN CAPTURES A PAWN THAT MADE ITS FIRST MOVE
-			//row 0: ----- ---- ---
-			//row 1: --p-- -p-- -p-
-			//row 2: --*-- xnx- -n-
-			//row 3: -xnx- ---- x-x
-			//        YES  YES  NO  IS PAWNING?
+			//row 0: ----- ---- --- ---
+			//row 1: --p-- -p-- -p- -p-
+			//row 2: --*-- xnx- -n- x-x
+			//row 3: -xnx- ---- x-x -n-
+			//        YES   NO   NO  NO IS PAWNING?
 			//where n is next location of the pawn that made its first move
 			//where * is next location of the pawns at x on the left part of the board
 			//where p is the starting location of the pawn that will make its first move
@@ -2477,14 +2594,14 @@ class ChessPiece {
 			//the this ChessPiece refers to the pawn at position x
 			//Pawn may not be at position x
 			
-			if (((getRow() == 3 || getRow() == 2) && getColor().equals("WHITE")) ||
-				((getRow() == 5 || getRow() == 4) && getColor().equals("BLACK")))
+			if (((getRow() == 3) && getColor().equals("WHITE")) ||
+				((getRow() == 4) && getColor().equals("BLACK")))
 			{
 				//we are on the row so it might be an option
 			}
 			else
 			{
-				System.out.println("OUR SIDE PIECE IS NOT ON THE APPROPRIATE ROW TO BE ABLE TO PAWN!");
+				//System.out.println("OUR SIDE PIECE IS NOT ON THE APPROPRIATE ROW TO BE ABLE TO PAWN!");
 				return false;
 			}
 			
@@ -2494,18 +2611,20 @@ class ChessPiece {
 			if (isvalidrorc(lc));
 			else
 			{
-				System.out.println("THE LOCATION HAS AN INVALID COLUMN!");
+				//System.out.println("THE LOCATION " + getLocString(getRow(), lc) + " HAS AN INVALID COLUMN!");
 				return false;
 			}
 			
-			ChessPiece ep = getPieceAt(getRow(), lc);
+			ChessPiece ep = getPieceAt(getRow(), lc, allpcs);
 			if (ep == null)
 			{
-				System.out.println("THE LOCATION IS EMPTY!");
+				System.out.println("THE LOCATION " + getLocString(getRow(), lc) + " IS EMPTY!");
 				return false;
 			}
 			else
 			{
+				//System.out.println(ep);
+				//System.out.println(ep.movecount);
 				if (ep.getType().equals("PAWN"));
 				else
 				{
@@ -2528,11 +2647,37 @@ class ChessPiece {
 				//need to know if killing the pawn puts our king in check
 				//if it does -> return false;
 				//if it does not -> return true;
+				//if our king is in check does killing the pawn get us out of check
+				//if it does -> return true;
+				//if it does not -> return false;
 				
-				System.out.println("NOT DONE YET HERE FOR PAWNING! NEED TO TELL IF KILLING THE PAWN " +
-					"WILL PUT OUR KING INTO CHECK! OR IF WE ARE ALREADY IN CHECK AND IT DOES NOT MOVE US OUT OF CHECK!");
+				//if we pawn left, and are white then getRow() is 3 and new row is 2, new col is getCol() - 1
+				//if we pawn left, and are black then getRow() is 4 and new row is 5, new col is getCol() - 1
+				//if we pawn right, and are white then getRow() is 3 and new row is 2, new col is getCol() + 1
+				//if we pawn right, and are black then getRow() is 4 and new row is 5, new col is getCol() + 1
+				//we ignore the enemy pawn entirely, we also ignore us, we add us at our new location
+				//then we ask if this puts our king into check
+				//we need to know our kings location
+				ChessPiece mkg = getCurrentSideKing(getColor(), getGameID());
 				
-				return true;
+				int[][] ignorelist = new int[2][2];
+				ignorelist[0][0] = getRow();
+				ignorelist[0][1] = getCol();
+				ignorelist[1][0] = getRow();
+				ignorelist[1][1] = lc;
+				
+				int nr = -1;
+				if (getColor().equals("WHITE")) nr = 2;
+				else if (getColor().equals("BLACK")) nr = 5;
+				else throw new IllegalStateException("PIECE FOUND WITH AN ILLEGAL COLOR FOUND AND USED HERE!");
+				int nc = -1;
+				if (useleft) nc = getCol() - 1;
+				else nc = getCol() + 1;
+				
+				ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+				addpcs.add(new ChessPiece("PAWN", getColor(), nr, nc, mkg.getGameID(), false));
+				if (mkg.inCheck(ignorelist, addpcs)) return false;
+				else return true;
 			}
 		}
 		else
@@ -2541,27 +2686,44 @@ class ChessPiece {
 			return false;
 		}
 	}
+	public boolean canPawnLeftOrRight(boolean useleft)
+	{
+		return canPawnLeftOrRight(useleft, getAllPiecesWithGameID(getGameID()));
+	}
+	public boolean canPawnLeft(ArrayList<ChessPiece> allpcs)
+	{
+		return canPawnLeftOrRight(true, allpcs);
+	}
 	public boolean canPawnLeft()
 	{
-		return canPawnLeftOrRight(true);
+		return canPawnLeft(getAllPiecesWithGameID(getGameID()));
+	}
+	public boolean canPawnRight(ArrayList<ChessPiece> allpcs)
+	{
+		return canPawnLeftOrRight(false, allpcs);
 	}
 	public boolean canPawnRight()
 	{
-		return canPawnLeftOrRight(false);
+		return canPawnRight(getAllPiecesWithGameID(getGameID()));
+	}
+	public boolean canPawn(ArrayList<ChessPiece> allpcs)
+	{
+		return (canPawnLeft(allpcs) || canPawnRight(allpcs));
 	}
 	public boolean canPawn()
 	{
-		return (canPawnLeft() || canPawnRight());
+		return canPawn(getAllPiecesWithGameID(getGameID()));
 	}
-	public static boolean canSidePawn(String clrval, int gid)
+	public static boolean canSidePawn(String clrval, ArrayList<ChessPiece> allpcs)
 	{
 		//get all the pawns for our color
 		//then call the canPawnLeft() or canPawnRight()
 		//if true, then return true
 		//if none are true, or no pawns return false
 		
-		ArrayList<ChessPiece> wpns = getAllPawnsOfColor(clrval, gid);
-		if (getNumItemsInList(wpns) < 1)
+		ArrayList<ChessPiece> pns = getAllPawnsOfColor(clrval, allpcs);
+		//System.out.println("pns = " + pns);
+		if (getNumItemsInList(pns) < 1)
 		{
 			System.out.println("THIS SIDE HAS NO PAWNS! THERE MUST BE AT LEAST ONE PAWN ON EACH SIDE NEAR " +
 				"EACH OTHER TO BE ABLE TO PAWN!");
@@ -2569,14 +2731,18 @@ class ChessPiece {
 		}
 		else
 		{
-			for (int x = 0; x < wpns.size(); x++)
+			for (int x = 0; x < pns.size(); x++)
 			{
-				if (wpns.get(x).canPawn()) return true;
+				if (pns.get(x).canPawn(allpcs)) return true;
 			}
 			
 			System.out.println("NO PAWN CAN PAWN ON THIS SIDE!");
 			return false;
 		}
+	}
+	public static boolean canSidePawn(String clrval, int gid)
+	{
+		return canSidePawn(clrval, getAllPiecesWithGameID(gid));
 	}
 	
 	//CASTLING METHODS

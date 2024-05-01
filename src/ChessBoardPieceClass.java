@@ -96,6 +96,26 @@ public class ChessBoardPieceClass {
     	//else;//do nothing
     	System.out.println(ChessPiece.isBoardValid(gid));
     	
+    	//now set up future check scenario
+    	ignorelist[0][1] = 5;
+    	ArrayList<ChessPiece> gwklocs = ChessPiece.getPiecesGuardingLocation(7, 4, gid, ignorelist, addpcs);
+    	System.out.println("addpcs = " + addpcs);
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	System.out.println();
+    	
+    	System.out.println("ACCORDING TO THE FUTURE BOARD:");
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck(ignorelist, addpcs));
+    	System.out.println();
+    	
+    	printBoard(gid);
+    	System.out.println();
+    	
+    	System.out.println("ACCORDING TO THE ACTUAL BOARD:");
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
     	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck());
@@ -109,13 +129,15 @@ public class ChessBoardPieceClass {
     	System.out.println(ChessPiece.canSideCastle("BLACK", gid));
     	System.out.println();
     	
-    	ChessPiece wpn = ChessPiece.getPieceAt(6, 0, gid);
-    	wpn.genMoveToCommand(4, 0);
+    	testPawningWithoutMovingThere(gid);
+    	
+    	//ChessPiece wpn = ChessPiece.getPieceAt(6, 0, gid);
+    	//wpn.genMoveToCommand(4, 0);
     	//wpn.moveTo(4, 0);
-    	ChessPiece bpn = ChessPiece.getPieceAt(1, 1, gid);
-    	bpn.genMoveToCommand(3, 1);
+    	//ChessPiece bpn = ChessPiece.getPieceAt(1, 1, gid);
+    	//bpn.genMoveToCommand(3, 1);
     	//bpn.moveTo(3, 1);
-    	wpn.genMoveToCommand(3, 1);
+    	//wpn.genMoveToCommand(3, 1);
     	//wpn.moveTo(3, 1);
     }
     
@@ -241,13 +263,34 @@ public class ChessBoardPieceClass {
     	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6"));
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2"), gid);
     	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F5"));
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B5"));
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7"), gid);
     	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B5"));
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F5"));
     	//now test pawning methods here
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", gid));
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", gid));
+    }
+    public static void testPawningWithoutMovingThere(int gid)
+    {
+    	//ignore knight at G8; add knight at F5
+    	//ignore pawn at A7; add it at A5
+    	//ignore pawn at B2; add it at B5
+    	int[][] ignorelist = new int[3][2];
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("G8");
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7");
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2");
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("B5"), gid, 2, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5"), gid, 1, false));
+    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F5"), gid, 2, false));
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//call canPawnLeft on Black Pawn
+    	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", nwpcslist));
+    	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", nwpcslist));
     }
     
     public static void setUpBoardWithKnightCheckingKing(int gid)
