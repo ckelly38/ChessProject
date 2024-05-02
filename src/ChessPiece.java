@@ -337,6 +337,9 @@ class ChessPiece {
 		else return convertRowColToStringLoc(mloc[0], mloc[1]);
 	}
 	
+	
+	//GET PIECE AT AND IS LOCATION EMPTY METHODS
+	
 	public static ChessPiece getPieceAt(int rval, int cval, ArrayList<ChessPiece> mpclist)
 	{
 		if (mpclist == null || mpclist.size() < 1);
@@ -1286,7 +1289,7 @@ class ChessPiece {
 					if (gpcs == null) gpcs = new ArrayList<ChessPiece>();
 					//else;//do nothing
 					
-					gpcs.add(getPieceAt(rval, cval, gid));
+					gpcs.add(getPieceAt(rval, cval, addpcs));
 				}
 				//else;//do nothing
 			}
@@ -1322,7 +1325,7 @@ class ChessPiece {
 					if (gpcs == null) gpcs = new ArrayList<ChessPiece>();
 					//else;//do nothing
 					
-					gpcs.add(getPieceAt(pklocs[x][0], pklocs[x][1], gid));
+					gpcs.add(getPieceAt(pklocs[x][0], pklocs[x][1], addpcs));
 				}
 				//else;//do nothing
 			}
@@ -2540,15 +2543,14 @@ class ChessPiece {
 			{
 				return true;
 			}
-			else System.out.println("THIS PAWN HAS NOT REACHED THE CORRECT ROW FOR ITS COLOR!");
+			//else System.out.println("THIS PAWN HAS NOT REACHED THE CORRECT ROW FOR ITS COLOR!");
 		}
-		else System.out.println("THIS PIECE MUST BE A PAWN!");
+		//else System.out.println("THIS PIECE MUST BE A PAWN!");
 		return false;
 	}
-	public static boolean canPawnForSideBePromoted(String clrval, int gid)
+	public static boolean canPawnForSideBePromoted(String clrval, ArrayList<ChessPiece> allpcs)
 	{
-		ArrayList<ChessPiece> pwnsclr = getAllPawnsOfColor(clrval, gid);
-		
+		ArrayList<ChessPiece> pwnsclr = getAllPawnsOfColor(clrval, allpcs);
 		if (getNumItemsInList(pwnsclr) < 1);
 		else
 		{
@@ -2559,9 +2561,20 @@ class ChessPiece {
 		}
 		return false;
 	}
+	public static boolean canPawnForSideBePromoted(String clrval, int gid)
+	{
+		return canPawnForSideBePromoted(clrval, getAllPiecesWithGameID(gid));
+	}
 	public void promotePawnTo(String nwtype)
 	{
-		if (canPawnBePromoted()) setType(nwtype);
+		if (canPawnBePromoted())
+		{
+			if (nwtype.equals("PAWN") || nwtype.equals("KING"))
+			{
+				throw new IllegalStateException("CANNOT PROMOTE A PAWN TO A PAWN OR A KING!");
+			}
+			else setType(nwtype);
+		}
 		else throw new IllegalStateException("CANNOT PROMOTE THE PAWN!");
 	}
 	
@@ -2747,15 +2760,18 @@ class ChessPiece {
 	
 	//CASTLING METHODS
 	
-	public static boolean canSideCastleLeftOrRight(boolean useleft, String clrval, int gid)
+	public static boolean canSideCastleLeftOrRight(boolean useleft, String clrval,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
 	{
 		if (itemIsOnGivenList(clrval, validColors));
 		else throw new IllegalStateException("ILLEGAL COLOR (" + clrval + ") FOUND AND USED HERE!");
 		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
 		
-		ChessPiece mkg = getCurrentSideKing(clrval, gid);
-		if (mkg.inCheck())
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		
+		ChessPiece mkg = getCurrentSideKing(clrval, allpcs);
+		if (mkg.inCheck(ignorelist, addpcs))
 		{
 			System.out.println("YOU CANNOT CASTLE OUT OF CHECK!");
 			return false;
@@ -2790,7 +2806,7 @@ class ChessPiece {
 			int mcrw = -1;
 			if (mkg.getColor().equals("WHITE")) mcrw = 7;
 			else mcrw = 0;
-			ChessPiece mc = getPieceAt(mcrw, mccol, gid);
+			ChessPiece mc = getPieceAt(mcrw, mccol, allpcs);
 			if (mc == null) return false;
 			else
 			{
@@ -2828,7 +2844,7 @@ class ChessPiece {
 			}
 			for (int c = sccol + 1; c < cmx; c++)
 			{
-				if (getPieceAt(mcrw, c, gid) == null);
+				if (getPieceAt(mcrw, c, allpcs) == null);
 				else
 				{
 					System.out.println("THE SQUARES ARE NOT EMPTY!");
@@ -2840,7 +2856,8 @@ class ChessPiece {
 			//need to know if there are any enemy pieces attacking the locations
 			for (int c = sccol + 1; c < cmx; c++)
 			{
-				ArrayList<ChessPiece> epcs = getEnemyPiecesGuardingLocation(mcrw, c, gid, mkg.getColor(), null);
+				ArrayList<ChessPiece> epcs = getEnemyPiecesGuardingLocation(mcrw, c, mkg.getGameID(), mkg.getColor(),
+					ignorelist, addpcs);
 				if (getNumItemsInList(epcs) < 1);
 				else
 				{
@@ -2863,13 +2880,29 @@ class ChessPiece {
 			return true;
 		}
 	}
+	public static boolean canSideCastleLeftOrRight(boolean useleft, String clrval, int gid)
+	{
+		return canSideCastleLeftOrRight(useleft, clrval, null, null, gid);
+	}
+	public static boolean canSideCastleLeft(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return canSideCastleLeftOrRight(true, clrval, ignorelist, addpcs, gid);
+	}
 	public static boolean canSideCastleLeft(String clrval, int gid)
 	{
 		return canSideCastleLeftOrRight(true, clrval, gid);
 	}
+	public static boolean canSideCastleRight(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return canSideCastleLeftOrRight(false, clrval, ignorelist, addpcs, gid);
+	}
 	public static boolean canSideCastleRight(String clrval, int gid)
 	{
 		return canSideCastleLeftOrRight(false, clrval, gid);
+	}
+	public static boolean canSideCastle(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return (canSideCastleLeft(clrval, ignorelist, addpcs, gid) || canSideCastleRight(clrval, ignorelist, addpcs, gid));
 	}
 	public static boolean canSideCastle(String clrval, int gid)
 	{
