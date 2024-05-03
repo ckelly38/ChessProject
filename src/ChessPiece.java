@@ -62,6 +62,9 @@ class ChessPiece {
 	{
 		return 0 + this.gameID;
 	}
+	
+	//GET ALL PIECES OF A GAME
+	
 	public static ArrayList<ChessPiece> getAllPiecesWithGameID(int val)
 	{
 		if (val < 1) throw new IllegalStateException("GAME ID must be at least 1!");
@@ -89,6 +92,7 @@ class ChessPiece {
 		return getAllPiecesWithGameID(getGameID());
 	}
 	
+	
 	public static String[] getValidTypesOrColors(boolean useclrs)
 	{
 		String[] marr = null;
@@ -107,6 +111,7 @@ class ChessPiece {
 	{
 		return getValidTypesOrColors(true);
 	}
+	
 	public static int getSetUpColForType(String val, boolean uselft)
 	{
 		if (val == null) throw new IllegalStateException("null not allowed for the type of chess piece!");
@@ -130,6 +135,7 @@ class ChessPiece {
 		else if (val.equals("KING")) return 4;
 		else throw new IllegalStateException("PAWNS ARE FOUND ON ALL COLS!");
 	}
+	
 	public static boolean isGenderKnownForPiece(String tp)
 	{
 		if (itemIsOnGivenList(tp, validTypes));
@@ -236,6 +242,7 @@ class ChessPiece {
 		System.out.println();
 	}
 	
+	//METHODS FOR GETTING NUM ITEMS IN LIST
 	
 	public static int getNumItemsInList(ArrayList mylist)
 	{
@@ -268,6 +275,7 @@ class ChessPiece {
 		else return arr.length;
 	}
 	
+	//CONVERT LOCS METHODS
 	
 	public static int[] convertStringLocToRowCol(String mlocstr)
 	{
@@ -548,7 +556,8 @@ class ChessPiece {
 		}
 	}
 	
-	public static ArrayList<ChessPiece> filterListByColorAndType(String typeval, String clrval, ArrayList<ChessPiece> allpcs)
+	public static ArrayList<ChessPiece> filterListByColorAndType(String typeval, String clrval,
+		ArrayList<ChessPiece> allpcs)
 	{
 		return filterListByColor(filterListByType(allpcs, typeval), clrval);
 	}
@@ -865,10 +874,6 @@ class ChessPiece {
 	
 	
 	
-	//NEED TO KNOW WHAT LOCATIONS CAN BE ATTACKED BY THE OPPOSITE SIDE. (DONE)
-	//NEED TO KNOW IF EXCLUDING CERTAIN PIECIES EFFECT IT. (DONE)
-	//NEED TO KNOW IF ADDING CERTAIN PIECES AT CERTAIN SPOTS EFFECT IT. (DONE)
-	//
 	//NEED TO KNOW WHERE CERTAIN PIECES CAN MOVE TO...
 	//NEED TO KNOW WHOSE TURN IT IS AND
 	//NEED TO PREVENT THE OTHER SIDE FROM MOVING UNTIL WE TELL THEM IT IS THEIR TURN
@@ -888,6 +893,14 @@ class ChessPiece {
 	//-NEED PROMOTED AND TO PROMOTE THEM
 	//
 	
+	
+	
+	//THE OVERALL GOAL OF THE NEXT SET OF METHODS IS TO DETERMINE WHAT PIECES CAN ATTACK A LOCATION
+	//
+	//NEED TO KNOW WHAT LOCATIONS CAN BE ATTACKED BY THE OPPOSITE SIDE. (DONE)
+	//NEED TO KNOW IF EXCLUDING CERTAIN PIECIES EFFECT IT. (DONE)
+	//NEED TO KNOW IF ADDING CERTAIN PIECES AT CERTAIN SPOTS EFFECT IT. (DONE)
+	//
 	//WE NEED TO KNOW HOW ADDING A PIECE AT CERTAIN SPOTS AND IGNORING OTHERS AT CERTAIN SPOTS EFFECT THIS?
 	//WE DO NOT WANT THE NEW PIECE(S) TO BE ON THE BOARD!!!
 	//WE ALSO DO NOT WANT IT TO BE ADDED TO THE LIST OF OFFICIAL CHESS PIECES!!!
@@ -896,6 +909,50 @@ class ChessPiece {
 	//WE WANT TO BE ABLE TO TELL THAT SAME ALGORITHM THAT SOME NEW PIECES ARE AT A CERTAIN LOCATION
 	//WE WANT TO KEEP THE RETURN TYPE THE SAME!
 	//TELL THE CONSTRUCTOR NOT TO ADD IT SO IT WILL THINK IT IS NOT ON THE BOARD
+	
+	
+	//NOTE: THE IS LOCATION GUARDED METHODS ARE NOT AS ACCURATE AS THE GET PIECES GUARDING LOCATION METHODS
+	
+	private static int[][] getAllPossibleKnightMoveToLocs(int rval, int cval)
+	{
+		if (isvalidrorc(rval) && isvalidrorc(cval));
+		else throw new IllegalStateException("rval and cval must be valid!");
+		
+		int[][] pklocs = new int[8][2];
+		pklocs[0][0] = rval - 2;
+		pklocs[0][1] = cval - 1;
+		
+		pklocs[1][0] = rval - 2;
+		pklocs[1][1] = cval + 1;
+		
+		pklocs[2][0] = rval + 2;
+		pklocs[2][1] = cval - 1;
+		
+		pklocs[3][0] = rval + 2;
+		pklocs[3][1] = cval + 1;
+		
+		pklocs[4][0] = rval - 1;
+		pklocs[4][1] = cval - 2;
+		
+		pklocs[5][0] = rval - 1;
+		pklocs[5][1] = cval + 2;
+		
+		pklocs[6][0] = rval + 1;
+		pklocs[6][1] = cval - 2;
+		
+		pklocs[7][0] = rval + 1;
+		pklocs[7][1] = cval + 2;
+		
+		return pklocs;
+	}
+	private static int[][] getAllPossibleKnightMoveToLocs(int[] loc)
+	{
+		if (loc == null || loc.length != 2)
+		{
+			throw new IllegalStateException("You need to provide the chess piece location!");
+		}
+		else return getAllPossibleKnightMoveToLocs(loc[0], loc[1]);
+	}
 	
 	
 	//IF addpcs IS NULL OR EMPTY, THEN THE LIST USED IS THE LIST OF ALL PIECES.
@@ -972,47 +1029,6 @@ class ChessPiece {
 		else return isPieceAtLocationOnAListOfTypes(loc[0], loc[1], gid, mtypes);
 	}
 	
-	
-	private static int[][] getAllPossibleKnightMoveToLocs(int rval, int cval)
-	{
-		if (isvalidrorc(rval) && isvalidrorc(cval));
-		else throw new IllegalStateException("rval and cval must be valid!");
-		
-		int[][] pklocs = new int[8][2];
-		pklocs[0][0] = rval - 2;
-		pklocs[0][1] = cval - 1;
-		
-		pklocs[1][0] = rval - 2;
-		pklocs[1][1] = cval + 1;
-		
-		pklocs[2][0] = rval + 2;
-		pklocs[2][1] = cval - 1;
-		
-		pklocs[3][0] = rval + 2;
-		pklocs[3][1] = cval + 1;
-		
-		pklocs[4][0] = rval - 1;
-		pklocs[4][1] = cval - 2;
-		
-		pklocs[5][0] = rval - 1;
-		pklocs[5][1] = cval + 2;
-		
-		pklocs[6][0] = rval + 1;
-		pklocs[6][1] = cval - 2;
-		
-		pklocs[7][0] = rval + 1;
-		pklocs[7][1] = cval + 2;
-		
-		return pklocs;
-	}
-	private static int[][] getAllPossibleKnightMoveToLocs(int[] loc)
-	{
-		if (loc == null || loc.length != 2)
-		{
-			throw new IllegalStateException("You need to provide the chess piece location!");
-		}
-		else return getAllPossibleKnightMoveToLocs(loc[0], loc[1]);
-	}
 	
 	//this checks the diagnals for a Bishop a Pawn or a Queen the first one it finds starting at rval cval it will return true
 	//that means if you call this on a Bishop, Pawn, or Queen it will return true immediately
@@ -1227,6 +1243,9 @@ class ChessPiece {
 	}
 	
 	
+	
+	//IS A LOC ON A LIST OF LOCS
+	
 	public static boolean isLocOnListOfLocs(int rval, int cval, int[][] loclist)
 	{
 		if (isvalidrorc(rval) && isvalidrorc(cval));
@@ -1252,6 +1271,8 @@ class ChessPiece {
 		else return isLocOnListOfLocs(loc[0], loc[1], loclist);
 	}
 	
+	
+	//DETECTS PIECES DIRECTLY ABLE TO ATTACK OR MOVE TO A LOCATION
 	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationByAKnight(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -2219,7 +2240,8 @@ class ChessPiece {
 	{
 		return getEnemyPiecesGuardingLocation(rval, cval, gid, clrval, null);
 	}
-	public static ArrayList<ChessPiece> getEnemyPiecesGuardingLocation(int[] loc, int gid, String clrval, int[][] ignorelist)
+	public static ArrayList<ChessPiece> getEnemyPiecesGuardingLocation(int[] loc, int gid, String clrval,
+		int[][] ignorelist)
 	{
 		if (loc == null || loc.length != 2)
 		{
@@ -2246,6 +2268,8 @@ class ChessPiece {
 		else return getEnemyPiecesGuardingLocation(loc[0], loc[1], gid, ignorelist);
 	}
 	
+	
+	//METHODS TO GENERATE THE NEW BOARD LIST FROM A LIST OF CHANGES TO THE OLD BOARD
 	
 	public static ArrayList<ChessPiece> combineBoardAndIgnoreLists(int[][] ignorelist, ArrayList<ChessPiece> boardlist)
 	{
@@ -2383,6 +2407,48 @@ class ChessPiece {
 		return combineBoardAddAndIgnoreLists(ignorelist, addpcs, getAllPiecesWithGameID(gid));
 	}
 	
+	//merges the two lists
+	public static int[][] combineIgnoreLists(int[][] ilista, int[][] ilistb)
+	{
+		if (ilista == null || ilista.length < 1) return ilistb;
+		else if (ilistb == null || ilistb.length < 1) return ilista;
+		else
+		{
+			int[][] midreslist = new int[ilista.length + ilistb.length][2];
+			for (int x = 0; x < midreslist.length; x++)
+			{
+				midreslist[x][0] = -1;
+				midreslist[x][1] = -1;
+			}
+			int midreslisti = 0;
+			for (int x = 0; x < ilista.length; x++)
+			{
+				midreslist[midreslisti][0] = ilista[x][0];
+				midreslist[midreslisti][1] = ilista[x][1];
+				midreslisti++;
+			}
+			for (int x = 0; x < ilistb.length; x++)
+			{
+				if (isLocOnListOfLocs(ilistb[x], midreslist));//do nothing do not add it
+				else
+				{
+					midreslist[midreslisti][0] = ilistb[x][0];
+					midreslist[midreslisti][1] = ilistb[x][1];
+					midreslisti++;
+				}
+			}
+			int[][] reslist = new int[midreslisti][2];
+			for (int x = 0; x < midreslisti; x++)
+			{
+				reslist[x][0] = midreslist[x][0];
+				reslist[x][1] = midreslist[x][1];
+			}
+			return reslist;
+		}
+	}
+	
+	//CHECK METHODS
+	
 	
 	//can I be directly attacked by the opposing side?
 	public boolean inCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -2409,6 +2475,438 @@ class ChessPiece {
 	{
 		return isMySideInCheck(null, null);
 	}
+	
+	
+	//NOT DONE YET....
+	
+	public static boolean canAddThisMoveToLoc(int sr, int sc, int nr, int nc, String myclr, String mytpval,
+		int[][] oignorelist, ArrayList<ChessPiece> oaddpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		ChessPiece cp = getPieceAt(nr, nc, combineBoardAddAndIgnoreLists(oignorelist, oaddpcs, gid));
+		boolean addit = true;
+		if (cp == null);
+		else
+		{
+			if (cp.getColor().equals(myclr)) addit = false;
+			//else;//do nothing
+		}
+		if (addit)
+		{
+			//need to know if ignoring piece at sr and sc and putting a castle/queen piece at this location
+			//puts my king in check
+			//if it puts my king in check -> do not add it
+			//else add it
+			
+			int[][] ilista = new int[1][2];
+			ilista[0][0] = sr;
+			ilista[0][1] = sc;
+			int[][] ignorelist = combineIgnoreLists(ilista, oignorelist);
+			
+			ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+			addpcs.add(new ChessPiece(mytpval, myclr, nr, nc, gid, false));
+			if (getNumItemsInList(oaddpcs) < 1);
+			else
+			{
+				for (int x = 0; x < oaddpcs.size(); x++)
+				{
+					boolean addpctoit = true;
+					for (int c = 0; c < addpcs.size(); c++)
+					{
+						if (oaddpcs.get(x).getRow() == addpcs.get(c).getRow() &&
+							oaddpcs.get(x).getCol() == addpcs.get(c).getCol())
+						{
+							addpctoit = false;
+							break;
+						}
+						//else;//do nothing
+					}
+					if (addpctoit) addpcs.add(oaddpcs.get(x));
+					//else;//do nothing
+				}
+			}
+			ChessPiece mkg = getCurrentSideKing(myclr, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+			if (mkg.inCheck(ignorelist, addpcs)) addit = false;
+			//else;//do nothing
+		}
+		//else;//do nothing
+		return addit;
+	}
+	
+	public static int[][] getBishopCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		int[][] keeplist = new int[16][2];
+		for (int x = 0; x < keeplist.length; x++)
+		{
+			keeplist[x][0] = -1;
+			keeplist[x][1] = -1;
+		}
+		keeplist[0][0] = sr;
+		keeplist[0][1] = sc;
+		int kli = 1;
+		
+		for (int x = 0; x < 4; x++)
+		{
+			//System.out.println("x = " + x);
+			
+			int r = sr;
+			int c = sc;
+			while (isvalidrorc(r) && isvalidrorc(c))
+			{
+				if (canAddThisMoveToLoc(sr, sc, r, c, myclr, "BISHOP", ignorelist, addpcs, gid))
+				{
+					keeplist[kli][0] = r;
+					keeplist[kli][1] = c;
+					kli++;
+				}
+				//else;//do nothing
+				ChessPiece cp = getPieceAt(r, c, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+				if (cp == null);
+				else break;
+				
+				//increment the variables
+				//System.out.println("x = " + x);
+				if (x == 0)
+				{
+					//go towards bottom right
+					//System.out.println("TOWARDS BOTTOM RIGHT!");
+					r++;
+					c++;
+				}
+				else if (x == 1)
+				{
+					//go towards top left
+					//System.out.println("TOWARDS TOP LEFT!");
+					r--;
+					c--;
+				}
+				else if (x == 2)
+				{
+					//go towards top right
+					//System.out.println("TOWARDS TOP RIGHT!");
+					r--;
+					c++;
+				}
+				else if (x == 3)
+				{
+					//go towards bottom left
+					//System.out.println("TOWARDS BOTTOM LEFT!");
+					r++;
+					c--;
+				}
+				else throw new IllegalStateException("ILLEGAL VALUE FOUND AND USED HERE FOR INDEX X!");
+			}//end of while loop
+		}//end of x for loop
+		//copy keeplist to rlist
+		int[][] rlist = new int[kli][2];
+		for (int x = 0; x < kli; x++)
+		{
+			rlist[x][0] = keeplist[x][0];
+			rlist[x][1] = keeplist[x][1];
+		}
+		return rlist;
+	}
+	//NOTE: this does not take into account castling
+	public static int[][] getCastleCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//we do not include sr and sc only (WE ASSUME THERE IS A PIECE THERE THAT IS A CASTLE OR A QUEEN)
+		//moving on rows or columns checking to see if the location is empty according to all pieces list
+		//if the location is empty, add it to keep list
+		//if the location is not empty:
+		//-check to see if we can kill it:
+		//--if we can kill it, add it;
+		//--if not, do not add it;
+		//-but done
+		//we must make sure that the location lets us not be in check or results in our side not in check
+		//
+		//column stays the same
+		//at most there will be 8 locations in any row or column so 8 different positions
+		//the castle therefore will have at most 16 possible moves (if allowed to stay at its current position)
+		int[][] keeplist = new int[16][2];
+		for (int x = 0; x < keeplist.length; x++)
+		{
+			keeplist[x][0] = -1;
+			keeplist[x][1] = -1;
+		}
+		keeplist[0][0] = sr;
+		keeplist[0][1] = sc;
+		int kli = 1;
+		for (int r = sr; r < 8; r++)
+		{
+			if (r == sr) continue;
+			//else;//do nothing
+			
+			if (canAddThisMoveToLoc(sr, sc, r, sc, myclr, "CASTLE", ignorelist, addpcs, gid))
+			{
+				keeplist[kli][0] = r;
+				keeplist[kli][1] = sc;
+				kli++;
+			}
+			//else;//do nothing
+			ChessPiece cp = getPieceAt(r, sc, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+			if (cp == null);
+			else break;
+		}
+		for (int r = sr; (0 < r || r == 0 && r < 8); r--)
+		{
+			if (r == sr) continue;
+			//else;//do nothing
+			
+			if (canAddThisMoveToLoc(sr, sc, r, sc, myclr, "CASTLE", ignorelist, addpcs, gid))
+			{
+				keeplist[kli][0] = r;
+				keeplist[kli][1] = sc;
+				kli++;
+			}
+			//else;//do nothing
+			ChessPiece cp = getPieceAt(r, sc, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+			if (cp == null);
+			else break;
+		}
+		//row stays the same
+		for (int c = sc; c < 8; c++)
+		{
+			if (c == sc) continue;
+			//else;//do nothing
+			
+			if (canAddThisMoveToLoc(sr, sc, sr, c, myclr, "CASTLE", ignorelist, addpcs, gid))
+			{
+				keeplist[kli][0] = sr;
+				keeplist[kli][1] = c;
+				kli++;
+			}
+			//else;//do nothing
+			ChessPiece cp = getPieceAt(sr, c, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+			if (cp == null);
+			else break;
+		}
+		for (int c = sc; (0 < c || c == 0 && c < 8); c--)
+		{
+			if (c == sc) continue;
+			//else;//do nothing
+			
+			if (canAddThisMoveToLoc(sr, sc, sr, c, myclr, "CASTLE", ignorelist, addpcs, gid))
+			{
+				keeplist[kli][0] = sr;
+				keeplist[kli][1] = c;
+				kli++;
+			}
+			//else;//do nothing
+			ChessPiece cp = getPieceAt(sr, c, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+			if (cp == null);
+			else break;
+		}
+		//copy keeplist to rlist
+		int[][] rlist = new int[kli][2];
+		for (int x = 0; x < kli; x++)
+		{
+			rlist[x][0] = keeplist[x][0];
+			rlist[x][1] = keeplist[x][1];
+		}
+		return rlist;
+	}
+	public static int[][] getQueenCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//combines the two above
+		int[][] bmlocs = getBishopCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+		int[][] cmlocs = getCastleCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+		if (bmlocs == null || bmlocs.length < 1) return cmlocs;
+		else if (cmlocs == null || cmlocs.length < 1) return bmlocs;
+		else
+		{
+			//both are non null;
+			int[][] reslocs = new int[bmlocs.length + cmlocs.length][2];
+			int resi = 0;
+			for (int r = 0; r < bmlocs.length; r++)
+			{
+				reslocs[resi] = bmlocs[r];
+				resi++;
+			}
+			for (int r = 0; r < cmlocs.length; r++)
+			{
+				if (isLocOnListOfLocs(cmlocs[r], reslocs));
+				else
+				{
+					reslocs[resi] = cmlocs[r];
+					resi++;
+				}
+			}
+			int[][] myretlist = new int[resi][2];
+			for (int x = 0; x < resi; x++)
+			{
+				myretlist[x][0] = reslocs[x][0];
+				myretlist[x][1] = reslocs[x][1];
+			}
+			return myretlist;
+		}
+	}
+	//NOTE: this does not take into account pawning
+	public static int[][] getPawnCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//can only move forward one or two spaces on the first turn otherwise forward one only
+		//exception is attacking or pawning
+		
+		//
+		throw new IllegalStateException("NOT DONE YET WITH PAWN CAN MOVE TO LOCS 5-3-2024 12:24 AM MST");
+	}
+	public static int[][] getKnightCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		int[][] pktlocs = getAllPossibleKnightMoveToLocs(sr, sc);
+		//if (pktlocs == null) System.out.println("pktlocs = null");
+    	//else if (pktlocs.length < 1) System.out.println("pktlocs is empty!");
+    	//else
+    	//{
+    	//	System.out.println("pktlocs.length = " + pktlocs.length);
+	    //	for (int x = 0; x < pktlocs.length; x++)
+	    //	{
+	    //		System.out.println(getLocString(pktlocs[x][0], pktlocs[x][1]));
+	    //		//System.out.println(getLocString(pktlocs[x][0], pktlocs[x][1]) + ": " +
+	    //		//	convertRowColToStringLoc(pktlocs[x]));
+	    //	}
+    	//}
+    	//System.out.println("STARTING LOCATION: " + getLocString(sr, sc) + ": " + convertRowColToStringLoc(sr, sc));
+    	
+    	if (pktlocs == null || pktlocs.length < 1)
+    	{
+    		int[][] rlist = new int[1][2];
+    		rlist[0][0] = sr;
+    		rlist[0][1] = sc;
+    		return rlist;
+    	}
+		else
+		{
+			boolean[] isvloc = new boolean[pktlocs.length];
+			int numv = 0;
+			for (int x = 0; x < pktlocs.length; x++)
+	    	{
+	    		isvloc[x] = (isvalidrorc(pktlocs[x][0]) && isvalidrorc(pktlocs[x][1]));
+	    		if (isvloc[x])
+	    		{
+	    			//the loc is valid, but now see if moving there moves our king to check or
+	    			//see if we can even move there in the first place
+	    			if (canAddThisMoveToLoc(sr, sc, pktlocs[x][0], pktlocs[x][1], myclr, "KNIGHT", ignorelist, addpcs, gid))
+					{
+						isvloc[x] = true;
+					}
+					else isvloc[x] = false;
+		    	}
+		    	//else;//do nothing
+	    		if (isvloc[x]) numv++;
+	    	}
+	    	int[][] vpktlocs = new int[numv + 1][2];
+	    	vpktlocs[0][0] = sr;
+	    	vpktlocs[0][1] = sc;
+	    	int vpki = 1;
+	    	for (int x = 0; x < pktlocs.length; x++)
+	    	{
+	    		if (isvloc[x])
+	    		{
+	    			vpktlocs[vpki][0] = pktlocs[x][0];
+	    			vpktlocs[vpki][1] = pktlocs[x][1];
+	    			//System.out.println("VALID LOC " + getLocString(vpktlocs[vpki][0], vpktlocs[vpki][1]) + ": " +
+	    			//	convertRowColToStringLoc(vpktlocs[vpki]));
+	    			vpki++;
+	    		}
+	    		//else;//do nothing
+	    	}
+	    	return vpktlocs;
+		}
+	}
+	//NOTE: this does not take into account castling
+	public static int[][] getKingCanMoveToLocs(int sr, int sc, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (isvalidrorc(sr) && isvalidrorc(sc));
+		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//can move one square in any direction
+		//exception is castling
+		
+		//rdiff and cdiff must be at most 1 at minimum 0 zero
+		int[][] keeplist = new int[9][2];
+		int kli = 0;
+		for (int x = 0; x < keeplist.length; x++)
+		{
+			keeplist[x][0] = -1;
+			keeplist[x][1] = -1;
+		}
+		for (int r = sr - 1; ((0 < r || r == 0) && r < 8) && r < sr + 2; r++)
+		{
+			for (int c = sc - 1; ((0 < c || c == 0) && c < 8) && c < sc + 2; c++)
+			{
+				if ((r == sr && c == sc) || canAddThisMoveToLoc(sr, sc, r, c, myclr, "KING", ignorelist, addpcs, gid))
+				{
+					keeplist[kli][0] = r;
+					keeplist[kli][1] = sc;
+					kli++;
+				}
+				//else;//do nothing
+				//different than the others because all locations are one away from the spot so just loop through them
+			}
+		}
+		//copy keeplist to rlist
+		int[][] rlist = new int[kli][2];
+		for (int x = 0; x < kli; x++)
+		{
+			rlist[x][0] = keeplist[x][0];
+			rlist[x][1] = keeplist[x][1];
+		}
+		return rlist;
+	}
+	public static int[][] getPieceCanMoveToLocs(int sr, int sc, String myclr, String mytpval,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (mytpval == null) throw new IllegalStateException("mytpval must not be null!");
+		else
+		{
+			if (mytpval.equals("BISHOP")) return getBishopCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else if (mytpval.equals("CASTLE") || mytpval.equals("ROOK"))
+			{
+				return getCastleCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			}
+			else if (mytpval.equals("QUEEN")) return getQueenCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else if (mytpval.equals("PAWN")) return getPawnCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else if (mytpval.equals("KING")) return getKingCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else if (mytpval.equals("KNIGHT")) return getKnightCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else throw new IllegalStateException("illegal value found and used here for mytpval (" + mytpval + ")!");
+		}
+	}
+	
 	
 	//NOT DONE YET...
 	public boolean canMoveTo(int rval, int cval)
@@ -2474,6 +2972,9 @@ class ChessPiece {
 		}
 		else return canMoveToLoc(nloc[0], nloc[1]);
 	}
+	
+	
+	//SERVER METHODS
 	
 	public static String genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval)
 	{
@@ -2565,6 +3066,7 @@ class ChessPiece {
 	{
 		return canPawnForSideBePromoted(clrval, getAllPiecesWithGameID(gid));
 	}
+	
 	public void promotePawnTo(String nwtype)
 	{
 		if (canPawnBePromoted())
@@ -2578,6 +3080,9 @@ class ChessPiece {
 		else throw new IllegalStateException("CANNOT PROMOTE THE PAWN!");
 	}
 	
+	
+	//NOT NECESSARILY DONE YET...
+	//NEED A WAY TO DETECT IF THIS IS THE IMMEDIATE NEXT MOVE
 	public boolean canPawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs)
 	{
 		//if no pawns for one side -> false
@@ -2758,6 +3263,8 @@ class ChessPiece {
 		return canSidePawn(clrval, getAllPiecesWithGameID(gid));
 	}
 	
+	//NEED A METHOD TO PAWN A PAWN...
+	
 	//CASTLING METHODS
 	
 	public static boolean canSideCastleLeftOrRight(boolean useleft, String clrval,
@@ -2932,6 +3439,8 @@ class ChessPiece {
 		return (canCastleLeft() || canCastleRight());
 	}
 	
+	//NEED A METHOD TO CASTLE THE CASTLE AND THE KING IN QUESTION...
+	
 	public static int[] getLeftOrRightCastleSideNewCastleOrKingLoc(boolean useleft, boolean usekg, String clrval, int gid)
 	{
 		int[] myretarr = {-1, -1};
@@ -2992,6 +3501,9 @@ class ChessPiece {
 	{
 		return getLeftCastleSideNewCastleLoc(getColor(), getGameID());
 	}
+	
+	
+	//GENERIC TO STRING METHOD FOR THE PIECE
 	
 	public String toString()
 	{

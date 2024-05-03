@@ -47,7 +47,21 @@ public class ChessBoardPieceClass {
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//setUpBoardForCastlingWhiteRight(gid, false);
     	//setUpBoardWithFourMoveCheckMate(gid, false);
-    	setUpBoardWithTwoMoveCheckMate(gid, false);
+    	//setUpBoardWithTwoMoveCheckMate(gid, false);
+    	
+    	int[][] initkgcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 4, "WHITE", "KING", null, null, gid);
+    	printLocsArray(initkgcanmvlocs, "initkgcanmvlocs");
+    	int[][] initqncanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 3, "WHITE", "QUEEN", null, null, gid);
+    	printLocsArray(initqncanmvlocs, "initqncanmvlocs");
+    	int[][] initbpcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 5, "WHITE", "BISHOP", null, null, gid);
+    	printLocsArray(initbpcanmvlocs, "initbpcanmvlocs");
+    	int[][] initclcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 7, "WHITE", "CASTLE", null, null, gid);
+    	printLocsArray(initclcanmvlocs, "initclcanmvlocs");
+    	int[][] initktcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 6, "WHITE", "KNIGHT", null, null, gid);
+    	printLocsArray(initktcanmvlocs, "initktcanmvlocs");
+    	int[][] initpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(6, 4, "WHITE", "PAWN", null, null, gid);
+    	printLocsArray(initpwncanmvlocs, "initpwncanmvlocs");
+    	
     	
     	//ChessPiece wpn = ChessPiece.getPieceAt(6, 0, gid);
     	//wpn.genMoveToCommand(4, 0);
@@ -57,6 +71,26 @@ public class ChessBoardPieceClass {
     	//bpn.moveTo(3, 1);
     	//wpn.genMoveToCommand(3, 1);
     	//wpn.moveTo(3, 1);
+    }
+    
+    public static void printLocsArray(int[][] locs, String arrnm)
+    {
+    	if (arrnm == null || arrnm.length() < 1) printLocsArray(locs, "locs");
+    	if (locs == null) System.out.println("" + arrnm + " = null");
+    	else if (locs.length < 1) System.out.println("" + arrnm + " is empty!");
+    	else
+    	{
+    		System.out.println("" + arrnm + ".length = " + locs.length);
+	    	for (int x = 0; x < locs.length; x++)
+	    	{
+	    		System.out.println(ChessPiece.getLocString(locs[x][0], locs[x][1]) + ": " +
+	    			ChessPiece.convertRowColToStringLoc(locs[x]));
+	    	}
+    	}
+    }
+    public static void printLocsArray(int[][] locs)
+    {
+    	printLocsArray(locs, "locs");
     }
     
     public static void getAndPrintAllPiecesGenders(int gid)
