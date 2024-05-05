@@ -39,8 +39,11 @@ public class ChessBoardPieceClass {
     	System.out.println(ChessPiece.canSideCastle("BLACK", gid));
     	System.out.println();
     	
+    	if (true) return;
+    	
     	//getAndPrintAllPiecesGenders();
     	//testConvertingLocations();
+    	//testCanMoveToLocs(gid, null, null);
     	
     	//testPawning(gid, false);
     	//setUpBoardForPawnPromotion(gid, false);
@@ -48,19 +51,8 @@ public class ChessBoardPieceClass {
     	//setUpBoardForCastlingWhiteRight(gid, false);
     	//setUpBoardWithFourMoveCheckMate(gid, false);
     	//setUpBoardWithTwoMoveCheckMate(gid, false);
-    	
-    	int[][] initkgcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 4, "WHITE", "KING", null, null, gid);
-    	printLocsArray(initkgcanmvlocs, "initkgcanmvlocs");
-    	int[][] initqncanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 3, "WHITE", "QUEEN", null, null, gid);
-    	printLocsArray(initqncanmvlocs, "initqncanmvlocs");
-    	int[][] initbpcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 5, "WHITE", "BISHOP", null, null, gid);
-    	printLocsArray(initbpcanmvlocs, "initbpcanmvlocs");
-    	int[][] initclcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 7, "WHITE", "CASTLE", null, null, gid);
-    	printLocsArray(initclcanmvlocs, "initclcanmvlocs");
-    	int[][] initktcanmvlocs = ChessPiece.getPieceCanMoveToLocs(7, 6, "WHITE", "KNIGHT", null, null, gid);
-    	printLocsArray(initktcanmvlocs, "initktcanmvlocs");
-    	int[][] initpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(6, 4, "WHITE", "PAWN", null, null, gid);
-    	printLocsArray(initpwncanmvlocs, "initpwncanmvlocs");
+    	//System.out.println();
+    	//System.out.println("AFTER SPECIAL TESTS!");
     	
     	
     	//ChessPiece wpn = ChessPiece.getPieceAt(6, 0, gid);
@@ -250,6 +242,9 @@ public class ChessBoardPieceClass {
     }
     public static void setUpFutureCheck(int gid)
     {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
     	//now set up future check scenario
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -274,6 +269,11 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck(ignorelist, addpcs));
     	System.out.println();
     	
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 6, 6, "WHITE", 4, 7, "BLACK",
+    		ignorelist, addpcs);
+    	System.out.println();
+    	
     	printBoard(gid);
     	System.out.println();
     	
@@ -285,6 +285,84 @@ public class ChessBoardPieceClass {
     	System.out.println();
     	//System.out.println(ChessPiece.getPiecesGuardingLocation(2, 2));
     	//System.out.println();
+    }
+    
+    public static void testCanMoveToLocs(int gid, int kgr, int kgc, String kgclr, int ktr, int ktc, String ktclr,
+    	int cr, int cc, String cclr, int br, int bc, String bclr, int pr, int pc, String pclr, int qr, int qc, String qclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + kgclr + " KING CAN MOVE TO LOCS WITH STARTING LOCATION (kgr: " + kgr + ", kgc: " +
+    	//	kgc + ")!");
+    	int[][] initkgcanmvlocs = ChessPiece.getPieceCanMoveToLocs(kgr, kgc, kgclr, "KING", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + kgclr + " KING CAN MOVE TO LOCS WITH STARTING LOCATION (kgr: " + kgr + ", kgc: " +
+    		kgc + ")!");
+    	printLocsArray(initkgcanmvlocs, "initkgcanmvlocs");
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + qclr + " QUEEN CAN MOVE TO LOCS WITH STARTING LOCATION (qr: " + qr + ", qc: " +
+    	//	qc + ")!");
+    	int[][] initqncanmvlocs = ChessPiece.getPieceCanMoveToLocs(qr, qc, qclr, "QUEEN", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + qclr + " QUEEN CAN MOVE TO LOCS WITH STARTING LOCATION (qr: " + qr + ", qc: " +
+    		qc + ")!");
+    	printLocsArray(initqncanmvlocs, "initqncanmvlocs");
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + bclr + " BISHOP CAN MOVE TO LOCS WITH STARTING LOCATION (br: " + br + ", bc: " +
+    	//	bc + ")!");
+    	int[][] initbpcanmvlocs = ChessPiece.getPieceCanMoveToLocs(br, bc, bclr, "BISHOP", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + bclr + " BISHOP CAN MOVE TO LOCS WITH STARTING LOCATION (br: " + br + ", bc: " +
+    		bc + ")!");
+    	printLocsArray(initbpcanmvlocs, "initbpcanmvlocs");
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + cclr + " CASTLE CAN MOVE TO LOCS WITH STARTING LOCATION (cr: " + cr + ", cc: " +
+    	//	cc + ")!");
+    	int[][] initclcanmvlocs = ChessPiece.getPieceCanMoveToLocs(cr, cc, cclr, "CASTLE", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + cclr + " CASTLE CAN MOVE TO LOCS WITH STARTING LOCATION (cr: " + cr + ", cc: " +
+    		cc + ")!");
+    	printLocsArray(initclcanmvlocs, "initclcanmvlocs");
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + ktclr + " KNIGHT CAN MOVE TO LOCS WITH STARTING LOCATION (ktr: " + ktr + ", ktc: " +
+    	//	ktc + ")!");
+    	int[][] initktcanmvlocs = ChessPiece.getPieceCanMoveToLocs(ktr, ktc, ktclr, "KNIGHT", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + ktclr + " KNIGHT CAN MOVE TO LOCS WITH STARTING LOCATION (ktr: " + ktr + ", ktc: " +
+    		ktc + ")!");
+    	printLocsArray(initktcanmvlocs, "initktcanmvlocs");
+    	
+    	System.out.println();
+    	//System.out.println("CALLING " + pclr + " PAWN CAN MOVE TO LOCS WITH STARTING LOCATION (pr: " + pr + ", pc: " +
+    	//	pc + ")!");
+    	int[][] initpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(pr, pc, pclr, "PAWN", ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + pclr + " PAWN CAN MOVE TO LOCS WITH STARTING LOCATION (pr: " + pr + ", pc: " +
+    		pc + ")!");
+    	printLocsArray(initpwncanmvlocs, "initpwncanmvlocs");
+    }
+    //loc lists in the order of: king, knight, castle (rook), bishop, pawn, queen
+    public static void testCanMoveToLocs(int gid, int[] kgloc, String kgclr, int[] ktloc, String ktclr,
+    	int[] cloc, String cclr, int[] bloc, String bclr, int[] ploc, String pclr, int[] qloc, String qclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testCanMoveToLocs(gid, kgloc[0], kgloc[1], kgclr, ktloc[0], ktloc[1], ktclr, cloc[0], cloc[1], cclr,
+    		bloc[0], bloc[1], bclr, ploc[0], ploc[1], pclr, qloc[0], qloc[1], qclr, ignorelist, addpcs);
+    }
+    //pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    public static void testCanMoveToLocs(int gid, int[][] pcslocs, String[] psclrs, int[][] ignorelist,
+    	ArrayList<ChessPiece> addpcs)
+    {
+    	testCanMoveToLocs(gid, pcslocs[0][0], pcslocs[0][1], psclrs[0], pcslocs[1][0], pcslocs[1][1], psclrs[1],
+    		pcslocs[2][0], pcslocs[2][1], psclrs[2], pcslocs[3][0], pcslocs[3][1], psclrs[3],
+    		pcslocs[4][0], pcslocs[4][1], psclrs[4], pcslocs[5][0], pcslocs[5][1], psclrs[5], ignorelist, addpcs);
+    }
+    public static void testCanMoveToLocs(int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 6, 4, "WHITE", 7, 3, "WHITE",
+    		ignorelist, addpcs);
     }
     
     //SET UP BOARD METHODS
@@ -361,6 +439,9 @@ public class ChessBoardPieceClass {
     	bpn.promotePawnTo("QUEEN");
     	System.out.println(bpn);
     	printBoard(myonwpcslist);
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 0, "WHITE", 0, 2, "BLACK", 1, 2, "BLACK", 7, 7, "BLACK",
+    		ChessPiece.combineIgnoreLists(nwiglist, ignorelist), ChessPiece.combineTwoPieceLists(nwaddpcs, addpcs));
     }
     public static void setUpBoardForPawnPromotion(int gid, boolean movethere)
     {
@@ -399,7 +480,8 @@ public class ChessBoardPieceClass {
     	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7");
     	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2");
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("B5"), gid, 2, false));
+    	ChessPiece bpn = new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("B5"), gid, 2, false);
+    	addpcs.add(bpn);
     	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5"), gid, 1, false));
     	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F5"), gid, 2, false));
     	//print the board first
@@ -409,6 +491,42 @@ public class ChessBoardPieceClass {
     	//call canPawnLeft on Black Pawn
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", nwpcslist));
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", nwpcslist));
+    	int[][] bpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(bpn.getRow(), bpn.getCol(), "BLACK", "PAWN",
+    		ignorelist, addpcs, gid);
+    	printLocsArray(bpwncanmvlocs, "bpwncanmvlocs");
+    	System.out.println("BLACK CAN PAWN LEFT: " + bpn.canPawnLeft(nwpcslist));
+    	System.out.println("BLACK CAN PAWN RIGHT: " + bpn.canPawnRight(nwpcslist));
+    	int[] bplftloc = bpn.getPawnLeftLocation(nwpcslist);
+    	int[] bprgtloc = bpn.getPawnRightLocation(nwpcslist);
+    	if (bplftloc == null) System.out.println("BLACK PAWNING MOVE TO LEFT LOCATION: null");
+    	else
+    	{
+    		System.out.println("BLACK PAWNING MOVE TO LEFT LOCATION: " + ChessPiece.getLocString(bplftloc) + " IS: " +
+    			ChessPiece.convertRowColToStringLoc(bplftloc));
+    	}
+    	if (bprgtloc == null) System.out.println("BLACK PAWNING MOVE TO RIGHT LOCATION: null");
+    	else
+    	{
+    		System.out.println("BLACK PAWNING MOVE TO RIGHT LOCATION: " + ChessPiece.getLocString(bprgtloc) + " IS: " +
+    			ChessPiece.convertRowColToStringLoc(bprgtloc));
+    	}
+    	System.out.println("BLACK ENEMY PAWN FOR LEFT PAWNING: " + bpn.getEnemyPawnForLeftPawning(nwpcslist));
+    	System.out.println("BLACK ENEMY PAWN FOR RIGHT PAWNING: " + bpn.getEnemyPawnForRightPawning(nwpcslist));
+    	if (bplftloc == null) System.out.println("BLACK PAWN CAN MOVE TO THE LEFT PAWNING LOCATION: false");
+    	else
+    	{
+    		System.out.println("BLACK PAWN CAN MOVE TO THE LEFT PAWNING LOCATION: " +
+    			bpn.canMoveTo(bplftloc[0], bplftloc[1], ignorelist, addpcs));
+    	}
+    	if (bprgtloc == null) System.out.println("BLACK PAWN CAN MOVE TO THE RIGHT PAWNING LOCATION: false");
+    	else
+    	{
+    		System.out.println("BLACK PAWN CAN MOVE TO THE RIGHT PAWNING LOCATION: " +
+    			bpn.canMoveTo(bprgtloc[0], bprgtloc[1], ignorelist, addpcs));
+    	}
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 4, 5, "WHITE", 7, 7, "WHITE", 0, 2, "BLACK", 4, 1, "BLACK", 0, 3, "BLACK",
+    		ignorelist, addpcs);
     }
     public static void testPawning(int gid, boolean movethere)
     {
@@ -458,6 +576,9 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", nwpcslist);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 0, "BLACK", 7, 2, "WHITE", 1, 6, "BLACK", 0, 3, "BLACK",
+    		ignorelist, addpcs);
     }
     public static void setUpBoardWithKnightCheckingKing(int gid, boolean movethere)
     {
@@ -512,6 +633,9 @@ public class ChessBoardPieceClass {
     	//actually test the castling information here now...
     	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", ignorelist, addpcs, gid));
     	System.out.println("BLACK CAN CASTLE: " + ChessPiece.canSideCastle("BLACK", ignorelist, addpcs, gid));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 5, 7, "WHITE", 7, 7, "WHITE", 4, 2, "WHITE", 6, 1, "WHITE", 7, 3, "WHITE",
+    		ignorelist, addpcs);
     }
     public static void setUpBoardForCastlingWhiteRight(int gid, boolean movethere)
     {
@@ -572,6 +696,9 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 7, "BLACK", 0, 5, "BLACK", 1, 4, "BLACK", 1, 5, "WHITE",
+    		ignorelist, addpcs);
     }
     public static void setUpBoardWithFourMoveCheckMate(int gid, boolean movethere)
     {
@@ -629,6 +756,9 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 7, "BLACK", 0, 5, "BLACK", 1, 4, "BLACK", 3, 7, "WHITE",
+    		ignorelist, addpcs);
     }
     public static void setUpBoardWithTwoMoveCheckMate(int gid, boolean movethere)
     {
