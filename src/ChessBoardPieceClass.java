@@ -39,7 +39,9 @@ public class ChessBoardPieceClass {
     	System.out.println(ChessPiece.canSideCastle("BLACK", gid));
     	System.out.println();
     	
-    	if (true) return;
+    	//System.out.println(ChessPiece.getColorOfLoc(7, 7));
+    	
+    	//if (true) return;
     	
     	//getAndPrintAllPiecesGenders();
     	//testConvertingLocations();
@@ -47,10 +49,13 @@ public class ChessBoardPieceClass {
     	
     	//testPawning(gid, false);
     	//setUpBoardForPawnPromotion(gid, false);
-    	//setUpBoardWithKnightCheckingKing(gid, false);
     	//setUpBoardForCastlingWhiteRight(gid, false);
+    	//setUpBoardWithKnightCheckingKing(gid, false);
     	//setUpBoardWithFourMoveCheckMate(gid, false);
-    	//setUpBoardWithTwoMoveCheckMate(gid, false);
+    	//setUpBoardWithTwoMoveCheckMateBlack(gid, false);
+    	//setUpBoardWithTwoMoveCheckMateWhite(gid, false);
+    	setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
+    	//setUpBoardWithKingVKingOnlyWithoutMovingThere(gid);
     	//System.out.println();
     	//System.out.println("AFTER SPECIAL TESTS!");
     	
@@ -63,26 +68,6 @@ public class ChessBoardPieceClass {
     	//bpn.moveTo(3, 1);
     	//wpn.genMoveToCommand(3, 1);
     	//wpn.moveTo(3, 1);
-    }
-    
-    public static void printLocsArray(int[][] locs, String arrnm)
-    {
-    	if (arrnm == null || arrnm.length() < 1) printLocsArray(locs, "locs");
-    	if (locs == null) System.out.println("" + arrnm + " = null");
-    	else if (locs.length < 1) System.out.println("" + arrnm + " is empty!");
-    	else
-    	{
-    		System.out.println("" + arrnm + ".length = " + locs.length);
-	    	for (int x = 0; x < locs.length; x++)
-	    	{
-	    		System.out.println(ChessPiece.getLocString(locs[x][0], locs[x][1]) + ": " +
-	    			ChessPiece.convertRowColToStringLoc(locs[x]));
-	    	}
-    	}
-    }
-    public static void printLocsArray(int[][] locs)
-    {
-    	printLocsArray(locs, "locs");
     }
     
     public static void getAndPrintAllPiecesGenders(int gid)
@@ -287,60 +272,60 @@ public class ChessBoardPieceClass {
     	//System.out.println();
     }
     
-    public static void testCanMoveToLocs(int gid, int kgr, int kgc, String kgclr, int ktr, int ktc, String ktclr,
-    	int cr, int cc, String cclr, int br, int bc, String bclr, int pr, int pc, String pclr, int qr, int qc, String qclr,
+    public static void testPieceCanMoveToLocs(int gid, int rval, int cval, String clrval, String tpval, String locsarrnm,
     	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
     	
     	System.out.println();
-    	//System.out.println("CALLING " + kgclr + " KING CAN MOVE TO LOCS WITH STARTING LOCATION (kgr: " + kgr + ", kgc: " +
-    	//	kgc + ")!");
-    	int[][] initkgcanmvlocs = ChessPiece.getPieceCanMoveToLocs(kgr, kgc, kgclr, "KING", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + kgclr + " KING CAN MOVE TO LOCS WITH STARTING LOCATION (kgr: " + kgr + ", kgc: " +
-    		kgc + ")!");
-    	printLocsArray(initkgcanmvlocs, "initkgcanmvlocs");
-    	
-    	System.out.println();
-    	//System.out.println("CALLING " + qclr + " QUEEN CAN MOVE TO LOCS WITH STARTING LOCATION (qr: " + qr + ", qc: " +
-    	//	qc + ")!");
-    	int[][] initqncanmvlocs = ChessPiece.getPieceCanMoveToLocs(qr, qc, qclr, "QUEEN", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + qclr + " QUEEN CAN MOVE TO LOCS WITH STARTING LOCATION (qr: " + qr + ", qc: " +
-    		qc + ")!");
-    	printLocsArray(initqncanmvlocs, "initqncanmvlocs");
-    	
-    	System.out.println();
-    	//System.out.println("CALLING " + bclr + " BISHOP CAN MOVE TO LOCS WITH STARTING LOCATION (br: " + br + ", bc: " +
-    	//	bc + ")!");
-    	int[][] initbpcanmvlocs = ChessPiece.getPieceCanMoveToLocs(br, bc, bclr, "BISHOP", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + bclr + " BISHOP CAN MOVE TO LOCS WITH STARTING LOCATION (br: " + br + ", bc: " +
-    		bc + ")!");
-    	printLocsArray(initbpcanmvlocs, "initbpcanmvlocs");
-    	
-    	System.out.println();
-    	//System.out.println("CALLING " + cclr + " CASTLE CAN MOVE TO LOCS WITH STARTING LOCATION (cr: " + cr + ", cc: " +
-    	//	cc + ")!");
-    	int[][] initclcanmvlocs = ChessPiece.getPieceCanMoveToLocs(cr, cc, cclr, "CASTLE", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + cclr + " CASTLE CAN MOVE TO LOCS WITH STARTING LOCATION (cr: " + cr + ", cc: " +
-    		cc + ")!");
-    	printLocsArray(initclcanmvlocs, "initclcanmvlocs");
-    	
-    	System.out.println();
-    	//System.out.println("CALLING " + ktclr + " KNIGHT CAN MOVE TO LOCS WITH STARTING LOCATION (ktr: " + ktr + ", ktc: " +
-    	//	ktc + ")!");
-    	int[][] initktcanmvlocs = ChessPiece.getPieceCanMoveToLocs(ktr, ktc, ktclr, "KNIGHT", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + ktclr + " KNIGHT CAN MOVE TO LOCS WITH STARTING LOCATION (ktr: " + ktr + ", ktc: " +
-    		ktc + ")!");
-    	printLocsArray(initktcanmvlocs, "initktcanmvlocs");
-    	
-    	System.out.println();
-    	//System.out.println("CALLING " + pclr + " PAWN CAN MOVE TO LOCS WITH STARTING LOCATION (pr: " + pr + ", pc: " +
-    	//	pc + ")!");
-    	int[][] initpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(pr, pc, pclr, "PAWN", ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + pclr + " PAWN CAN MOVE TO LOCS WITH STARTING LOCATION (pr: " + pr + ", pc: " +
-    		pc + ")!");
-    	printLocsArray(initpwncanmvlocs, "initpwncanmvlocs");
+    	//System.out.println("CALLING " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION (row: " + rval +
+    	//	", col: " + cval + ")!");
+    	int[][] locs = ChessPiece.getPieceCanMoveToLocs(rval, cval, clrval, tpval, ignorelist, addpcs, gid);
+    	System.out.println("RESULTS " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION (row: " + rval +
+    		", col: " + cval + ")!");
+    	ChessPiece.printLocsArray(locs, locsarrnm);
+    }
+    public static void testKingCanMoveToLocs(int gid, int kgr, int kgc, String kgclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, kgr, kgc, kgclr, "KING", "initkgcanmvlocs", ignorelist, addpcs);
+    }
+    public static void testKnightCanMoveToLocs(int gid, int ktr, int ktc, String ktclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, ktr, ktc, ktclr, "KNIGHT", "initktcanmvlocs", ignorelist, addpcs);
+    }
+    public static void testQueenCanMoveToLocs(int gid, int qr, int qc, String qclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, qr, qc, qclr, "QUEEN", "initqncanmvlocs", ignorelist, addpcs);
+    }
+    public static void testBishopCanMoveToLocs(int gid, int br, int bc, String bclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, br, bc, bclr, "BISHOP", "initbpcanmvlocs", ignorelist, addpcs);
+    }
+    public static void testCastleCanMoveToLocs(int gid, int cr, int cc, String cclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, cr, cc, cclr, "CASTLE", "initclcanmvlocs", ignorelist, addpcs);
+    }
+    public static void testPawnCanMoveToLocs(int gid, int pr, int pc, String pclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testPieceCanMoveToLocs(gid, pr, pc, pclr, "PAWN", "initpwncanmvlocs", ignorelist, addpcs);
+    }
+    public static void testCanMoveToLocs(int gid, int kgr, int kgc, String kgclr, int ktr, int ktc, String ktclr,
+    	int cr, int cc, String cclr, int br, int bc, String bclr, int pr, int pc, String pclr, int qr, int qc, String qclr,
+    	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+    {
+    	testKingCanMoveToLocs(gid, kgr, kgc, kgclr, ignorelist, addpcs);
+    	testQueenCanMoveToLocs(gid, qr, qc, qclr, ignorelist, addpcs);
+    	testBishopCanMoveToLocs(gid, br, bc, bclr, ignorelist, addpcs);
+    	testCastleCanMoveToLocs(gid, cr, cc, cclr, ignorelist, addpcs);
+    	testKnightCanMoveToLocs(gid, ktr, ktc, ktclr, ignorelist, addpcs);
+    	testPawnCanMoveToLocs(gid, pr, pc, pclr, ignorelist, addpcs);
     }
     //loc lists in the order of: king, knight, castle (rook), bishop, pawn, queen
     public static void testCanMoveToLocs(int gid, int[] kgloc, String kgclr, int[] ktloc, String ktclr,
@@ -493,7 +478,7 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", nwpcslist));
     	int[][] bpwncanmvlocs = ChessPiece.getPieceCanMoveToLocs(bpn.getRow(), bpn.getCol(), "BLACK", "PAWN",
     		ignorelist, addpcs, gid);
-    	printLocsArray(bpwncanmvlocs, "bpwncanmvlocs");
+    	ChessPiece.printLocsArray(bpwncanmvlocs, "bpwncanmvlocs");
     	System.out.println("BLACK CAN PAWN LEFT: " + bpn.canPawnLeft(nwpcslist));
     	System.out.println("BLACK CAN PAWN RIGHT: " + bpn.canPawnRight(nwpcslist));
     	int[] bplftloc = bpn.getPawnLeftLocation(nwpcslist);
@@ -706,7 +691,7 @@ public class ChessBoardPieceClass {
     	else setUpBoardWithFourMoveCheckMateWithoutMovingThere(gid);
     }
     
-    public static void setUpBoardWithTwoMoveCheckMate(int gid)
+    public static void setUpBoardWithTwoMoveCheckMateBlack(int gid)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
@@ -727,7 +712,7 @@ public class ChessBoardPieceClass {
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
     }
-    public static void setUpBoardWithTwoMoveCheckMateWithoutMovingThere(int gid)
+    public static void setUpBoardWithTwoMoveCheckMateBlackWithoutMovingThere(int gid)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
@@ -760,10 +745,142 @@ public class ChessBoardPieceClass {
     	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 7, "BLACK", 0, 5, "BLACK", 1, 4, "BLACK", 3, 7, "WHITE",
     		ignorelist, addpcs);
     }
-    public static void setUpBoardWithTwoMoveCheckMate(int gid, boolean movethere)
+    public static void setUpBoardWithTwoMoveCheckMateWhite(int gid)
     {
-    	if (movethere) setUpBoardWithTwoMoveCheckMate(gid);
-    	else setUpBoardWithTwoMoveCheckMateWithoutMovingThere(gid);
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//WPN AT F7 -> F6; OWPN AT G7 -> G5;
+    	//BPN AT E2 -> E3; BQN AT D1 -> H5
+    	
+    	ChessPiece wpn = ChessPiece.getPieceAt(6, 5, gid);//F7
+    	wpn.genMoveToCommand(5, 5);//F6
+    	ChessPiece bpn = ChessPiece.getPieceAt(1, 4, gid);//E2
+    	bpn.genMoveToCommand(2, 4);//E3
+    	ChessPiece owpn = ChessPiece.getPieceAt(6, 6, gid);//G7
+    	owpn.genMoveToCommand(4, 6);//G5
+    	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);//D1
+    	bqn.genMoveToCommand(4, 7);//H5
+    	//test check mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    }
+    public static void setUpBoardWithTwoMoveCheckMateWhiteWithoutMovingThere(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
+    	//WPN AT F7 -> F6; OWPN AT G7 -> G5;
+    	//BPN AT E2 -> E3; BQN AT D1 -> H5
+    	
+    	int[][] ignorelist = new int[4][2];
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("E2");
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("F7");
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D1");
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("G7");
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("F6"), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("G5"), gid, 1, false));
+    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5"), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("E3"), gid, 1, false));
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test check mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 7, 4, "WHITE", 4, 7, "BLACK",
+    		ignorelist, addpcs);
+    }
+    public static void setUpBoardWithTwoMoveCheckMate(int gid, boolean usewhite, boolean movethere)
+    {
+    	if (usewhite)
+    	{
+    		if (movethere) setUpBoardWithTwoMoveCheckMateWhite(gid);
+    		else setUpBoardWithTwoMoveCheckMateWhiteWithoutMovingThere(gid);
+    	}
+    	else
+    	{
+    		if (movethere) setUpBoardWithTwoMoveCheckMateBlack(gid);
+    		else setUpBoardWithTwoMoveCheckMateBlackWithoutMovingThere(gid);
+    	}
+    }
+    public static void setUpBoardWithTwoMoveCheckMateWhite(int gid, boolean movethere)
+    {
+    	setUpBoardWithTwoMoveCheckMate(gid, true, movethere);
+    }
+    public static void setUpBoardWithTwoMoveCheckMateBlack(int gid, boolean movethere)
+    {
+    	setUpBoardWithTwoMoveCheckMate(gid, false, movethere);
+    }
+    
+    public static void setUpBoardWithKingVKingBlockedPawnsWithoutMoving(int gid, boolean addstuckpawns)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
+    	//ignore everything except the kings
+    	//then add a bunch of blocked pawns that cannot move
+    	int[][] ignorelist = new int[30][2];
+    	int ili = 0;
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			if (c == 4 && (r == 0 || r == 7));
+    			else
+    			{
+    				ignorelist[ili][0] = r;
+    				ignorelist[ili][1] = c;
+    				ili++;
+    			}
+    		}
+    		if (r == 1) r = 5;
+    	}
+    	ArrayList<ChessPiece> addpcs = null;
+    	if (addstuckpawns)
+    	{
+    		addpcs = new ArrayList<ChessPiece>();
+    		for (int r = 3; r < 5; r++)
+    		{
+    			String npcclr = "";
+    			if (r == 3) npcclr = "BLACK";
+    			else npcclr = "WHITE";
+    			for (int c = 0; c < 8; c+=2)
+    			{
+    				addpcs.add(new ChessPiece("PAWN", "" + npcclr, r, c, gid, 1, false));
+    			}
+    		}
+    	}
+    	//else;//do nothing
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	
+    	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, addpcs);
+    	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, addpcs);
+    	testPawnCanMoveToLocs(gid, 3, 4, "BLACK", ignorelist, addpcs);
+    	testPawnCanMoveToLocs(gid, 4, 4, "WHITE", ignorelist, addpcs);
+    }
+    public static void setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(int gid)
+    {
+    	setUpBoardWithKingVKingBlockedPawnsWithoutMoving(gid, true);
+    }
+    public static void setUpBoardWithKingVKingOnlyWithoutMovingThere(int gid)
+    {
+    	setUpBoardWithKingVKingBlockedPawnsWithoutMoving(gid, false);
     }
     
     public static void setUpBoard(int gid)

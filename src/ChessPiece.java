@@ -3,6 +3,7 @@ import java.util.ArrayList;
 class ChessPiece {
 	private static String[] validTypes = {"PAWN", "CASTLE", "KNIGHT", "BISHOP", "QUEEN", "KING", "ROOK"};
 	private static String[] validColors = {"WHITE", "BLACK"};
+	public static String[][] clrs = getSquareColors();
 	public static final int ROWCOLMIN = 0;
 	public static final int ROWCOLMAX = 7;
 	public static ArrayList<ChessPiece> cps = new ArrayList<ChessPiece>();
@@ -240,6 +241,68 @@ class ChessPiece {
 		}
 		else throw new IllegalStateException("cannot move to new location " + getLocString(rval, cval) + "!");
 	}
+	
+	public static void printSquareColors()
+	{
+		String myabt = "ABCDEFGH";
+		for (int r = 0; r < 8; r++)
+		{
+			if (r == 0)
+			{
+				for (int c = 0; c < 8; c++) System.out.print("  " + myabt.charAt(c) + "   ");
+				System.out.println();
+			}
+			for (int c = 0; c < 8; c++) System.out.print(clrs[r][c] + " ");
+			System.out.println((r + 1));
+		}
+	}
+	public static String[][] getSquareColors()
+	{
+		//D1 is BLACK; D8 is WHITE; H8 is WHITE
+		clrs = new String[8][8];
+		for (int r = 0; r < 8; r++)
+		{
+			String sclr = null;
+			if (r % 2 == 0) sclr = "WHITE";
+			else sclr = "BLACK";
+			for (int c = 0; c < 8; c++)
+			{
+				if (c%2 == 0) clrs[r][c] = "" + sclr;
+				else clrs[r][c] = getOppositeColor(sclr);
+				//System.out.println("clrs[" + r + "][" + c + "] = " + clrs[r][c]);
+			}
+		}
+		
+		//printSquareColors();
+		return clrs;
+	}
+	public static String getColorOfLoc(int rval, int cval)
+	{
+		if (isvalidrorc(rval) && isvalidrorc(cval));
+		else throw new IllegalStateException("rval and cval must be at least 0 and less than 8!");
+		
+		return "" + clrs[rval][cval];
+	}
+	
+	public static void printLocsArray(int[][] locs, String arrnm)
+    {
+    	if (arrnm == null || arrnm.length() < 1) printLocsArray(locs, "locs");
+    	if (locs == null) System.out.println("" + arrnm + " = null");
+    	else if (locs.length < 1) System.out.println("" + arrnm + " is empty!");
+    	else
+    	{
+    		System.out.println("" + arrnm + ".length = " + locs.length);
+	    	for (int x = 0; x < locs.length; x++)
+	    	{
+	    		System.out.println(ChessPiece.getLocString(locs[x][0], locs[x][1]) + ": " +
+	    			ChessPiece.convertRowColToStringLoc(locs[x]));
+	    	}
+    	}
+    }
+    public static void printLocsArray(int[][] locs)
+    {
+    	printLocsArray(locs, "locs");
+    }
 	
 	public static void printOneDIntArray(int[] arr)
 	{
@@ -946,11 +1009,13 @@ class ChessPiece {
 	//
 	//AUTO-STALEMATE:
 	//ANY ONE OF THESE SITUATIONS OCCURS THE OTHERSIDE COULD HAVE ONE OF THESE
-	//KING VS KING, KING AND KNIGHT, VS KING, KING AND BISHOP VS KING, KING AND 2 KNIGTS AND NO OPPOSING PAWNS VS KING;
+	//KING VS KING, KING AND KNIGHT, VS KING, KING AND (KNIGHT OR BISHOP) VS KING AND (KNIGHT OR BISHOP)
 	//KING AND ANY NUMBER OF BISHOPS VS KING AND ANY NUMBER OF BISHOPS WHERE ALL THE BISHOPS ARE ON THE SAME COLOR SQUARES
 	//KING AND PAWNS VS KING AND PAWNS (NO FREE PAWNS, ABILITY TO ALL BE BLOCKED AND REMAIN THAT WAY) -> (KING VS KING)
 	//
-	//HOWEVER IF THERE IS A QUEEN ON THE BOARD OR A CASTLE, YOU MIGHT BE ABLE TO FORCE CHECKMATE
+	//DEBATE SURROUNDING THIS: KING AND 2 KNIGTS AND NO OPPOSING PAWNS VS KING (CHECK MATE IS POSSIBLE, BUT CANNOT BE FORCED)
+	//
+	//HOWEVER IF THERE IS A QUEEN ON THE BOARD OR A CASTLE, YOU WILL BE ABLE TO FORCE CHECKMATE
 	
 	
 	//THE OVERALL GOAL OF THE NEXT SET OF METHODS IS TO DETERMINE WHAT PIECES CAN ATTACK A LOCATION
@@ -1447,13 +1512,23 @@ class ChessPiece {
 	private static boolean getCanAddPieceToGList(ChessPiece cp, String[] myvtps, int srval, int scval,
 		boolean initaddit, boolean usecdiff)
 	{
+		//System.out.println("cp = " + cp);
+		//System.out.println("srval = " + srval);
+		//System.out.println("scval = " + scval);
+		//if (myvtps == null || myvtps.length < 1) System.out.println("myvtps is null or empty!");
+		//else
+		//{
+		//	System.out.println("myvtps.length = " + myvtps.length);
+		//	for (int x = 0; x < myvtps.length; x++) System.out.println(myvtps[x]);
+		//}
 		boolean addit = initaddit; 
 		if (cp == null) return false;
 		else
 		{
 			//the piece is on our list of types, but it may not be able to attack the location
 			//if it is a king or pawn and distance in magnitude is more than 1, not a threat.
-			if (isPieceAtLocationOnAListOfTypes(cp.getRow(), cp.getCol(), cp.getGameID(), myvtps))
+			//if (isPieceAtLocationOnAListOfTypes(cp.getRow(), cp.getCol(), cp.getGameID(), myvtps, piecelist))
+			if (itemIsOnGivenList(cp.getType(), myvtps))
 			{
 				//compute the distance between rval and cval to r and c
 				//just use the magnitude of the cols
@@ -1478,6 +1553,7 @@ class ChessPiece {
 					//System.out.println("DIFF NOT TOO BIG!");
 					if (cp.getType().equals("PAWN"))
 					{
+						//System.out.println("THIS IS A PAWN!");
 						if (cp.getRow() == srval && cp.getCol() == scval);
 						else
 						{
@@ -1494,7 +1570,7 @@ class ChessPiece {
 							}
 						}
 					}
-					//else;//do nothing
+					//else System.out.println("NOT A PAWN!");
 				}
 				else
 				{
@@ -1650,12 +1726,13 @@ class ChessPiece {
 				//look at that list instead of the board list first.
 				//
 				//IF IT IS NOT AT A LOCATION ON THE IGNORE LIST, THEN ?
-				//
-				//
+				//IF IT IS ON THE ADD LIST, USE IT FIRST
+				//ELSE NOT.
 				
 				if (inconly);
 				else
 				{
+					boolean locntempty = true;
 					if ((loconiglist && pcatloconiglist && isvpctpeoniglist) ||
 						(!loconiglist && isPieceAtLocationOnAListOfTypes(r, c, gid, myvtps, addpcs)))
 					{
@@ -1685,33 +1762,36 @@ class ChessPiece {
 							//else;//do nothing
 							
 							gpcs.add(cp);
+							//if (r == rval && c == cval);
+							//else break;
 						}
 						else
 						{
-							if (cp == null);//do nothing
-							else
-							{
-								if (r == rval && c == cval);
-								else break;
-							}
+							if (cp == null) locntempty = false;
+							//if (cp == null);//do nothing
+							//else
+							//{
+							//	if (r == rval && c == cval);
+							//	else break;
+							//}
 						}
 					}
 					else
 					{
-						boolean locntempty = true;
 						if (loconiglist);//the location is not empty
 						else
 						{
 							if (isLocationEmpty(r, c, gid, addpcs)) locntempty = false;
 							//else;//do nothing
 						}
-						if (locntempty)
-						{
-							if (r == rval && c == cval);
-							else break;
-						}
-						//else;//do nothing
 					}
+					//System.out.println("locntempty = " + locntempty);
+					if (locntempty)
+					{
+						if (r == rval && c == cval);
+						else break;
+					}
+					//else;//do nothing
 				}
 				
 				
@@ -1837,6 +1917,7 @@ class ChessPiece {
 			}
 			//else;//do nothing
 			
+			boolean locntempty = true;
 			if ((loconiglist && pcatloconiglist && isvpctpeoniglist) ||
 				(!loconiglist && isPieceAtLocationOnAListOfTypes(r, cval, gid, myvtps, addpcs)))
 			{
@@ -1860,35 +1941,36 @@ class ChessPiece {
 					//else;//do nothing
 					
 					gpcs.add(cp);
+					//if (r == rval);
+					//else break;
 				}
 				else
 				{
-					if (cp == null);//do nothing
-					else
-					{
-						if (r == rval);
-						else break;
-					}
+					if (cp == null) locntempty = false;
+					//else
+					//{
+					//	if (r == rval);
+					//	else break;
+					//}
 				}
 			}
 			else
 			{
 				//System.out.println("INSIDE ELSE STATEMENT!");
-				boolean locntempty = true;
 				if (loconiglist);//the location is not empty
 				else
 				{
 					if (isLocationEmpty(r, cval, gid, addpcs)) locntempty = false;
 					//else;//do nothing
 				}
-				//System.out.println("locntempty = " + locntempty);
-				if (locntempty)
-				{
-					if (r == rval);
-					else break;
-				}
-				//else;//do nothing
 			}
+			//System.out.println("locntempty = " + locntempty);
+			if (locntempty)
+			{
+				if (r == rval);
+				else break;
+			}
+			//else;//do nothing
 		}
 		for (int r = rval; ((r == 0 || 0 < r) && r < 8); r--)
 		{
@@ -1914,6 +1996,7 @@ class ChessPiece {
 			}
 			//else;//do nothing
 			
+			boolean locntempty = true;
 			if ((loconiglist && pcatloconiglist && isvpctpeoniglist) ||
 				(!loconiglist && isPieceAtLocationOnAListOfTypes(r, cval, gid, myvtps, addpcs)))
 			{
@@ -1939,36 +2022,37 @@ class ChessPiece {
 						//else;//do nothing
 						
 						gpcs.add(cp);
+						//if (r == rval);
+						//else break;
 					}
 					else
 					{
-						if (cp == null);//do nothing
-						else
-						{
-							if (r == rval);
-							else break;
-						}
+						if (cp == null) locntempty = false;
+						//else
+						//{
+						//	if (r == rval);
+						//	else break;
+						//}
 					}
 				}
 			}
 			else
 			{
 				//System.out.println("INSIDE ELSE STATEMENT!");
-				boolean locntempty = true;
 				if (loconiglist);//the location is not empty
 				else
 				{
 					if (isLocationEmpty(r, cval, gid, addpcs)) locntempty = false;
 					//else;//do nothing
 				}
-				//System.out.println("locntempty = " + locntempty);
-				if (locntempty)
-				{
-					if (r == rval);
-					else break;
-				}
-				//else;//do nothing
 			}
+			//System.out.println("locntempty = " + locntempty);
+			if (locntempty)
+			{
+				if (r == rval);
+				else break;
+			}
+			//else;//do nothing
 		}
 		for (int c = cval; c < 8; c++)
 		{
@@ -1994,6 +2078,7 @@ class ChessPiece {
 			}
 			//else;//do nothing
 			
+			boolean locntempty = true;
 			if ((loconiglist && pcatloconiglist && isvpctpeoniglist) ||
 				(!loconiglist && isPieceAtLocationOnAListOfTypes(rval, c, gid, myvtps, addpcs)))
 			{
@@ -2019,36 +2104,37 @@ class ChessPiece {
 						//else;//do nothing
 						
 						gpcs.add(cp);
+						//if (c == cval);
+						//else break;
 					}
 					else
 					{
-						if (cp == null);//do nothing
-						else
-						{
-							if (c == cval);
-							else break;
-						}
+						if (cp == null) locntempty = false;
+						//else
+						//{
+						//	if (c == cval);
+						//	else break;
+						//}
 					}
 				}
 			}
 			else
 			{
 				//System.out.println("INSIDE ELSE STATEMENT!");
-				boolean locntempty = true;
 				if (loconiglist);//the location is not empty
 				else
 				{
 					if (isLocationEmpty(rval, c, gid, addpcs)) locntempty = false;
 					//else;//do nothing
 				}
-				//System.out.println("locntempty = " + locntempty);
-				if (locntempty)
-				{
-					if (c == cval);
-					else break;
-				}
-				//else;//do nothing
 			}
+			//System.out.println("locntempty = " + locntempty);
+			if (locntempty)
+			{
+				if (c == cval);
+				else break;
+			}
+			//else;//do nothing
 		}
 		for (int c = cval; ((c == 0 || 0 < c) && c < 8); c--)
 		{
@@ -2074,6 +2160,7 @@ class ChessPiece {
 			}
 			//else;//do nothing
 			
+			boolean locntempty = true;
 			if ((loconiglist && pcatloconiglist && isvpctpeoniglist) ||
 				(!loconiglist && isPieceAtLocationOnAListOfTypes(rval, c, gid, myvtps, addpcs)))
 			{
@@ -2099,37 +2186,38 @@ class ChessPiece {
 						//else;//do nothing
 						
 						gpcs.add(cp);
+						//if (c == cval);
+						//else break;
 					}
 					else
 					{
-						if (cp == null);//do nothing
-						else
-						{
-							if (c == cval);
-							else break;
-						}
+						if (cp == null) locntempty = false;
+						//else
+						//{
+							//if (c == cval);
+							//else break;
+						//}
 					}
 				}
 			}
 			else
 			{
 				//System.out.println("INSIDE ELSE STATEMENT!");
-				boolean locntempty = true;
 				if (loconiglist);//the location is not empty
 				else
 				{
 					if (isLocationEmpty(rval, c, gid, addpcs)) locntempty = false;
 					//else;//do nothing
 				}
-				//System.out.println("locntempty = " + locntempty);
-				if (locntempty)
-				{
-					if (c == cval);
-					else break;
-				}
-				//else;//do nothing
 			}
 			//System.out.println("OUTSIDE OF IF-ELSE STATEMENT");
+			//System.out.println("locntempty = " + locntempty);
+			if (locntempty)
+			{
+				if (c == cval);
+				else break;
+			}
+			//else;//do nothing
 		}
 		//System.out.println("OUTSIDE OF FINAL FOR LOOP STATEMENT");
 		return gpcs;
@@ -2171,21 +2259,7 @@ class ChessPiece {
 		//System.out.println("INSIDE GET PIECES GUARDING LOCATION: " + getLocString(rval, cval));
 		//System.out.println("gid = " + gid);
 		//System.out.println("addpcs = " + addpcs);
-		//if (ignorelist == null) System.out.println("ignorelist = null!");
-		//else
-		//{
-		//	if (ignorelist.length < 1) System.out.println("ignorelist is empty!");
-		//	else
-		//	{
-		//		for (int x = 0; x < ignorelist.length; x++)
-		//		{
-		//			for (int c = 0; c < ignorelist[x].length; c++)
-		//			{
-		//				System.out.println("ignorelist[" + x + "][" + c + "] = " + ignorelist[x][c]);
-		//			}
-		//		}
-		//	}
-		//}
+		//printLocsArray(ignorelist, "ignorelist");
 		ArrayList<ChessPiece> rclocs = getPiecesGuardingLocationOnSameRowOrCol(rval, cval, gid, ignorelist, addpcs);
 		//System.out.println("rclocs = " + rclocs);
 		ArrayList<ChessPiece> dlocs = getPiecesGuardingLocationOnSameDiagnal(rval, cval, gid, ignorelist, addpcs);
@@ -2632,19 +2706,26 @@ class ChessPiece {
 		//else;//do nothing
 		ChessPiece cp = getPieceAt(nr, nc, combineBoardAddAndIgnoreLists(oignorelist, oaddpcs, gid));
 		//System.out.println("cp = " + cp);
+		
 		boolean addit = true;
 		if (cp == null);
 		else
 		{
-			if (cp.getColor().equals(myclr)) addit = false;
+			if (cp.getColor().equals(myclr))
+			{
+				if (sr == cp.getRow() && sc == cp.getCol());
+				else addit = false;
+			}
 			//else;//do nothing
 		}
 		//System.out.println("OLD addit = " + addit);
+		
 		if (mytpval == null) throw new IllegalStateException("mytpval must not be null!");
 		else if (mytpval.equals("PAWN"))
 		{
 			if (nr != sr && nc != sc)
 			{
+				//System.out.println("PAWN IS MOVING DIAGNAL!");
 				int rdiff = sr - nr;
 				int cdiff = sc - nc;
 				if (rdiff < 1) rdiff *= -1;
@@ -2661,10 +2742,23 @@ class ChessPiece {
 				}
 				//else;//do nothing
 			}
+			else if (nr != sr && nc == sc)
+			{
+				//System.out.println("PAWN IS MOVING FORWARD!");
+				if (cp == null);
+				else
+				{
+					int rdiff = sr - nr;
+					if (rdiff < 1) rdiff *= -1;
+					if (rdiff == 1) addit = false;
+					//else;//do nothing
+				}
+			}
 			//else;//do nothing
 		}
 		//else;//do nothing valid
 		//System.out.println("NEW addit = " + addit);
+		
 		if (addit)
 		{
 			//need to know if ignoring piece at sr and sc and putting a castle/queen piece at this location
@@ -2701,6 +2795,8 @@ class ChessPiece {
 			}
 			ChessPiece mkg = getCurrentSideKing(myclr, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
 			//System.out.println("mkg = " + mkg);
+			//System.out.println("addpcs = " + addpcs);
+			//printLocsArray(ignorelist, "ignorelist");
 			if (mkg.inCheck(ignorelist, addpcs)) addit = false;
 			//else;//do nothing
 		}
@@ -3140,13 +3236,25 @@ class ChessPiece {
 			keeplist[x][0] = -1;
 			keeplist[x][1] = -1;
 		}
-		for (int r = sr - 1; ((0 < r || r == 0) && r < 8) && r < sr + 2; r++)
+		//System.out.println("sr = " + sr);
+		//System.out.println("sc = " + sc);
+		int sri = -1;
+		if (0 < sr) sri = sr - 1;
+		else if (0 == sr) sri = 0;
+		else throw new IllegalStateException("negative values not allowed for sr!");
+		int sci = -1;
+		if (0 < sc) sci = sc - 1;
+		else if (0 == sc) sci = 0;
+		else throw new IllegalStateException("negative values not allowed for sc!");
+		//System.out.println("sri = " + sri);
+		//System.out.println("sci = " + sci);
+		for (int r = sri; ((0 < r || r == 0) && r < 8) && r < sr + 2; r++)
 		{
-			for (int c = sc - 1; ((0 < c || c == 0) && c < 8) && c < sc + 2; c++)
+			for (int c = sci; ((0 < c || c == 0) && c < 8) && c < sc + 2; c++)
 			{
 				//System.out.println("r = " + r);
 				//System.out.println("c = " + c);
-				if ((r == sr && c == sc) || canAddThisMoveToLoc(sr, sc, r, c, myclr, "KING", ignorelist, addpcs, gid))
+				if (canAddThisMoveToLoc(sr, sc, r, c, myclr, "KING", ignorelist, addpcs, gid))//(r == sr && c == sc) || 
 				{
 					//System.out.println("ADD LOCATION!");
 					//if (isLocOnListOfLocs(r, c, keeplist));
@@ -3258,6 +3366,7 @@ class ChessPiece {
 			if (cp.getType().equals("KING"))
 			{
 				//now we can see if we can castle easily now
+				//System.out.println("SEES IF WE CAN CASTLE:");
 				boolean ccleft = canSideCastleLeft(myclr, ignorelist, addpcs, gid);
 				boolean ccright = canSideCastleRight(myclr, ignorelist, addpcs, gid);
 				//System.out.println("ccleft = " + ccleft);
@@ -3334,7 +3443,7 @@ class ChessPiece {
 		}
 	}
 	
-	//NOTE: TAKES INTO ACCOUNT PAWNING, TAKES INTO ACCOUNT CASTLING WHEN CALLED ON KING ONLY,
+	//NOTE: TAKES INTO ACCOUNT PAWNING WHEN CALLED ON PAWN ONLY, TAKES INTO ACCOUNT CASTLING WHEN CALLED ON KING ONLY,
 	//DOES NOT TAKE INTO ACCOUNT WHOSE TURN IT IS
 	//TAKES INTO ACCOUNT WHAT THE NEW BOARD LOOKS LIKE, BUT REALLY SHOULD NOT
 	public boolean canMoveTo(int rval, int cval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
