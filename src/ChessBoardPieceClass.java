@@ -54,8 +54,14 @@ public class ChessBoardPieceClass {
     	//setUpBoardWithFourMoveCheckMate(gid, false);
     	//setUpBoardWithTwoMoveCheckMateBlack(gid, false);
     	//setUpBoardWithTwoMoveCheckMateWhite(gid, false);
-    	setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
+    	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
+    	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
     	//setUpBoardWithKingVKingOnlyWithoutMovingThere(gid);
+    	setUpBoardWithBlockedPawnsAndBishops(gid);
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 0);
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 0);
     	//System.out.println();
     	//System.out.println("AFTER SPECIAL TESTS!");
     	
@@ -69,6 +75,48 @@ public class ChessBoardPieceClass {
     	//wpn.genMoveToCommand(3, 1);
     	//wpn.moveTo(3, 1);
     }
+    
+    //PRINT BOARD METHODS
+    
+    public static void printBoard(ArrayList<ChessPiece> mycps)
+    {
+    	//for (int c = 0; c < mycps.size(); c++) System.out.println(mycps.get(c));
+    	System.out.println("mycps.size() = " + mycps.size());
+    	String myabt = "ABCDEFGH";
+    	for (int c = 0; c < 8; c++) System.out.print("  " + myabt.charAt(c) + " ");
+    	System.out.println(" ");
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			System.out.print("|");
+    			boolean fndit = false;
+    			for (int x = 0; x < mycps.size(); x++)
+    			{
+    				if (mycps.get(x).getRow() == r && mycps.get(x).getCol() == c)
+    				{
+    					//first letter of color, first letter of type, last letter of type
+    					String mtp = "" + mycps.get(x).getType();
+    					String mclr = "" + mycps.get(x).getColor();
+    					System.out.print("" + mclr.charAt(0) + mtp.charAt(0) + mtp.charAt(mtp.length() - 1));
+    					fndit = true;
+    					break;
+    				}
+    				//else;//do nothing
+    			}
+    			if (fndit);
+    			else System.out.print("---");
+    		}
+    		System.out.println("| " + (r + 1));
+    	}
+    }
+    public static void printBoard(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		else printBoard(ChessPiece.getAllPiecesWithGameID(gid));
+    }
+    
+    //TEST SOME BASIC METHODS
     
     public static void getAndPrintAllPiecesGenders(int gid)
     {
@@ -117,44 +165,6 @@ public class ChessBoardPieceClass {
     	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("D3")));
     	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("X9")));
     	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("A9")));
-    }
-    
-    public static void printBoard(ArrayList<ChessPiece> mycps)
-    {
-    	//for (int c = 0; c < mycps.size(); c++) System.out.println(mycps.get(c));
-    	System.out.println("mycps.size() = " + mycps.size());
-    	String myabt = "ABCDEFGH";
-    	for (int c = 0; c < 8; c++) System.out.print("  " + myabt.charAt(c) + " ");
-    	System.out.println(" ");
-    	for (int r = 0; r < 8; r++)
-    	{
-    		for (int c = 0; c < 8; c++)
-    		{
-    			System.out.print("|");
-    			boolean fndit = false;
-    			for (int x = 0; x < mycps.size(); x++)
-    			{
-    				if (mycps.get(x).getRow() == r && mycps.get(x).getCol() == c)
-    				{
-    					//first letter of color, first letter of type, last letter of type
-    					String mtp = "" + mycps.get(x).getType();
-    					String mclr = "" + mycps.get(x).getColor();
-    					System.out.print("" + mclr.charAt(0) + mtp.charAt(0) + mtp.charAt(mtp.length() - 1));
-    					fndit = true;
-    					break;
-    				}
-    				//else;//do nothing
-    			}
-    			if (fndit);
-    			else System.out.print("---");
-    		}
-    		System.out.println("| " + (r + 1));
-    	}
-    }
-    public static void printBoard(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		else printBoard(ChessPiece.getAllPiecesWithGameID(gid));
     }
     
     public static void testGetPiecesGuardingLocation(int gid)
@@ -225,52 +235,9 @@ public class ChessBoardPieceClass {
     	//else;//do nothing
     	System.out.println(ChessPiece.isBoardValid(gid));
     }
-    public static void setUpFutureCheck(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		//else;//do nothing
-    	
-    	//now set up future check scenario
-    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
-    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
-    	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);
-    	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);
-    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5"), gid, false));
-    	int[][] ignorelist = new int[1][2];
-    	ignorelist[0][0] = 6;
-    	ignorelist[0][1] = 5;
-    	ArrayList<ChessPiece> gwklocs = ChessPiece.getPiecesGuardingLocation(7, 4, gid, ignorelist, addpcs);
-    	System.out.println("addpcs = " + addpcs);
-    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
-    	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
-    	System.out.println();
-    	
-    	System.out.println("ACCORDING TO THE FUTURE BOARD:");
-    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
-    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
-    	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck(ignorelist, addpcs));
-    	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck(ignorelist, addpcs));
-    	System.out.println();
-    	
-    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
-    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 6, 6, "WHITE", 4, 7, "BLACK",
-    		ignorelist, addpcs);
-    	System.out.println();
-    	
-    	printBoard(gid);
-    	System.out.println();
-    	
-    	System.out.println("ACCORDING TO THE ACTUAL BOARD:");
-    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
-    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
-    	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck());
-    	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck());
-    	System.out.println();
-    	//System.out.println(ChessPiece.getPiecesGuardingLocation(2, 2));
-    	//System.out.println();
-    }
+    
+    
+    //TEST MOVE TO LOCS METHODS
     
     public static void testPieceCanMoveToLocs(int gid, int rval, int cval, String clrval, String tpval, String locsarrnm,
     	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -279,11 +246,11 @@ public class ChessBoardPieceClass {
 		//else;//do nothing
     	
     	System.out.println();
-    	//System.out.println("CALLING " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION (row: " + rval +
-    	//	", col: " + cval + ")!");
+    	//System.out.println("CALLING " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION " +
+    	//	ChessPiece.getLocStringAndConvertIt(rval, cval) + "!");
     	int[][] locs = ChessPiece.getPieceCanMoveToLocs(rval, cval, clrval, tpval, ignorelist, addpcs, gid);
-    	System.out.println("RESULTS " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION (row: " + rval +
-    		", col: " + cval + ")!");
+    	System.out.println("RESULTS " + clrval + " " + tpval + " CAN MOVE TO LOCS WITH STARTING LOCATION " +
+    		ChessPiece.getLocStringAndConvertIt(rval, cval) + "!");
     	ChessPiece.printLocsArray(locs, locsarrnm);
     }
     public static void testKingCanMoveToLocs(int gid, int kgr, int kgc, String kgclr,
@@ -316,6 +283,8 @@ public class ChessBoardPieceClass {
     {
     	testPieceCanMoveToLocs(gid, pr, pc, pclr, "PAWN", "initpwncanmvlocs", ignorelist, addpcs);
     }
+    
+    //calls the above methods once for each type of piece
     public static void testCanMoveToLocs(int gid, int kgr, int kgc, String kgclr, int ktr, int ktc, String ktclr,
     	int cr, int cc, String cclr, int br, int bc, String bclr, int pr, int pc, String pclr, int qr, int qc, String qclr,
     	int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -350,7 +319,9 @@ public class ChessBoardPieceClass {
     		ignorelist, addpcs);
     }
     
+    
     //SET UP BOARD METHODS
+    //SET UP BOARD PAWN PROMOTION
     
     public static void setUpBoardForPawnPromotion(int gid)
     {
@@ -433,6 +404,8 @@ public class ChessBoardPieceClass {
     	if (movethere) setUpBoardForPawnPromotion(gid);
     	else setUpBoardForPawnPromotionWithoutMovingThere(gid);
     }
+    
+    //SET UP BOARD PAWNING
     
     public static void setUpBoardForPawning(int gid)
     {
@@ -519,57 +492,7 @@ public class ChessBoardPieceClass {
     	else testPawningWithoutMovingThere(gid);
     }
     
-    public static void setUpBoardWithKnightCheckingKing(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		//else;//do nothing
-		
-    	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
-    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8"), gid);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6"));
-    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2"), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4"));
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E5"));
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3"));
-    	//now test check and figure out how to get out of it
-    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
-    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
-    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
-    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
-    }
-    public static void setUpBoardWithKnightCheckingKingWithoutMovingThere(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		//else;//do nothing
-		
-    	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
-    	//ignore knight at B8; add it at F3 OR D3;
-    	//ignore pawn at A2; add it at A5;
-    	int[][] ignorelist = new int[2][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("B8");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A2");
-    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5"), gid, 2, false));
-    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F3"), gid, 3, false));
-    	//print the board first
-    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
-    	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
-    	//now test check and figure out how to get out of it
-    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", nwpcslist);
-    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", nwpcslist);
-    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
-    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
-    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
-    	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 0, "BLACK", 7, 2, "WHITE", 1, 6, "BLACK", 0, 3, "BLACK",
-    		ignorelist, addpcs);
-    }
-    public static void setUpBoardWithKnightCheckingKing(int gid, boolean movethere)
-    {
-    	if (movethere) setUpBoardWithKnightCheckingKing(gid);
-    	else setUpBoardWithKnightCheckingKingWithoutMovingThere(gid);
-    }
+    //SET UP BOARD CASTLING
     
     public static void setUpBoardForCastlingWhiteRight(int gid)
     {
@@ -627,6 +550,110 @@ public class ChessBoardPieceClass {
     	if (movethere) setUpBoardForCastlingWhiteRight(gid);
     	else setUpBoardForCastlingWhiteRightWithoutMovingThere(gid);
     }
+    
+    //SETUP BOARD CHECK
+    
+    public static void setUpBoardWithKnightCheckingKing(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+    	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
+    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8"), gid);
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6"));
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2"), gid);
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E5"));
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3"));
+    	//now test check and figure out how to get out of it
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    }
+    public static void setUpBoardWithKnightCheckingKingWithoutMovingThere(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+    	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
+    	//ignore knight at B8; add it at F3 OR D3;
+    	//ignore pawn at A2; add it at A5;
+    	int[][] ignorelist = new int[2][2];
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("B8");
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A2");
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5"), gid, 2, false));
+    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F3"), gid, 3, false));
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//now test check and figure out how to get out of it
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", nwpcslist);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", nwpcslist);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 0, "BLACK", 7, 2, "WHITE", 1, 6, "BLACK", 0, 3, "BLACK",
+    		ignorelist, addpcs);
+    }
+    public static void setUpBoardWithKnightCheckingKing(int gid, boolean movethere)
+    {
+    	if (movethere) setUpBoardWithKnightCheckingKing(gid);
+    	else setUpBoardWithKnightCheckingKingWithoutMovingThere(gid);
+    }
+    
+    //black queen checks white king
+    public static void setUpFutureCheck(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
+    	//now set up future check scenario
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);
+    	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5"), gid, false));
+    	int[][] ignorelist = new int[1][2];
+    	ignorelist[0][0] = 6;
+    	ignorelist[0][1] = 5;
+    	ArrayList<ChessPiece> gwklocs = ChessPiece.getPiecesGuardingLocation(7, 4, gid, ignorelist, addpcs);
+    	System.out.println("addpcs = " + addpcs);
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	System.out.println();
+    	
+    	System.out.println("ACCORDING TO THE FUTURE BOARD:");
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck(ignorelist, addpcs));
+    	System.out.println();
+    	
+    	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
+    	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 6, 6, "WHITE", 4, 7, "BLACK",
+    		ignorelist, addpcs);
+    	System.out.println();
+    	
+    	printBoard(gid);
+    	System.out.println();
+    	
+    	System.out.println("ACCORDING TO THE ACTUAL BOARD:");
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    	System.out.println("WHITE QUEEN IS IN CHECK: " + wqn.inCheck());
+    	System.out.println("BLACK QUEEN IS IN CHECK: " + bqn.inCheck());
+    	System.out.println();
+    	//System.out.println(ChessPiece.getPiecesGuardingLocation(2, 2));
+    	//System.out.println();
+    }
+    
+    //SETUP BOARD CHECKMATE
     
     public static void setUpBoardWithFourMoveCheckMate(int gid)
     {
@@ -820,6 +847,52 @@ public class ChessBoardPieceClass {
     	setUpBoardWithTwoMoveCheckMate(gid, false, movethere);
     }
     
+    public static void setUpBoardCheckmateKingBishopVSameDiffColorSquares(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+    	//else;//do nothing
+    	
+    	//ignore everything except the kings
+    	//then add a bunch of blocked pawns that cannot move
+    	int[][] ignorelist = new int[32][2];
+    	int ili = 0;
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			//if (c == 4 && (r == 0 || r == 7));
+    			//else
+    			//{
+    				ignorelist[ili][0] = r;
+    				ignorelist[ili][1] = c;
+    				ili++;
+    			//}
+    		}
+    		if (r == 1) r = 5;
+    	}
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	addpcs.add(new ChessPiece("BISHOP", "BLACK", 1, 0, gid, 5, false));
+    	addpcs.add(new ChessPiece("BISHOP", "WHITE", 2, 2, gid, 5, false));
+    	ChessPiece bkg = new ChessPiece("KING", "BLACK", 0, 0, gid, 5, false);
+    	addpcs.add(bkg);
+    	ChessPiece wkg = new ChessPiece("KING", "WHITE", 1, 2, gid, 5, false);
+    	addpcs.add(wkg);
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	
+    	testKingCanMoveToLocs(gid, 1, 2, "WHITE", ignorelist, addpcs);
+    	testKingCanMoveToLocs(gid, 0, 0, "BLACK", ignorelist, addpcs);
+    	testBishopCanMoveToLocs(gid, 1, 0, "BLACK", ignorelist, addpcs);
+    	testBishopCanMoveToLocs(gid, 2, 2, "WHITE", ignorelist, addpcs);
+    }
+    
+    //SETUP BOARD STALEMATE
+    
     public static void setUpBoardWithKingVKingBlockedPawnsWithoutMoving(int gid, boolean addstuckpawns)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
@@ -844,17 +917,41 @@ public class ChessBoardPieceClass {
     		if (r == 1) r = 5;
     	}
     	ArrayList<ChessPiece> addpcs = null;
+    	int incbyval = 1;
+    	int csi = 0;
+    	int rsi = 3;
     	if (addstuckpawns)
     	{
     		addpcs = new ArrayList<ChessPiece>();
-    		for (int r = 3; r < 5; r++)
+    		for (int r = rsi; r < rsi + 2 && r < 8; r++)
     		{
     			String npcclr = "";
-    			if (r == 3) npcclr = "BLACK";
-    			else npcclr = "WHITE";
-    			for (int c = 0; c < 8; c+=2)
+    			int initmvcnt = 1;
+    			if (r == rsi)
     			{
-    				addpcs.add(new ChessPiece("PAWN", "" + npcclr, r, c, gid, 1, false));
+    				npcclr = "BLACK";
+    				if (rsi == 3) initmvcnt = 1;
+    				else if (rsi == 2) initmvcnt = 1;
+    				else if (rsi == 4) initmvcnt = 2;
+    				else if (rsi == 5) initmvcnt = 3;
+    				else if (rsi == 1) initmvcnt = 0;
+    				else throw new IllegalStateException("Illegal postion for BLACK row of pawns!");
+    			}
+    			else
+    			{
+    				npcclr = "WHITE";
+    				if (rsi == 3) initmvcnt = 1;
+    				else if (rsi == 2) initmvcnt = 2;
+    				else if (rsi == 4) initmvcnt = 1;
+    				else if (rsi == 5) initmvcnt = 0;
+    				else if (rsi == 1) initmvcnt = 3;
+    				else throw new IllegalStateException("Illegal postion for WHITE row of pawns!");
+    			}
+    			//if c increments by 3, 2 stalemate, but if not game is not over
+    			//if colors of the kings are swapped, game is not over
+    			for (int c = csi; c < 8; c += incbyval)
+    			{
+    				addpcs.add(new ChessPiece("PAWN", "" + npcclr, r, c, gid, initmvcnt, false));
     			}
     		}
     	}
@@ -871,8 +968,25 @@ public class ChessBoardPieceClass {
     	
     	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, addpcs);
     	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, addpcs);
-    	testPawnCanMoveToLocs(gid, 3, 4, "BLACK", ignorelist, addpcs);
-    	testPawnCanMoveToLocs(gid, 4, 4, "WHITE", ignorelist, addpcs);
+    	if (addstuckpawns)
+    	{
+    		int ccl = -1;
+    		if (csi == 0)
+    		{
+    			if (incbyval == 2 || incbyval == 1) ccl = 4;
+    			else ccl = 3;
+    		}
+    		else if (csi == 1)
+    		{
+    			if (incbyval == 1) ccl = 4;
+    			else if (incbyval == 3) ccl = 4;
+    			else ccl = 3;
+    		}
+    		//else;//do nothing not a stalemate
+    		testPawnCanMoveToLocs(gid, 3, ccl, "BLACK", ignorelist, addpcs);
+    		testPawnCanMoveToLocs(gid, 4, ccl, "WHITE", ignorelist, addpcs);
+    	}
+    	//else;//do nothing
     }
     public static void setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(int gid)
     {
@@ -882,6 +996,131 @@ public class ChessBoardPieceClass {
     {
     	setUpBoardWithKingVKingBlockedPawnsWithoutMoving(gid, false);
     }
+    
+    public static void setUpBoardWithKingAndBishopsVKingBishops(int gid, int numbkbps, int numwtbps, boolean usesmt)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		else if ((0 < numbkbps || numbkbps == 0) && (numbkbps < 8 || numbkbps == 8));
+		else throw new IllegalStateException("illegal number of black bishops found and used here!");
+		if ((0 < numwtbps || numwtbps == 0) && (numwtbps < 8 || numwtbps == 8));
+		else throw new IllegalStateException("illegal number of white bishops found and used here!");
+		
+		//ignore everything except the kings
+    	//then add a bunch of blocked pawns that cannot move
+    	int[][] ignorelist = new int[30][2];
+    	int ili = 0;
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			if (c == 4 && (r == 0 || r == 7));
+    			else
+    			{
+    				ignorelist[ili][0] = r;
+    				ignorelist[ili][1] = c;
+    				ili++;
+    			}
+    		}
+    		if (r == 1) r = 5;
+    	}
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	int r = 0;
+    	int c = 0;
+    	for (int x = 0; x < numbkbps; x++)
+    	{
+    		r = x;
+    		c = x;
+    		addpcs.add(new ChessPiece("BISHOP", "BLACK", r, c, gid, 5, false));
+    	}
+    	r = 0;
+    	c = 0;
+    	int csi = 6;
+    	if (usesmt) csi = 6;
+    	else csi = 7;
+    	for (int x = 0; x < numwtbps; x++)
+    	{
+    		r = x;
+    		c = csi - x;
+    		if (r == c)
+    		{
+    			x--;
+    			continue;
+    		}
+    		else addpcs.add(new ChessPiece("BISHOP", "WHITE", r, c, gid, 5, false));
+    	}
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
+    	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
+    	
+    	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, addpcs);
+    	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, addpcs);
+    	//testBishopCanMoveToLocs(gid, int br, int bc, String bclr, ignorelist, addpcs);
+    }
+    public static void setUpBoardWithKingAndBishopsVKingBishops(int gid, int numbkbps, int numwtbps)
+    {
+    	setUpBoardWithKingAndBishopsVKingBishops(gid, numbkbps, numwtbps, true);
+    }
+    
+    public static void setUpBoardWithBlockedPawnsAndBishops(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//ignore everything except the kings
+    	//then add a bunch of blocked pawns that cannot move
+    	int[][] ignorelist = new int[30][2];
+    	int ili = 0;
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			//if (c == 4 && (r == 0 || r == 7));//keep the kings
+    			if ((r == 1 || r == 6) && (c == 4 || c == 6));//keep 2 black and white pawns
+    			else if ((r == 0 || r == 7) && c == 5);//keep a black and a white bishop
+    			else
+    			{
+    				ignorelist[ili][0] = r;
+    				ignorelist[ili][1] = c;
+    				ili++;
+    			}
+    		}
+    		if (r == 1) r = 5;
+    	}
+    	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
+    	ChessPiece bkg = new ChessPiece("KING", "BLACK", 0, 7, gid, 5, false);
+    	ChessPiece wkg = new ChessPiece("KING", "WHITE", 7, 7, gid, 5, false);
+    	addpcs.add(bkg);
+    	addpcs.add(wkg);
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", 5, 4, gid, 5, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", 5, 6, gid, 5, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", 2, 4, gid, 5, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", 2, 6, gid, 5, false));
+    	addpcs.add(new ChessPiece("BISHOP", "WHITE", 3, 1, gid, 5, false));
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
+    	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
+    	
+    	testKingCanMoveToLocs(gid, 7, 7, "WHITE", ignorelist, addpcs);
+    	testKingCanMoveToLocs(gid, 0, 7, "BLACK", ignorelist, addpcs);
+    	testBishopCanMoveToLocs(gid, 3, 1, "WHITE", ignorelist, addpcs);
+    	testBishopCanMoveToLocs(gid, 7, 5, "WHITE", ignorelist, addpcs);
+    }
+    
+    //NORMAL BOARD SETUP METHOD
     
     public static void setUpBoard(int gid)
     {

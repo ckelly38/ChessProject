@@ -283,6 +283,11 @@ class ChessPiece {
 		
 		return "" + clrs[rval][cval];
 	}
+	public static String getColorOfLoc(ChessPiece cp)
+	{
+		if (cp == null) throw new IllegalStateException("cp is not allowed to be null!");
+		else return getColorOfLoc(cp.getRow(), cp.getCol());
+	}
 	
 	public static void printLocsArray(int[][] locs, String arrnm)
     {
@@ -419,6 +424,19 @@ class ChessPiece {
 	{
 		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
 		else return convertRowColToStringLoc(mloc[0], mloc[1]);
+	}
+	
+	//if not valid, it just prints it out and does not convert it
+	public static String getLocStringAndConvertIt(int rval, int cval)
+	{
+		String lstr = getLocString(rval, cval);
+		if (isvalidrorc(rval) && isvalidrorc(cval)) return "" + lstr + " " + convertRowColToStringLoc(rval, cval);
+		else return lstr;
+	}
+	public static String getLocStringAndConvertIt(int[] mloc)
+	{
+		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
+		else return getLocStringAndConvertIt(mloc[0], mloc[1]);
 	}
 	
 	
@@ -947,8 +965,6 @@ class ChessPiece {
 	{
 		return isBoardValid(getAllPiecesWithGameID(gid));
 	}
-	
-	
 	
 	//NEED TO KNOW WHERE CERTAIN PIECES CAN MOVE TO...
 	//NEED TO KNOW WHOSE TURN IT IS AND
@@ -2525,49 +2541,52 @@ class ChessPiece {
 			else
 			{
 				//System.out.println("IGNORELIST IS NOT EMPTY!");
-				boolean[] keeploc = new boolean[ignorelist.length];
-				int numrm = 0;
-				for (int x = 0; x < ignorelist.length; x++)
-				{
+				//boolean[] keeploc = new boolean[ignorelist.length];
+				//int numrm = 0;
+				//for (int x = 0; x < ignorelist.length; x++)
+				//{
 					//this gets the ignorelist loc
 					//now get the other loc to compare it to
-					keeploc[x] = true;
-					for (int i = 0; i < retlist.size(); i++)
-					{
-						if (retlist.get(i).getRow() == ignorelist[x][0] && retlist.get(i).getCol() == ignorelist[x][1])
-						{
-							//do not keep this on the ignore list
-							keeploc[x] = false;
-							numrm++;
-							break;
-						}
-						//else;//do nothing
-					}
-				}
+				//	keeploc[x] = true;
+				//	for (int i = 0; i < retlist.size(); i++)
+				//	{
+				//		if (retlist.get(i).getRow() == ignorelist[x][0] && retlist.get(i).getCol() == ignorelist[x][1])
+				//		{
+				//			//do not keep this on the ignore list
+				//			//System.out.println("REMOVING THIS LOCATION FROM THE IGNORE LIST!");
+				//			//System.out.println("ignorelist[" + x + "][0] = " + ignorelist[x][0]);
+				//			//System.out.println("ignorelist[" + x + "][1] = " + ignorelist[x][1]);
+				//			keeploc[x] = false;
+				//			numrm++;
+				//			break;
+				//		}
+				//		//else;//do nothing
+				//	}
+				//}
 				//System.out.println("numrm = " + numrm);
 				
 				ArrayList<ChessPiece> bdiglist = null;
-				if (numrm < 0) throw new IllegalStateException("numrm must be at least zero!");
-				else if (numrm < 1) bdiglist = combineBoardAndIgnoreLists(ignorelist, boardlist);
-				else
-				{
-					int[][] nwiglist = new int[ignorelist.length - numrm][2];
-					int nwigli = 0;
-					for (int x = 0; x < ignorelist.length; x++)
-					{
-						if (nwigli < nwiglist.length);
-						else break;
-						
-						if (keeploc[x])
-						{
-							nwiglist[nwigli][0] = ignorelist[x][0];
-							nwiglist[nwigli][1] = ignorelist[x][1];
-							nwigli++;
-						}
-						//else;//do nothing
-					}
-					bdiglist = combineBoardAndIgnoreLists(nwiglist, boardlist);
-				}
+				//if (numrm < 0) throw new IllegalStateException("numrm must be at least zero!");
+				//else if (numrm < 1) bdiglist = combineBoardAndIgnoreLists(ignorelist, boardlist);
+				//else
+				//{
+					//int[][] nwiglist = new int[ignorelist.length - numrm][2];
+					//int nwigli = 0;
+					//for (int x = 0; x < ignorelist.length; x++)
+					//{
+					//	if (nwigli < nwiglist.length);
+					//	else break;
+					//	
+					//	if (keeploc[x])
+					//	{
+					//		nwiglist[nwigli][0] = ignorelist[x][0];
+					//		nwiglist[nwigli][1] = ignorelist[x][1];
+					//		nwigli++;
+					//	}
+					//	//else;//do nothing
+					//}
+					bdiglist = combineBoardAndIgnoreLists(ignorelist, boardlist);//nwiglist
+				//}
 				for (int x = 0; x < bdiglist.size(); x++) retlist.add(bdiglist.get(x));
 			}
 		}
@@ -2664,8 +2683,9 @@ class ChessPiece {
 		}
 	}
 	
-	//CHECK METHODS
 	
+	
+	//CHECK METHODS
 	
 	//can I be directly attacked by the opposing side?
 	public boolean inCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -2695,6 +2715,61 @@ class ChessPiece {
 	}
 	
 	
+	//returns true if less than 2 pieces of that type are on the board
+	public static boolean areAllOfTypeOnSameColorSquare(String typeval, ArrayList<ChessPiece> allpcs)
+	{
+		ArrayList<ChessPiece> bps = getAllOfType(typeval, allpcs);
+		if (getNumItemsInList(bps) < 2) return true;
+		else
+		{
+			String myfbpclr = getColorOfLoc(bps.get(0));
+			for (int x = 1; x < bps.size(); x++)
+			{
+				if (getColorOfLoc(bps.get(x)).equals(myfbpclr));
+				else return false;
+			}
+			return true;
+		}
+	}
+	
+	public static boolean areAllBishopsOnSameColorSquare(ArrayList<ChessPiece> allpcs)
+	{
+		return areAllOfTypeOnSameColorSquare("BISHOP", allpcs);
+	}
+	public static boolean areAllBishopsOnSameColorSquare(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return areAllBishopsOnSameColorSquare(combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+	}
+	public static boolean areAllBishopsOnSameColorSquare(int gid)
+	{
+		return areAllBishopsOnSameColorSquare(getAllPiecesWithGameID(gid));
+	}
+	public boolean areAllBishopsOnSameColorSquare()
+	{
+		return areAllBishopsOnSameColorSquare(getGameID());
+	}
+	
+	public static boolean isAutoStaleMate(ArrayList<ChessPiece> allpcs)
+	{
+		//if we have just 2 kings -> yes
+		//if we have a king and a bishop vs a king -> yes
+		//if we have just 2 kings and bishops and bishops are all on the same color squares -> yes
+		//if we have a king and a knight vs a king -> yes
+		//if we 2 kings and a bunch of pawns all blocking each other, but cannot capture each other -> yes
+		//if no piece can kill an enemy piece to free up check-mating pieces (pawn, castle, or a queen) -> yes
+		//if one side has no legal moves if not checkmate and it is their turn -> yes
+		//if checkmate is not possible -> yes
+		
+		//CHECKMATE IS POSSIBLE:
+		//king and 2 bishops (provided bishops are on different color squares) vs king
+		//king and 2 knights vs king
+		//if we have a king a knight or bishop vs a king and knight or bishop
+		//king and queen vs king
+		//king and castle vs king
+		//checkmate is more likely than stalemate to occur with more pieces in general
+		throw new IllegalStateException("NOT DONE YET DETECTING STALEMATES HERE YET 5-8-2024 2 AM!");
+	}
+	
 	//NOT DONE YET....
 	
 	public static boolean canAddThisMoveToLoc(int sr, int sc, int nr, int nc, String myclr, String mytpval,
@@ -2704,7 +2779,8 @@ class ChessPiece {
 		else throw new IllegalStateException("SR AND SC MUST BE VALID!");
 		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
-		ChessPiece cp = getPieceAt(nr, nc, combineBoardAddAndIgnoreLists(oignorelist, oaddpcs, gid));
+		ArrayList<ChessPiece> initbdpcs = combineBoardAddAndIgnoreLists(oignorelist, oaddpcs, gid);
+		ChessPiece cp = getPieceAt(nr, nc, initbdpcs);
 		//System.out.println("cp = " + cp);
 		
 		boolean addit = true;
@@ -2745,11 +2821,31 @@ class ChessPiece {
 			else if (nr != sr && nc == sc)
 			{
 				//System.out.println("PAWN IS MOVING FORWARD!");
-				if (cp == null);
+				int rdiff = sr - nr;
+				if (rdiff < 1) rdiff *= -1;
+				//System.out.println("rdiff = " + rdiff);
+				
+				if (cp == null)
+				{
+					if (rdiff == 2)
+					{
+						int dirfact = 0;
+						if (myclr == null) throw new IllegalStateException("color must not be null!");
+						if (myclr.equals("WHITE")) dirfact = -1;
+						else if (myclr.equals("BLACK")) dirfact = 1;
+						else throw new IllegalStateException("illegal color (" + myclr + ") found and used here");
+						//System.out.println("PAWN dirfact = " + dirfact);
+							
+						ChessPiece ocp = getPieceAt(sr + dirfact, nc, initbdpcs);
+						//System.out.println("ocp = " + ocp);
+						
+						if (ocp == null);//do nothing add it
+						else addit = false;
+					}
+					//else;//do nothing add it
+				}
 				else
 				{
-					int rdiff = sr - nr;
-					if (rdiff < 1) rdiff *= -1;
 					if (rdiff == 1) addit = false;
 					//else;//do nothing
 				}
@@ -3442,6 +3538,76 @@ class ChessPiece {
 			else throw new IllegalStateException("illegal value found and used here for mytpval (" + mytpval + ")!");
 		}
 	}
+	
+	
+	//asks can piece at loc move around to another location other than the current location
+	//if no piece is at the loc returns false
+	public static boolean isPieceAtLocFreeToMoveAround(int sr, int sc, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		ChessPiece cp = getPieceAt(sr, sc, allpcs);
+		//System.out.println("sr = " + sr);
+		//System.out.println("sc = " + sc);
+		//System.out.println("cp = " + cp);
+		if (cp == null) return false;
+		else
+		{
+			int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, cp.getColor(), cp.getType(), ignorelist, addpcs, gid);
+			if (mvlocs == null || mvlocs.length < 1)
+			{
+				//System.out.println("MOVELOCS IS EMPTY!");
+				return false;
+			}
+			else
+			{
+				//System.out.println("mvlocs.length = " + mvlocs.length);
+				if (mvlocs.length == 1)
+				{
+					//System.out.println("mvlocs[0][0] = " + mvlocs[0][0]);
+					//System.out.println("mvlocs[0][1] = " + mvlocs[0][1]);
+					if (mvlocs[0][0] == sr && mvlocs[0][1] == sc) return false;
+					//else;//do nothing
+				}
+				//else
+				//{
+					//for (int x = 0; x < mvlocs.length; x++)
+					//{
+					//	System.out.println("mvlocs[" + x + "][0] = " + mvlocs[x][0]);
+					//	System.out.println("mvlocs[" + x + "][1] = " + mvlocs[x][1]);
+					//}
+				//}
+				return true;
+			}
+		}
+	}
+	
+	public static ArrayList<ChessPiece> getPiecesThatAreFreeToMove(int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		//they can move to a location other than the current location it is on
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		if (getNumItemsInList(allpcs) < 1) return null;
+		else
+		{
+			ArrayList<ChessPiece> fpcs = null;
+			for (int x = 0; x < allpcs.size(); x++)
+			{
+				if (isPieceAtLocFreeToMoveAround(allpcs.get(x).getRow(), allpcs.get(x).getCol(), ignorelist, addpcs, gid))
+				{
+					//add to list
+					
+					if (fpcs == null) fpcs = new ArrayList<ChessPiece>();
+					//else;//do nothing
+					
+					fpcs.add(allpcs.get(x));
+				}
+				//else;//do nothing
+			}
+			return fpcs;
+		}
+	}
+	
 	
 	//NOTE: TAKES INTO ACCOUNT PAWNING WHEN CALLED ON PAWN ONLY, TAKES INTO ACCOUNT CASTLING WHEN CALLED ON KING ONLY,
 	//DOES NOT TAKE INTO ACCOUNT WHOSE TURN IT IS
