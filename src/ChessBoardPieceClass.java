@@ -41,6 +41,7 @@ public class ChessBoardPieceClass {
     	
     	//System.out.println(ChessPiece.getColorOfLoc(7, 7));
     	
+    	//setUpBoardTestIsEmptyMoveToLocsWithoutMovingThere(gid);
     	//if (true) return;
     	
     	//getAndPrintAllPiecesGenders();
@@ -51,17 +52,25 @@ public class ChessBoardPieceClass {
     	//setUpBoardForPawnPromotion(gid, false);
     	//setUpBoardForCastlingWhiteRight(gid, false);
     	//setUpBoardWithKnightCheckingKing(gid, false);
+    	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, false);
     	//setUpBoardWithTwoMoveCheckMateBlack(gid, false);
     	//setUpBoardWithTwoMoveCheckMateWhite(gid, false);
     	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
+    	//STALEMATE TESTS
     	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
-    	//setUpBoardWithKingVKingOnlyWithoutMovingThere(gid);
-    	setUpBoardWithBlockedPawnsAndBishops(gid);
+    	//setUpBoardWithBlockedPawnsAndBishops(gid);
+    	//AUTO STALEMATES
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 0);
-    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 0);
+    	//setUpBoardWithKingVKingOnlyWithoutMovingThere(gid);
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 0);//also produces king vs king board
+    	//setUpBoardWithKingAndKnightVKing(gid);
+    	//
+    	//NOT A STALEMATE BECAUSE BISHOPS ARE ON DIFFERENT COLOR SQUARES
+    	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1, false);//true passed in produces a stalemate
+    	
     	//System.out.println();
     	//System.out.println("AFTER SPECIAL TESTS!");
     	
@@ -234,6 +243,41 @@ public class ChessBoardPieceClass {
     	}
     	//else;//do nothing
     	System.out.println(ChessPiece.isBoardValid(gid));
+    }
+    
+    public static void setUpBoardTestIsEmptyMoveToLocsWithoutMovingThere(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+    	
+    	int[][] ignorelist = new int[2][2];
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("H2");
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("H7");
+    	//add list is null
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, null, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, null));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, null));
+    	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
+    	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, null, gid));
+    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStaleMate(nwpcslist));
+    	System.out.println();
+    	
+    	//returns false because there is a piece there on the normal board
+    	System.out.println("IS (row: 1, col: 7) EMPTY: " + ChessPiece.isLocationEmpty(1, 7, gid, ignorelist, null));
+    	System.out.println("IS (row: 1, col: 7) EMPTY: " + ChessPiece.isLocationEmpty(1, 7, nwpcslist));
+    	System.out.println("IS (row: 6, col: 7) EMPTY: " + ChessPiece.isLocationEmpty(6, 7, gid, ignorelist, null));
+    	System.out.println("IS (row: 6, col: 7) EMPTY: " + ChessPiece.isLocationEmpty(6, 7, nwpcslist));
+    	
+    	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, null);
+    	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, null);
+    	testCastleCanMoveToLocs(gid, 7, 7, "WHITE", ignorelist, null);
+    	testCastleCanMoveToLocs(gid, 0, 7, "BLACK", ignorelist, null);
     }
     
     
@@ -639,6 +683,12 @@ public class ChessBoardPieceClass {
     	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 6, 6, "WHITE", 4, 7, "BLACK",
     		ignorelist, addpcs);
     	System.out.println();
+    	//System.out.println(ChessPiece.getCountsForEachPieceTypeForASide(ChessPiece.getPieceTypes(
+    	//			ChessPiece.filterListByColor(nwpcslist, "BLACK"))));
+    	//String[] tstpctps = {"KING", "CASTLE", "CASTLE", "CASTLE", "CASTLE", "CASTLE", "CASTLE", "CASTLE", "CASTLE",
+    	//	"CASTLE", "CASTLE", "QUEEN", "QUEEN"};
+    	//System.out.println(ChessPiece.getCountsForEachPieceTypeForASide(tstpctps));
+    	//System.out.println(ChessPiece.isBoardValid(nwpcslist));
     	
     	printBoard(gid);
     	System.out.println();
@@ -965,6 +1015,7 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStaleMate(nwpcslist));
     	
     	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, addpcs);
     	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, addpcs);
@@ -1059,6 +1110,7 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
+    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStaleMate(nwpcslist));
     	
     	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, addpcs);
     	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, addpcs);
@@ -1113,11 +1165,55 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
+    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStaleMate(nwpcslist));
     	
     	testKingCanMoveToLocs(gid, 7, 7, "WHITE", ignorelist, addpcs);
     	testKingCanMoveToLocs(gid, 0, 7, "BLACK", ignorelist, addpcs);
     	testBishopCanMoveToLocs(gid, 3, 1, "WHITE", ignorelist, addpcs);
     	testBishopCanMoveToLocs(gid, 7, 5, "WHITE", ignorelist, addpcs);
+    }
+    
+    public static void setUpBoardWithKingAndKnightVKing(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+    	//else;//do nothing
+    	
+    	//ignore everything except the kings
+    	//then add a bunch of blocked pawns that cannot move
+    	int[][] ignorelist = new int[30][2];
+    	int ili = 0;
+    	for (int r = 0; r < 8; r++)
+    	{
+    		for (int c = 0; c < 8; c++)
+    		{
+    			if (c == 4 && (r == 0 || r == 7));//keep kings
+    			else if (c == 6 && r == 7);//keep a knight
+    			else
+    			{
+    				ignorelist[ili][0] = r;
+    				ignorelist[ili][1] = c;
+    				ili++;
+    			}
+    		}
+    		if (r == 1) r = 5;
+    	}
+    	//do not need to add any pieces
+    	//print the board first
+    	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, null, gid);
+    	//System.out.println(nwpcslist);
+    	printBoard(nwpcslist);
+    	//test stale mate and check detection here and methods determinging where a piece can move to
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, null));
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, null));
+    	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
+    	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, null, gid));
+    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStaleMate(nwpcslist));
+    	
+    	testKingCanMoveToLocs(gid, 7, 4, "WHITE", ignorelist, null);
+    	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, null);
+    	testKnightCanMoveToLocs(gid, 7, 6, "WHITE", ignorelist, null);
     }
     
     //NORMAL BOARD SETUP METHOD
