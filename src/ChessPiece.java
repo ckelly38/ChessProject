@@ -569,7 +569,8 @@ class ChessPiece {
 					//}
 					bdiglist = combineBoardAndIgnoreLists(ignorelist, boardlist);//nwiglist
 				//}
-				for (int x = 0; x < bdiglist.size(); x++) retlist.add(bdiglist.get(x));
+				if (getNumItemsInList(bdiglist) < 1);
+				else for (int x = 0; x < bdiglist.size(); x++) retlist.add(bdiglist.get(x));
 			}
 		}
 		//System.out.println("FINAL retlist = " + retlist);
@@ -2720,106 +2721,7 @@ class ChessPiece {
 	}
 	
 	
-	//returns true if less than 2 pieces of that type are on the board
-	public static boolean areAllOfTypeOnSameColorSquare(String typeval, ArrayList<ChessPiece> allpcs)
-	{
-		ArrayList<ChessPiece> bps = getAllOfType(typeval, allpcs);
-		if (getNumItemsInList(bps) < 2) return true;
-		else
-		{
-			String myfbpclr = getColorOfLoc(bps.get(0));
-			for (int x = 1; x < bps.size(); x++)
-			{
-				if (getColorOfLoc(bps.get(x)).equals(myfbpclr));
-				else return false;
-			}
-			return true;
-		}
-	}
-	
-	public static boolean areAllBishopsOnSameColorSquare(ArrayList<ChessPiece> allpcs)
-	{
-		return areAllOfTypeOnSameColorSquare("BISHOP", allpcs);
-	}
-	public static boolean areAllBishopsOnSameColorSquare(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
-	{
-		return areAllBishopsOnSameColorSquare(combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
-	}
-	public static boolean areAllBishopsOnSameColorSquare(int gid)
-	{
-		return areAllBishopsOnSameColorSquare(getAllPiecesWithGameID(gid));
-	}
-	public boolean areAllBishopsOnSameColorSquare()
-	{
-		return areAllBishopsOnSameColorSquare(getGameID());
-	}
-	
-	public static boolean isAutoStaleMate(ArrayList<ChessPiece> allpcs)
-	{
-		//if we have just 2 kings -> yes
-		//if we have a king and a bishop vs a king -> yes
-		//if we have just 2 kings and bishops and bishops are all on the same color squares -> yes
-		//if we have a king and a knight vs a king -> yes
-		
-		//STALEMATE, BUT NOT AUTO STALEMATE:
-		//if we 2 kings and a bunch of pawns all blocking each other, but cannot capture each other -> yes
-		//if no piece can kill an enemy piece to free up check-mating pieces (pawn, castle, or a queen) -> yes
-		//if one side has no legal moves if not checkmate and it is their turn -> yes
-		//if checkmate is not possible -> yes
-		
-		//CHECKMATE IS POSSIBLE:
-		//king and 2 bishops (provided bishops are on different color squares) vs king
-		//king and 2 knights vs king
-		//if we have a king a knight or bishop vs a king and knight or bishop
-		//king and queen vs king
-		//king and castle vs king
-		//checkmate is more likely than stalemate to occur with more pieces in general
-		
-		ArrayList<ChessPiece> wpcs = getCurrentSidePieces("WHITE", allpcs);
-		ArrayList<ChessPiece> bpcs = getCurrentSidePieces("BLACK", allpcs);
-		String[] wpcstps = getPieceTypes(wpcs);
-		String[] bpcstps = getPieceTypes(bpcs);
-		//king, queen, castle (rook), bishop, knight, pawn
-		int[] wpccnts = getCountsForEachPieceTypeForASide(wpcstps);
-		int[] bpccnts = getCountsForEachPieceTypeForASide(bpcstps);
-		int numwkgs = getCountForPieceTypeForASide(wpccnts, "KING");
-		int numbkgs = getCountForPieceTypeForASide(bpccnts, "KING");
-		int numwbps = getCountForPieceTypeForASide(wpccnts, "BISHOP");
-		int numbbps = getCountForPieceTypeForASide(bpccnts, "BISHOP");
-		int numwcs = getCountForPieceTypeForASide(wpccnts, "CASTLE");
-		int numbcs = getCountForPieceTypeForASide(bpccnts, "CASTLE");
-		int numwqs = getCountForPieceTypeForASide(wpccnts, "QUEEN");
-		int numbqs = getCountForPieceTypeForASide(bpccnts, "QUEEN");
-		int numwkts = getCountForPieceTypeForASide(wpccnts, "KNIGHT");
-		int numbkts = getCountForPieceTypeForASide(bpccnts, "KNIGHT");
-		int numwps = getCountForPieceTypeForASide(wpccnts, "PAWN");
-		int numbps = getCountForPieceTypeForASide(bpccnts, "PAWN");
-		if (numwkgs == 1 && numbkgs == 1);
-		else throw new IllegalStateException("invalid number of kings on the board!");
-		//if there is a castle, a pawn, or a queen on the board: not an automatic stalemate
-		if (0 < numwqs || 0 < numbqs || 0 < numwps || 0 < numbps || 0 < numwcs || 0 < numbcs) return false;
-		//else;//do nothing this might be an automatic stalemate
-		//is king vs king -> yes
-		boolean kgvskg = (numwkgs == 1 && numbkgs == 1 && numwbps < 1 && numbbps < 1 && numwcs < 1 && numbcs < 1 &&
-			numwqs < 1 && numbqs < 1 && numwkts < 1 && numbkts < 1 && numwps < 1 && numbps < 1);
-		if (kgvskg) return true;
-		//is king vs king and knight -> yes
-		boolean kgvskgandkt = (numwkgs == 1 && numbkgs == 1 && ((numwkts == 1 && numbkts < 1) ||
-			(numbkts == 1 && numwkts < 1)) && numwps < 1 && numbps < 1 && numwqs < 1 && numbqs < 1 && numwbps < 1 &&
-			numbbps < 1 && numwcs < 1 && numbcs < 1);
-		if (kgvskgandkt) return true;
-		//king and any number of bishops vs king and any number of bishops provided all bishops are on same color square
-		boolean kgsandbps = (numwkgs == 1 && numbkgs == 1 && numwcs < 1 && numbcs < 1 && numwqs < 1 && numbqs < 1 &&
-			numwps < 1 && numbps < 1 && numwkts < 1 && numbkts < 1);
-		if (kgsandbps && areAllBishopsOnSameColorSquare(allpcs)) return true;
-		else return false;
-	}
-	public static boolean isAutoStaleMate(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
-	{
-		return isAutoStaleMate(combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
-	}
-	
-	//NOT DONE YET....
+	//GET CAN MOVE TO LOCATIONS METHODS
 	
 	public static boolean canAddThisMoveToLoc(int sr, int sc, int nr, int nc, String myclr, String mytpval,
 		int[][] oignorelist, ArrayList<ChessPiece> oaddpcs, int gid)
@@ -2851,6 +2753,7 @@ class ChessPiece {
 			if (nr != sr && nc != sc)
 			{
 				//System.out.println("PAWN IS MOVING DIAGNAL!");
+				
 				int rdiff = sr - nr;
 				int cdiff = sc - nc;
 				if (rdiff < 1) rdiff *= -1;
@@ -2870,34 +2773,30 @@ class ChessPiece {
 			else if (nr != sr && nc == sc)
 			{
 				//System.out.println("PAWN IS MOVING FORWARD!");
+				
 				int rdiff = sr - nr;
 				if (rdiff < 1) rdiff *= -1;
 				//System.out.println("rdiff = " + rdiff);
 				
-				if (cp == null)
+				if (rdiff == 2)
 				{
-					if (rdiff == 2)
-					{
-						int dirfact = 0;
-						if (myclr == null) throw new IllegalStateException("color must not be null!");
-						if (myclr.equals("WHITE")) dirfact = -1;
-						else if (myclr.equals("BLACK")) dirfact = 1;
-						else throw new IllegalStateException("illegal color (" + myclr + ") found and used here");
-						//System.out.println("PAWN dirfact = " + dirfact);
-							
-						ChessPiece ocp = getPieceAt(sr + dirfact, nc, initbdpcs);
-						//System.out.println("ocp = " + ocp);
+					int dirfact = 0;
+					if (myclr == null) throw new IllegalStateException("color must not be null!");
+					if (myclr.equals("WHITE")) dirfact = -1;
+					else if (myclr.equals("BLACK")) dirfact = 1;
+					else throw new IllegalStateException("illegal color (" + myclr + ") found and used here");
+					//System.out.println("PAWN dirfact = " + dirfact);
 						
-						if (ocp == null);//do nothing add it
-						else addit = false;
-					}
-					//else;//do nothing add it
+					ChessPiece ocp = getPieceAt(sr + dirfact, nc, initbdpcs);
+					//System.out.println("ocp = " + ocp);
+					
+					if (ocp == null);//do nothing add it
+					else addit = false;
 				}
-				else
-				{
-					if (rdiff == 1) addit = false;
-					//else;//do nothing
-				}
+				//else;//do nothing add it
+				
+				if (cp == null);//do nothing
+				else addit = false;
 			}
 			//else;//do nothing
 		}
@@ -2942,8 +2841,12 @@ class ChessPiece {
 			//System.out.println("mkg = " + mkg);
 			//System.out.println("addpcs = " + addpcs);
 			//printLocsArray(ignorelist, "ignorelist");
-			if (mkg.inCheck(ignorelist, addpcs)) addit = false;
-			//else;//do nothing
+			if (mkg == null) throw new IllegalStateException("our king must be on the board, but it was not found!");
+			else
+			{
+				if (mkg.inCheck(ignorelist, addpcs)) addit = false;
+				//else;//do nothing
+			}
 		}
 		//else;//do nothing
 		//System.out.println("FINAL addit = " + addit);
@@ -3220,7 +3123,6 @@ class ChessPiece {
 		else throw new IllegalStateException("illegal color (" + myclr + ") found and used here");
 		//System.out.println("PAWN dirfact = " + dirfact);
 		
-		
 		//can only move forward one or two spaces on the first turn otherwise forward one only
 		//exception is attacking or pawning
 		
@@ -3228,6 +3130,7 @@ class ChessPiece {
 		//otherwise can only move forward 1 spot unless can kill a piece only attacks diagnal
 		boolean canmvfwdtwo = ((sr == 6 && myclr.equals("WHITE")) || (sr == 1 && myclr.equals("BLACK")));
 		//System.out.println("PAWN canmvfwdtwo = " + canmvfwdtwo);
+		
 		int[][] tplocs = new int[5][2];
 		tplocs[0][0] = sr;
 		tplocs[0][1] = sc;
@@ -3256,11 +3159,13 @@ class ChessPiece {
 		int numv = 1;
 		isvloc[0] = true;
 		//System.out.println("STARTING LOCATION: " + getLocString(sr, sc) + ": " + convertRowColToStringLoc(sr, sc));
+		
 		for (int x = 1; x < tplocs.length; x++)
     	{
     		isvloc[x] = (isvalidrorc(tplocs[x][0]) && isvalidrorc(tplocs[x][1]));
     		//System.out.println("CURRENT LOC " + getLocString(tplocs[x][0], tplocs[x][1]));
     		//System.out.println("OLD isvloc[" + x + "] = " + isvloc[x]);
+    		
     		if (isvloc[x])
     		{
     			//the loc is valid, but now see if moving there moves our king to check or
@@ -3276,7 +3181,9 @@ class ChessPiece {
 	    	}
 	    	//else;//do nothing
 	    	//System.out.println("FINAL isvloc[" + x + "] = " + isvloc[x]);
+    		
     		if (isvloc[x]) numv++;
+    		//else;//do nothing
     	}
     	int[][] rlist = new int[numv][2];
     	int vki = 0;
@@ -3570,7 +3477,7 @@ class ChessPiece {
 	
 	//calls the above methods
 	public static int[][] getPieceCanMoveToLocs(int sr, int sc, String myclr, String mytpval,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid, boolean nocsling)
 	{
 		if (mytpval == null) throw new IllegalStateException("mytpval must not be null!");
 		else
@@ -3582,17 +3489,26 @@ class ChessPiece {
 			}
 			else if (mytpval.equals("QUEEN")) return getQueenCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
 			else if (mytpval.equals("PAWN")) return getAllPawnCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
-			else if (mytpval.equals("KING")) return getAllKingCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			else if (mytpval.equals("KING"))
+			{
+				if (nocsling) return getKingCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+				else return getAllKingCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
+			}
 			else if (mytpval.equals("KNIGHT")) return getKnightCanMoveToLocs(sr, sc, myclr, ignorelist, addpcs, gid);
 			else throw new IllegalStateException("illegal value found and used here for mytpval (" + mytpval + ")!");
 		}
+	}
+	public static int[][] getPieceCanMoveToLocs(int sr, int sc, String myclr, String mytpval,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return getPieceCanMoveToLocs(sr, sc, myclr, mytpval, ignorelist, addpcs, gid, false);
 	}
 	
 	
 	//asks can piece at loc move around to another location other than the current location
 	//if no piece is at the loc returns false
 	public static boolean isPieceAtLocFreeToMoveAround(int sr, int sc, int[][] ignorelist,
-		ArrayList<ChessPiece> addpcs, int gid)
+		ArrayList<ChessPiece> addpcs, int gid, boolean nocsling)
 	{
 		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
 		ChessPiece cp = getPieceAt(sr, sc, allpcs);
@@ -3602,7 +3518,7 @@ class ChessPiece {
 		if (cp == null) return false;
 		else
 		{
-			int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, cp.getColor(), cp.getType(), ignorelist, addpcs, gid);
+			int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, cp.getColor(), cp.getType(), ignorelist, addpcs, gid, nocsling);
 			if (mvlocs == null || mvlocs.length < 1)
 			{
 				//System.out.println("MOVELOCS IS EMPTY!");
@@ -3630,9 +3546,14 @@ class ChessPiece {
 			}
 		}
 	}
+	public static boolean isPieceAtLocFreeToMoveAround(int sr, int sc, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isPieceAtLocFreeToMoveAround(sr, sc, ignorelist, addpcs, gid, false);
+	}
 	
 	public static ArrayList<ChessPiece> getPiecesThatAreFreeToMove(int[][] ignorelist,
-		ArrayList<ChessPiece> addpcs, int gid)
+		ArrayList<ChessPiece> addpcs, int gid, boolean nocsling)
 	{
 		//they can move to a location other than the current location it is on
 		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
@@ -3642,7 +3563,8 @@ class ChessPiece {
 			ArrayList<ChessPiece> fpcs = null;
 			for (int x = 0; x < allpcs.size(); x++)
 			{
-				if (isPieceAtLocFreeToMoveAround(allpcs.get(x).getRow(), allpcs.get(x).getCol(), ignorelist, addpcs, gid))
+				if (isPieceAtLocFreeToMoveAround(allpcs.get(x).getRow(), allpcs.get(x).getCol(),
+					ignorelist, addpcs, gid, nocsling))
 				{
 					//add to list
 					
@@ -3655,6 +3577,11 @@ class ChessPiece {
 			}
 			return fpcs;
 		}
+	}
+	public static ArrayList<ChessPiece> getPiecesThatAreFreeToMove(int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, false);
 	}
 	
 	
@@ -3747,6 +3674,237 @@ class ChessPiece {
 		}
 		else return canMoveToLoc(nloc[0], nloc[1]);
 	}
+	
+	
+	//CHECKMATE METHODS
+	
+	//is color side in checkmate
+	public static boolean inCheckmate(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//KING MUST BE IN CHECK
+		//KING CANNOT MOVE OUT OF CHECK
+		//THE SIDE WHO'S KING IS IN CHECK CANNOT BLOCK IT BY MOVING A PIECE IN FRONT OF IT
+		//THE SIDE WHO'S KING IS IN CHECK CANNOT BLOCK IT BY KILLING THE PIECE(S) CHECKING THE KING
+		
+		ChessPiece mkg = getCurrentSideKing(clrval, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+		if (mkg == null) throw new IllegalStateException("the king must be found!");
+		//else;//do nothing
+		
+		//can I be directly attacked by the opposing side?
+		ArrayList<ChessPiece> epcs = getEnemyPiecesGuardingLocation(mkg.getRow(), mkg.getCol(), gid, clrval,
+			ignorelist, addpcs);
+		//System.out.println("epcs = " + epcs);
+		//is in check
+		if (getNumItemsInList(epcs) < 1) return false;//not in check so not in checkmate
+		//else;//do nothing my king is in check now need to determine if it is checkmate
+		System.out.println("" + clrval + " KING IS IN CHECK!");
+		
+		//need to know if this king is free to move or rather can move somewhere other than the current location
+		if (isPieceAtLocFreeToMoveAround(mkg.getRow(), mkg.getCol(), ignorelist, addpcs, gid, true)) return false;
+		//can move out of check
+		//else;//do nothing still in check
+		System.out.println("" + clrval + " KING CANNOT MOVE OUT OF CHECK!");
+		
+		//can check be blocked
+		//does side have no legal moves
+		//if there is a legal move other than staying where we are, then it blocks check somehow
+		
+		ArrayList<ChessPiece> fpcs = getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, true);
+		//System.out.println("fpcs = " + fpcs);
+		
+		ArrayList<ChessPiece> myclrfpcs = filterListByColor(fpcs, clrval);
+		//System.out.println("myclrfpcs = " + myclrfpcs);
+		
+		if (getNumItemsInList(myclrfpcs) < 1)
+		{
+			System.out.println("" + clrval + " HAS NO FREE PIECES! IT CANNOT BLOCK CHECK! IT IS CHECKMATE! " +
+				getOppositeColor(clrval) + " WINS!");
+			return true;
+		}
+		//else;//do nothing might be able to block check
+		
+		for (int x = 0; x < myclrfpcs.size(); x++)
+		{
+			//System.out.println("myclrfpcs.get(" + x + ") = " + myclrfpcs.get(x));
+			
+			int[][] pcmvlocs = getPieceCanMoveToLocs(myclrfpcs.get(x).getRow(), myclrfpcs.get(x).getCol(), clrval,
+				myclrfpcs.get(x).getType(), ignorelist, addpcs, gid, true);
+			//printLocsArray(pcmvlocs, "pcmvlocs");
+			
+			//determine where the piece can move to block check... if it indeed does block check
+			if (myclrfpcs.get(x).getType().equals("KING"))
+			{
+				throw new IllegalStateException("the king cannot move out of check, now it says it can!");
+			}
+			else
+			{
+				if (1 < pcmvlocs.length)
+				{
+					System.out.println("AT LEAST ONE PIECE ON THE " + clrval + " SIDE CAN BLOCK CHECK!");
+					return false;
+				}
+				//else;//do nothing
+			}
+		}//end of x for loop
+		
+		System.out.println("" + clrval + " CANNOT BLOCK CHECK WITH ITS FREE PIECES! IT IS CHECKMATE! " +
+			getOppositeColor(clrval) + " WINS!");
+		return true;
+	}
+	//is white in checkmate
+	public static boolean inCheckmateWhite(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return inCheckmate("WHITE", ignorelist, addpcs, gid);
+	}
+	//is black in checkmate
+	public static boolean inCheckmateBlack(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return inCheckmate("BLACK", ignorelist, addpcs, gid);
+	}
+	
+	
+	//STALEMATE METHODS
+	
+	//returns true if less than 2 pieces of that type are on the board
+	public static boolean areAllOfTypeOnSameColorSquare(String typeval, ArrayList<ChessPiece> allpcs)
+	{
+		ArrayList<ChessPiece> bps = getAllOfType(typeval, allpcs);
+		if (getNumItemsInList(bps) < 2) return true;
+		else
+		{
+			String myfbpclr = getColorOfLoc(bps.get(0));
+			for (int x = 1; x < bps.size(); x++)
+			{
+				if (getColorOfLoc(bps.get(x)).equals(myfbpclr));
+				else return false;
+			}
+			return true;
+		}
+	}
+	
+	public static boolean areAllBishopsOnSameColorSquare(ArrayList<ChessPiece> allpcs)
+	{
+		return areAllOfTypeOnSameColorSquare("BISHOP", allpcs);
+	}
+	public static boolean areAllBishopsOnSameColorSquare(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return areAllBishopsOnSameColorSquare(combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+	}
+	public static boolean areAllBishopsOnSameColorSquare(int gid)
+	{
+		return areAllBishopsOnSameColorSquare(getAllPiecesWithGameID(gid));
+	}
+	public boolean areAllBishopsOnSameColorSquare()
+	{
+		return areAllBishopsOnSameColorSquare(getGameID());
+	}
+	
+	public static boolean isAutoStalemate(ArrayList<ChessPiece> allpcs)
+	{
+		//if we have just 2 kings -> yes
+		//if we have a king and a bishop vs a king -> yes
+		//if we have just 2 kings and bishops and bishops are all on the same color squares -> yes
+		//if we have a king and a knight vs a king -> yes
+		
+		//STALEMATE, BUT NOT AUTO STALEMATE:
+		//if we 2 kings and a bunch of pawns all blocking each other, but cannot capture each other -> yes
+		//if no piece can kill an enemy piece to free up check-mating pieces (pawn, castle, or a queen) -> yes
+		//if one side has no legal moves if not checkmate and it is their turn -> yes
+		//if checkmate is not possible -> yes
+		
+		//CHECKMATE IS POSSIBLE:
+		//king and 2 bishops (provided bishops are on different color squares) vs king
+		//king and 2 knights vs king
+		//if we have a king a knight or bishop vs a king and knight or bishop
+		//king and queen vs king
+		//king and castle vs king
+		//checkmate is more likely than stalemate to occur with more pieces in general
+		
+		ArrayList<ChessPiece> wpcs = getCurrentSidePieces("WHITE", allpcs);
+		ArrayList<ChessPiece> bpcs = getCurrentSidePieces("BLACK", allpcs);
+		String[] wpcstps = getPieceTypes(wpcs);
+		String[] bpcstps = getPieceTypes(bpcs);
+		//king, queen, castle (rook), bishop, knight, pawn
+		int[] wpccnts = getCountsForEachPieceTypeForASide(wpcstps);
+		int[] bpccnts = getCountsForEachPieceTypeForASide(bpcstps);
+		int numwkgs = getCountForPieceTypeForASide(wpccnts, "KING");
+		int numbkgs = getCountForPieceTypeForASide(bpccnts, "KING");
+		int numwbps = getCountForPieceTypeForASide(wpccnts, "BISHOP");
+		int numbbps = getCountForPieceTypeForASide(bpccnts, "BISHOP");
+		int numwcs = getCountForPieceTypeForASide(wpccnts, "CASTLE");
+		int numbcs = getCountForPieceTypeForASide(bpccnts, "CASTLE");
+		int numwqs = getCountForPieceTypeForASide(wpccnts, "QUEEN");
+		int numbqs = getCountForPieceTypeForASide(bpccnts, "QUEEN");
+		int numwkts = getCountForPieceTypeForASide(wpccnts, "KNIGHT");
+		int numbkts = getCountForPieceTypeForASide(bpccnts, "KNIGHT");
+		int numwps = getCountForPieceTypeForASide(wpccnts, "PAWN");
+		int numbps = getCountForPieceTypeForASide(bpccnts, "PAWN");
+		if (numwkgs == 1 && numbkgs == 1);
+		else throw new IllegalStateException("invalid number of kings on the board!");
+		//if there is a castle, a pawn, or a queen on the board: not an automatic stalemate
+		if (0 < numwqs || 0 < numbqs || 0 < numwps || 0 < numbps || 0 < numwcs || 0 < numbcs) return false;
+		//else;//do nothing this might be an automatic stalemate
+		//is king vs king -> yes
+		boolean kgvskg = (numwkgs == 1 && numbkgs == 1 && numwbps < 1 && numbbps < 1 && numwcs < 1 && numbcs < 1 &&
+			numwqs < 1 && numbqs < 1 && numwkts < 1 && numbkts < 1 && numwps < 1 && numbps < 1);
+		if (kgvskg) return true;
+		//is king vs king and knight -> yes
+		boolean kgvskgandkt = (numwkgs == 1 && numbkgs == 1 && ((numwkts == 1 && numbkts < 1) ||
+			(numbkts == 1 && numwkts < 1)) && numwps < 1 && numbps < 1 && numwqs < 1 && numbqs < 1 && numwbps < 1 &&
+			numbbps < 1 && numwcs < 1 && numbcs < 1);
+		if (kgvskgandkt) return true;
+		//king and any number of bishops vs king and any number of bishops provided all bishops are on same color square
+		boolean kgsandbps = (numwkgs == 1 && numbkgs == 1 && numwcs < 1 && numbcs < 1 && numwqs < 1 && numbqs < 1 &&
+			numwps < 1 && numbps < 1 && numwkts < 1 && numbkts < 1);
+		if (kgsandbps && areAllBishopsOnSameColorSquare(allpcs)) return true;
+		else return false;
+	}
+	public static boolean isAutoStalemate(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAutoStalemate(combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+	}
+	
+	//can an entire side not move
+	public static boolean doesSideHaveNoLegalMoves(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		ArrayList<ChessPiece> fpcs = getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, true);
+		//System.out.println("fpcs = " + fpcs);
+		
+		ArrayList<ChessPiece> myclrfpcs = filterListByColor(fpcs, clrval);
+		//System.out.println("myclrfpcs = " + myclrfpcs);
+		
+		if (getNumItemsInList(myclrfpcs) < 1)
+		{
+			System.out.println("" + clrval + " HAS NO FREE PIECES! IT HAS NO LEGAL MOVES IT CAN MAKE! STALEMATE!");
+			return true;
+		}
+		else return false;
+	}
+	public static boolean doesWhiteHaveNoLegalMoves(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return doesSideHaveNoLegalMoves("WHITE", ignorelist, addpcs, gid);
+	}
+	public static boolean doesBlackHaveNoLegalMoves(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return doesSideHaveNoLegalMoves("BLACK", ignorelist, addpcs, gid);
+	}
+	
+	//how to determine if a situation comes down to just the free pieces?
+	//how to determine if a free piece is able to capture an enemy piece through a series of legal moves?
+	//-to move a piece on one board only, I could call setLoc which does not register the moves
+	//-determine all possible places a piece can get from a certain starting location
+	//-then from each of those locations see where it can get and add those locs to the list
+	//-ignore castling to speed it up
+	//-once the list is complete IE you cannot get to a new location because it is already on the list -> done
+	//-now check and see if any enemy pieces are on those locations
+	//if it does come down to just the free pieces, and those free pieces generate auto-stalemate -> yes
+	//if an entire side cannot move and it is their turn and not checkmate -> yes
 	
 	
 	//SERVER METHODS
