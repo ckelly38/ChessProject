@@ -1097,6 +1097,8 @@ public class ChessBoardPieceClass {
     		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
     	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
     		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	System.out.println(ChessPiece.getAllLocsThatCanBeReachedByPiece(wkg.getRow(), wkg.getCol(), "KING", "WHITE",
+    		ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	

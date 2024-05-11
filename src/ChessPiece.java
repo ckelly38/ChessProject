@@ -289,40 +289,6 @@ class ChessPiece {
 		else return getColorOfLoc(cp.getRow(), cp.getCol());
 	}
 	
-	public static void printLocsArray(int[][] locs, String arrnm)
-    {
-    	if (arrnm == null || arrnm.length() < 1) printLocsArray(locs, "locs");
-    	if (locs == null) System.out.println("" + arrnm + " = null");
-    	else if (locs.length < 1) System.out.println("" + arrnm + " is empty!");
-    	else
-    	{
-    		System.out.println("" + arrnm + ".length = " + locs.length);
-	    	for (int x = 0; x < locs.length; x++)
-	    	{
-	    		System.out.println(ChessPiece.getLocString(locs[x][0], locs[x][1]) + ": " +
-	    			ChessPiece.convertRowColToStringLoc(locs[x]));
-	    	}
-    	}
-    }
-    public static void printLocsArray(int[][] locs)
-    {
-    	printLocsArray(locs, "locs");
-    }
-	
-	public static void printOneDIntArray(int[] arr)
-	{
-		if (arr == null) System.out.println("arr = null!");
-		else if (arr.length < 1) System.out.println("arr is empty!");
-		else
-		{
-			for (int i = 0; i < arr.length; i++)
-			{
-				System.out.println("arr[" + i + "] = " + arr[i]);
-			}
-		}
-		System.out.println();
-	}
-	
 	//METHODS FOR GETTING NUM ITEMS IN LIST
 	
 	public static int getNumItemsInList(ArrayList mylist)
@@ -438,6 +404,40 @@ class ChessPiece {
 		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
 		else return getLocStringAndConvertIt(mloc[0], mloc[1]);
 	}
+	
+	public static void printLocsArray(int[][] locs, String arrnm)
+    {
+    	if (arrnm == null || arrnm.length() < 1) printLocsArray(locs, "locs");
+    	if (locs == null) System.out.println("" + arrnm + " = null");
+    	else if (locs.length < 1) System.out.println("" + arrnm + " is empty!");
+    	else
+    	{
+    		System.out.println("" + arrnm + ".length = " + locs.length);
+	    	for (int x = 0; x < locs.length; x++)
+	    	{
+	    		System.out.println(getLocStringAndConvertIt(locs[x][0], locs[x][1]));
+	    	}
+    	}
+    }
+    public static void printLocsArray(int[][] locs)
+    {
+    	printLocsArray(locs, "locs");
+    }
+	
+	public static void printOneDIntArray(int[] arr)
+	{
+		if (arr == null) System.out.println("arr = null!");
+		else if (arr.length < 1) System.out.println("arr is empty!");
+		else
+		{
+			for (int i = 0; i < arr.length; i++)
+			{
+				System.out.println("arr[" + i + "] = " + arr[i]);
+			}
+		}
+		System.out.println();
+	}
+	
 	
 	
 	//METHODS TO GENERATE THE NEW BOARD LIST FROM A LIST OF CHANGES TO THE OLD BOARD
@@ -3905,6 +3905,215 @@ class ChessPiece {
 	//-now check and see if any enemy pieces are on those locations
 	//if it does come down to just the free pieces, and those free pieces generate auto-stalemate -> yes
 	//if an entire side cannot move and it is their turn and not checkmate -> yes
+	
+	public static int[][] transpose(int[][] myarr)
+	{
+		if (myarr == null) return null;
+		else if (myarr.length < 1) return new int[0][myarr.length];
+		else
+		{
+			//System.out.println("OLD ARRAY:");
+			//for (int r = 0; r < myarr.length; r++)
+			//{
+			//	for (int c = 0; c < myarr[0].length; c++)
+			//	{
+			//		System.out.println("myarr[" + r + "][" + c + "] = " + myarr[r][c]);
+			//	}
+			//}
+			
+			//System.out.println("OLD DIMENSIONS: myarr.length = " + myarr.length);
+			//System.out.println("myarr[0].length = " + myarr[0].length);
+			
+			int[][] resarr = new int[myarr[0].length][myarr.length];
+			//System.out.println("NEW DIMENTIONS: resarr.length = " + resarr.length);
+			//System.out.println("resarr[0].length = " + resarr[0].length);
+			
+			for (int r = 0; r < myarr.length; r++)
+			{
+				for (int c = 0; c < myarr[0].length; c++) resarr[c][r] = myarr[r][c];
+			}
+			
+			//System.out.println("NEW ARRAY:");
+			//for (int r = 0; r < resarr.length; r++)
+			//{
+			//	for (int c = 0; c < resarr[0].length; c++)
+			//	{
+			//		System.out.println("resarr[" + r + "][" + c + "] = " + resarr[r][c]);
+			//	}
+			//}
+			//throw new IllegalStateException("NEED TO CHECK IF THIS WORKS!");
+			return resarr;
+		}
+	}
+	
+	public static int[][] getPieceMoveToLocsForLocs(int[][] smvlocs, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (smvlocs == null || smvlocs.length < 1) return null;
+		
+		//for each location on the smvlocs list get the moveto locs and combine them all then return the list
+		int[][][] tempmvlocs = new int[smvlocs.length][2][];
+		int numadded = 0;
+		for (int x = 0; x < smvlocs.length; x++)
+		{
+			int[][] mvlocs = getPieceCanMoveToLocs(smvlocs[x][0], smvlocs[x][1], myclr, mytpval,
+				ignorelist, addpcs, gid, true);
+			if (mvlocs == null || mvlocs.length < 1) tempmvlocs[x] = null;
+			else
+			{
+				tempmvlocs[x][0] = new int[mvlocs.length];
+				tempmvlocs[x][1] = new int[mvlocs.length];
+				for (int c = 0; c < mvlocs.length; c++)
+				{
+					//System.out.println("mvlocs[" + c + "][0] = " + mvlocs[c][0]);
+					//System.out.println("mvlocs[" + c + "][1] = " + mvlocs[c][1]);
+					tempmvlocs[x][0][c] = mvlocs[c][0];
+					tempmvlocs[x][1][c] = mvlocs[c][1];
+				}
+				numadded += mvlocs.length;
+			}
+		}
+		
+		int[][] rmvlocs = new int[numadded][2];
+		for (int x = 0; x < numadded; x++)
+		{
+			rmvlocs[x][0] = -1;
+			rmvlocs[x][1] = -1;
+		}
+		int mvi = 0;
+		for (int x = 0; x < smvlocs.length; x++)
+		{
+			if (tempmvlocs[x] == null);
+			else
+			{
+				for (int c = 0; c < tempmvlocs[x][0].length; c++)
+				{
+					if (isLocOnListOfLocs(tempmvlocs[x][0][c], tempmvlocs[x][1][c], rmvlocs));
+					else
+					{
+						rmvlocs[mvi][0] = tempmvlocs[x][0][c];
+						rmvlocs[mvi][1] = tempmvlocs[x][1][c];
+						mvi++;
+					}
+				}
+			}
+		}
+		//System.out.println("mvi = " + mvi);
+		
+		int[][] rlistmvlocs = new int[mvi][2];
+		for (int x = 0; x < mvi; x++)
+		{
+			rlistmvlocs[x][0] = rmvlocs[x][0];
+			rlistmvlocs[x][1] = rmvlocs[x][1];
+		}
+		//printLocsArray(rlistmvlocs, "rlistmvlocs");
+		return rlistmvlocs;
+	}
+	
+	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid, int[][] vlocs)
+	{
+		//what if our location is already on the vlocs list? need to stop the recursion
+		
+		//get the piece can move to locations no castling
+		//if there are no locations we can move to, then what?
+		//
+		//if there are locations we can move to, then what?
+		//we want to add all of these locations on the rlist of course...
+		//we go through all of the locations and for each location:
+		//(D7 - F7 and D8 - F8 inclusive on both)
+		//where can they go?
+		//-on the calling vlist will be the starting location that called it
+		//-then we get all the possible moveto locs that these can move to
+		//-then we add it to the return list provided it is not already on it
+		//
+		//  A   B   C   D   E   F   G   H  
+		//|---|---|---|---|BKG|---|---|---| 1
+		//|---|---|---|---|---|---|---|---| 2
+		//|---|---|---|---|---|---|---|---| 3
+		//|BPN|---|BPN|---|BPN|---|BPN|---| 4
+		//|WPN|---|WPN|---|WPN|---|WPN|---| 5
+		//|-4-|-3-|-2-|-2-|-2-|-2-|-2-|-3-| 6
+		//|-4-|-3-|-2-|-1-|-1-|-1-|-2-|-3-| 7
+		//|-4-|-3-|-2-|-1-|WKG|-1-|-2-|-3-| 8
+		//
+		//take the initial starting location and get the move to locs for it
+		//now take each of the locations (1s) and get their unique move to locs for it
+		//now take each of those locations (2s) and get their unique move to locs for it
+		//now take each of those locations (3s) and get their unique move to locs for it
+		//now take each of those locations (4s) and get their unique move to locs for it
+		//repeat until cannot add any new unique locations...
+		
+		//if we visit all the locations we can move to first, then the starting location will be on the vlocs
+		//do not add all locations on vlocs
+		//add locations that are not on vlocs
+		//the return list will be the vlocs + mvlocs not on vlocs
+			
+		int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, myclr, mytpval, ignorelist, addpcs, gid, true);
+		//if no mvlocs return vlist
+		if (mvlocs == null || mvlocs.length < 1) return null;
+		else
+		{
+			//if all of mvlocs are on the vlist return the vlist
+			if (vlocs == null || vlocs.length < 1);
+			else
+			{
+				boolean allonit = true;
+				for (int x = 0; x < mvlocs.length; x++)
+				{
+					boolean fndit = false;
+					for (int c = 0; c < vlocs.length; c++)
+					{
+						if (vlocs[c][0] == mvlocs[x][0] &&
+							vlocs[c][1] == mvlocs[x][1])
+						{
+							fndit = true;
+							break;
+						}
+						//else;//do nothing
+					}
+					if (fndit);
+					else
+					{
+						allonit = false;
+						break;
+					}
+				}
+				if (allonit) return null;
+				//else;//do nothing
+			}
+		}
+		
+		//now determine the unique move to locs that this offers...
+		//keep getting it as long as size keeps increasing
+		int prevsz = 0;
+		int[][] mymvlocs = getPieceMoveToLocsForLocs(mvlocs, mytpval, myclr, ignorelist, addpcs, gid);
+		System.out.println("INIT prevsz = " + prevsz);
+		printLocsArray(mymvlocs, "lvtwomvlocs");
+		
+		if (mymvlocs == null);
+		else
+		{
+			while(prevsz < mymvlocs.length)
+			{
+				prevsz = mymvlocs.length;
+				System.out.println("NEW prevsz = " + prevsz);
+				
+				mymvlocs = getPieceMoveToLocsForLocs(mymvlocs, mytpval, myclr, ignorelist, addpcs, gid);
+				printLocsArray(mymvlocs, "mymvlocs");
+			}//end of while loop
+		}
+		
+		System.out.println("STARTING LOCATION IS " + getLocStringAndConvertIt(sr, sc));
+		printLocsArray(mymvlocs, "FINAL mymvlocs");
+		return mymvlocs;
+	}
+	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return getAllLocsThatCanBeReachedByPiece(sr, sc, mytpval, myclr, ignorelist, addpcs, gid, null);
+	}
+	
 	
 	
 	//SERVER METHODS
