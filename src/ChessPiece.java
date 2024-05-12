@@ -6,6 +6,7 @@ class ChessPiece {
 	public static String[][] clrs = getSquareColors();
 	public static final int ROWCOLMIN = 0;
 	public static final int ROWCOLMAX = 7;
+	public static final boolean WHITE_MOVES_DOWN_RANKS = true;
 	public static ArrayList<ChessPiece> cps = new ArrayList<ChessPiece>();
 	//only one copy so will cause a problem with multiple games
 	private String type = "";
@@ -324,7 +325,27 @@ class ChessPiece {
 	
 	//CONVERT LOCS METHODS
 	
-	public static int[] convertStringLocToRowCol(String mlocstr)
+	public static String convertWhiteDownRanksLocToWhiteUpRanksLocString(String dstr)
+	{
+		locStringIsInCorrectFormat(dstr);
+		
+		//column stays the same
+		return "" + dstr.charAt(0) + (8 - Integer.parseInt("" + dstr.charAt(1)) + 1);
+	}
+	public static String convertWhiteUpRanksLocToWhiteDownRanksLocString(String ustr)
+	{
+		locStringIsInCorrectFormat(ustr);
+		
+		//column stays the same
+		return "" + ustr.charAt(0) + (Integer.parseInt("" + ustr.charAt(1)) + 8 - 1);
+	}
+	public static String convertWhiteDownOrUpRanksLocToOther(String mstr, boolean iswhitedown)
+	{
+		if (iswhitedown) return convertWhiteDownRanksLocToWhiteUpRanksLocString(mstr);
+		else return convertWhiteUpRanksLocToWhiteDownRanksLocString(mstr);
+	}
+	
+	public static boolean locStringIsInCorrectFormat(String mlocstr)
 	{
 		if (mlocstr == null) throw new IllegalStateException("the locstring must not be null!");
 		else
@@ -355,6 +376,7 @@ class ChessPiece {
 		
 		String dgts = "0123456789";
 		boolean fnddgt = false;
+		//allow only 1 through 8 inclusive
 		for (int i = 1; i < dgts.length() - 1; i++)
 		{
 			if (dgts.charAt(i) == mlocstr.charAt(1))
@@ -370,26 +392,71 @@ class ChessPiece {
 			throw new IllegalStateException("the locstr is in the wrong format! A digit must be last! " +
 				"If a digit is actually last, then it is illegal!");
 		}
+		return true;
+	}
+	//iswhitedown is true by default
+	public static int[] convertStringLocToRowCol(String mlocstr, boolean iswhitedown)
+	{
+		locStringIsInCorrectFormat(mlocstr);
+		if (iswhitedown == WHITE_MOVES_DOWN_RANKS);
+		else return convertStringLocToRowCol(convertWhiteDownOrUpRanksLocToOther(mlocstr, iswhitedown), !iswhitedown);	
 		
+		String abet = "ABCDEFGH";
+		boolean fndltr = false;
+		int ltri = -1;
+		for (int i = 0; i < abet.length(); i++)
+		{
+			if (mlocstr.charAt(0) == abet.charAt(i))
+			{
+				ltri = i;
+				fndltr = true;
+				break;
+			}
+			//else;//do nothing
+		}
+		if (fndltr);
+		else
+		{
+			throw new IllegalStateException("the locstr is in the wrong format! A letter must be first! " +
+				"If a letter is actually first, then it is illegal! If it is legal, then it is not capitalized!");
+		}
+		
+		String dgts = "0123456789";
 		int[] myloc = new int[2];
 		myloc[1] = Integer.parseInt("" + dgts.charAt(ltri));//letter is column
-		myloc[0] = Integer.parseInt("" + mlocstr.charAt(1)) - 1;//number is row
+		if (WHITE_MOVES_DOWN_RANKS) myloc[0] = Integer.parseInt("" + mlocstr.charAt(1)) - 1;//number is row
+		else myloc[0] = 8 - Integer.parseInt("" + mlocstr.charAt(1));//number is row
+		
 		if (isvalidrorc(myloc[0]) && isvalidrorc(myloc[1]));
 		else throw new IllegalStateException("CONVERSION ERROR! FINAL R AND C ARE NOT VALID!");
 		return myloc;
 	}
-	public static String convertRowColToStringLoc(int rval, int cval)
+	public static int[] convertStringLocToRowCol(String mlocstr)
+	{
+		return convertStringLocToRowCol(mlocstr, true);
+	}
+	//retwhitedown is WHITE_MOVES_DOWN_RANKS by default
+	public static String convertRowColToStringLoc(int rval, int cval, boolean retwhitedown)
 	{
 		if (isvalidrorc(rval) && isvalidrorc(cval));
 		else throw new IllegalStateException("R OR C MUST BE VALID!");
 		
 		String abet = "ABCDEFGH";
-		return "" + abet.charAt(cval) + "" + (rval + 1);
+		if (WHITE_MOVES_DOWN_RANKS) return "" + abet.charAt(cval) + "" + (rval + 1);
+		else return "" + abet.charAt(cval) + "" + (8 - rval);
+	}
+	public static String convertRowColToStringLoc(int rval, int cval)
+	{
+		return convertRowColToStringLoc(rval, cval, WHITE_MOVES_DOWN_RANKS);
+	}
+	public static String convertRowColToStringLoc(int[] mloc, boolean retwhitedown)
+	{
+		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
+		else return convertRowColToStringLoc(mloc[0], mloc[1], retwhitedown);
 	}
 	public static String convertRowColToStringLoc(int[] mloc)
 	{
-		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
-		else return convertRowColToStringLoc(mloc[0], mloc[1]);
+		return convertRowColToStringLoc(mloc, WHITE_MOVES_DOWN_RANKS);
 	}
 	
 	//if not valid, it just prints it out and does not convert it
@@ -403,6 +470,22 @@ class ChessPiece {
 	{
 		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
 		else return getLocStringAndConvertIt(mloc[0], mloc[1]);
+	}
+	
+	public static int[][] getLocsFromPieceList(ArrayList<ChessPiece> allpcs)
+	{
+		int mxitems = getNumItemsInList(allpcs); 
+		if (mxitems < 1) return null;
+		else
+		{
+			int[][] locs = new int[mxitems][2];
+			for (int x = 0; x < mxitems; x++)
+			{
+				locs[x][0] = allpcs.get(x).getRow();
+				locs[x][1] = allpcs.get(x).getCol();
+			}
+			return locs;
+		}
 	}
 	
 	public static void printLocsArray(int[][] locs, String arrnm)
@@ -438,6 +521,45 @@ class ChessPiece {
 		System.out.println();
 	}
 	
+	public static int[][] transpose(int[][] myarr)
+	{
+		if (myarr == null) return null;
+		else if (myarr.length < 1) return new int[0][myarr.length];
+		else
+		{
+			//System.out.println("OLD ARRAY:");
+			//for (int r = 0; r < myarr.length; r++)
+			//{
+			//	for (int c = 0; c < myarr[0].length; c++)
+			//	{
+			//		System.out.println("myarr[" + r + "][" + c + "] = " + myarr[r][c]);
+			//	}
+			//}
+			
+			//System.out.println("OLD DIMENSIONS: myarr.length = " + myarr.length);
+			//System.out.println("myarr[0].length = " + myarr[0].length);
+			
+			int[][] resarr = new int[myarr[0].length][myarr.length];
+			//System.out.println("NEW DIMENTIONS: resarr.length = " + resarr.length);
+			//System.out.println("resarr[0].length = " + resarr[0].length);
+			
+			for (int r = 0; r < myarr.length; r++)
+			{
+				for (int c = 0; c < myarr[0].length; c++) resarr[c][r] = myarr[r][c];
+			}
+			
+			//System.out.println("NEW ARRAY:");
+			//for (int r = 0; r < resarr.length; r++)
+			//{
+			//	for (int c = 0; c < resarr[0].length; c++)
+			//	{
+			//		System.out.println("resarr[" + r + "][" + c + "] = " + resarr[r][c]);
+			//	}
+			//}
+			//throw new IllegalStateException("NEED TO CHECK IF THIS WORKS!");
+			return resarr;
+		}
+	}
 	
 	
 	//METHODS TO GENERATE THE NEW BOARD LIST FROM A LIST OF CHANGES TO THE OLD BOARD
@@ -892,6 +1014,11 @@ class ChessPiece {
 	{
 		return filterListByColor(allpcs, clrval);
 	}
+	public static ArrayList<ChessPiece> getCurrentSidePieces(String clrval, int gid, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs)
+	{
+		return getCurrentSidePieces(clrval, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+	}
 	public static ArrayList<ChessPiece> getCurrentSidePieces(String clrval, int gid)
 	{
 		return getCurrentSidePieces(clrval, getAllPiecesWithGameID(gid));
@@ -899,6 +1026,11 @@ class ChessPiece {
 	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, ArrayList<ChessPiece> allpcs)
 	{
 		return getCurrentSidePieces(getOppositeColor(clrval), allpcs);
+	}
+	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, int gid, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs)
+	{
+		return getOpposingSidePieces(clrval, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
 	}
 	public static ArrayList<ChessPiece> getOpposingSidePieces(String clrval, int gid)
 	{
@@ -1231,14 +1363,15 @@ class ChessPiece {
 	}
 	
 	
-	//NEED TO KNOW WHERE CERTAIN PIECES CAN MOVE TO...
 	//NEED TO KNOW WHOSE TURN IT IS AND
 	//NEED TO PREVENT THE OTHER SIDE FROM MOVING UNTIL WE TELL THEM IT IS THEIR TURN
-	//NEED TO KNOW IF THE GAME ENDS IN AUTO STALEMATE OR CHECKMATE
-	//NEEDS A WAY TO SURRENDER
-	//NEEDS A WAY TO UNDO OR REDO A MOVE
+	//NEED A WAY TO AGREE UPON A TIE OR DRAW (STALEMATE)
+	//NEED A WAY TO SURRENDER OR RESIGN
+	//NEED A WAY TO UNDO OR REDO A MOVE
 	//NEED A WAY TO STEP THROUGH A FINISHED GAME
-	//NEED A WAY TO DETECT STALEMATE AND CHECKMATE
+	//NEED A WAY TO TELL THE OTHER COMPUTER: IT IS THEIR TURN, WHAT MOVES WERE MADE, AND HOW THE GAME ENDS,
+	//WHAT TO DO AFTER THE GAME ENDS?
+	//NEED A WAY TO COMMUNICATE WITH MY SERVER
 	
 	//HOW TO STEP THROUGH A COMPLETED GAME (ONLY COMPLETED GAMES):
 	//WHAT DOES BACK AND NEXT DO? INCREASE OR DECREASE THE STEP_COUNTER/INDEX.
@@ -2720,6 +2853,30 @@ class ChessPiece {
 		return isMySideInCheck(null, null);
 	}
 	
+	//this gets the king with the specified color and then calls inCheck on it
+	public static boolean isSideInCheck(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		ChessPiece mkg = getCurrentSideKing(clrval, combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+		if (mkg == null) throw new IllegalStateException("the king must be found!");
+		else return mkg.inCheck(ignorelist, addpcs);
+	}
+	public static boolean isSideInCheck(String clrval, int gid)
+	{
+		return isSideInCheck(clrval, null, null, gid);
+	}
+	
+	//checks to see if a side is in check and checks the given color first, if no color provided it starts with white
+	//it will also check black; white then black or black then white
+	public static boolean isASideInCheck(String clrval, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return (isSideInCheck(clrval, ignorelist, addpcs, gid) ||
+			isSideInCheck(getOppositeColor(clrval), ignorelist, addpcs, gid));
+	}
+	public static boolean isASideInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isASideInCheck("WHITE", ignorelist, addpcs, gid);
+	}
+	
 	
 	//GET CAN MOVE TO LOCATIONS METHODS
 	
@@ -3584,6 +3741,223 @@ class ChessPiece {
 		return getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, false);
 	}
 	
+	public static int[][] getPieceMoveToLocsForLocs(int[][] smvlocs, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (smvlocs == null || smvlocs.length < 1) return null;
+		
+		//for each location on the smvlocs list get the moveto locs and combine them all then return the list
+		int[][][] tempmvlocs = new int[smvlocs.length][2][];
+		int numadded = 0;
+		for (int x = 0; x < smvlocs.length; x++)
+		{
+			int[][] mvlocs = getPieceCanMoveToLocs(smvlocs[x][0], smvlocs[x][1], myclr, mytpval,
+				ignorelist, addpcs, gid, true);
+			if (mvlocs == null || mvlocs.length < 1) tempmvlocs[x] = null;
+			else
+			{
+				tempmvlocs[x][0] = new int[mvlocs.length];
+				tempmvlocs[x][1] = new int[mvlocs.length];
+				for (int c = 0; c < mvlocs.length; c++)
+				{
+					//System.out.println("mvlocs[" + c + "][0] = " + mvlocs[c][0]);
+					//System.out.println("mvlocs[" + c + "][1] = " + mvlocs[c][1]);
+					tempmvlocs[x][0][c] = mvlocs[c][0];
+					tempmvlocs[x][1][c] = mvlocs[c][1];
+				}
+				numadded += mvlocs.length;
+			}
+		}
+		
+		int[][] rmvlocs = new int[numadded][2];
+		for (int x = 0; x < numadded; x++)
+		{
+			rmvlocs[x][0] = -1;
+			rmvlocs[x][1] = -1;
+		}
+		int mvi = 0;
+		for (int x = 0; x < smvlocs.length; x++)
+		{
+			if (tempmvlocs[x] == null);
+			else
+			{
+				for (int c = 0; c < tempmvlocs[x][0].length; c++)
+				{
+					if (isLocOnListOfLocs(tempmvlocs[x][0][c], tempmvlocs[x][1][c], rmvlocs));
+					else
+					{
+						rmvlocs[mvi][0] = tempmvlocs[x][0][c];
+						rmvlocs[mvi][1] = tempmvlocs[x][1][c];
+						mvi++;
+					}
+				}
+			}
+		}
+		//System.out.println("mvi = " + mvi);
+		
+		int[][] rlistmvlocs = new int[mvi][2];
+		for (int x = 0; x < mvi; x++)
+		{
+			rlistmvlocs[x][0] = rmvlocs[x][0];
+			rlistmvlocs[x][1] = rmvlocs[x][1];
+		}
+		//printLocsArray(rlistmvlocs, "rlistmvlocs");
+		return rlistmvlocs;
+	}
+	
+	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid, int[][] vlocs)
+	{
+		//what if our location is already on the vlocs list? need to stop the recursion
+		
+		//get the piece can move to locations no castling
+		//if there are no locations we can move to, then what?
+		//
+		//if there are locations we can move to, then what?
+		//we want to add all of these locations on the rlist of course...
+		//we go through all of the locations and for each location:
+		//(D7 - F7 and D8 - F8 inclusive on both)
+		//where can they go?
+		//-on the calling vlist will be the starting location that called it
+		//-then we get all the possible moveto locs that these can move to
+		//-then we add it to the return list provided it is not already on it
+		//
+		//  A   B   C   D   E   F   G   H  
+		//|---|---|---|---|BKG|---|---|---| 1
+		//|---|---|---|---|---|---|---|---| 2
+		//|---|---|---|---|---|---|---|---| 3
+		//|BPN|---|BPN|---|BPN|---|BPN|---| 4
+		//|WPN|---|WPN|---|WPN|---|WPN|---| 5
+		//|-4-|-3-|-2-|-2-|-2-|-2-|-2-|-3-| 6
+		//|-4-|-3-|-2-|-1-|-1-|-1-|-2-|-3-| 7
+		//|-4-|-3-|-2-|-1-|WKG|-1-|-2-|-3-| 8
+		//
+		//take the initial starting location and get the move to locs for it
+		//now take each of the locations (1s) and get their unique move to locs for it
+		//now take each of those locations (2s) and get their unique move to locs for it
+		//now take each of those locations (3s) and get their unique move to locs for it
+		//now take each of those locations (4s) and get their unique move to locs for it
+		//repeat until cannot add any new unique locations...
+		
+		//if we visit all the locations we can move to first, then the starting location will be on the vlocs
+		//do not add all locations on vlocs
+		//add locations that are not on vlocs
+		//the return list will be the vlocs + mvlocs not on vlocs
+			
+		int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, myclr, mytpval, ignorelist, addpcs, gid, true);
+		//if no mvlocs return vlist
+		if (mvlocs == null || mvlocs.length < 1) return null;
+		else
+		{
+			//if all of mvlocs are on the vlist return the vlist
+			if (vlocs == null || vlocs.length < 1);
+			else
+			{
+				boolean allonit = true;
+				for (int x = 0; x < mvlocs.length; x++)
+				{
+					boolean fndit = false;
+					for (int c = 0; c < vlocs.length; c++)
+					{
+						if (vlocs[c][0] == mvlocs[x][0] &&
+							vlocs[c][1] == mvlocs[x][1])
+						{
+							fndit = true;
+							break;
+						}
+						//else;//do nothing
+					}
+					if (fndit);
+					else
+					{
+						allonit = false;
+						break;
+					}
+				}
+				if (allonit) return null;
+				//else;//do nothing
+			}
+		}
+		
+		//now determine the unique move to locs that this offers...
+		//keep getting it as long as size keeps increasing
+		int prevsz = 0;
+		int[][] mymvlocs = getPieceMoveToLocsForLocs(mvlocs, mytpval, myclr, ignorelist, addpcs, gid);
+		//System.out.println("INIT prevsz = " + prevsz);
+		//printLocsArray(mymvlocs, "lvtwomvlocs");
+		
+		if (mymvlocs == null);
+		else
+		{
+			while(prevsz < mymvlocs.length)
+			{
+				prevsz = mymvlocs.length;
+				//System.out.println("NEW prevsz = " + prevsz);
+				
+				mymvlocs = getPieceMoveToLocsForLocs(mymvlocs, mytpval, myclr, ignorelist, addpcs, gid);
+				//printLocsArray(mymvlocs, "mymvlocs");
+			}//end of while loop
+		}
+		
+		//System.out.println("STARTING LOCATION IS " + getLocStringAndConvertIt(sr, sc));
+		//printLocsArray(mymvlocs, "FINAL mymvlocs");
+		return mymvlocs;
+	}
+	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return getAllLocsThatCanBeReachedByPiece(sr, sc, mytpval, myclr, ignorelist, addpcs, gid, null);
+	}
+	public int[][] getAllLocsThatCanBeReachedByPiece(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return getAllLocsThatCanBeReachedByPiece(getRow(), getCol(), getType(), getColor(), ignorelist, addpcs, getGameID());
+	}
+	
+	public static int[][] getAllLocsThatCanBeReachedBySide(String clrval, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		//gets all the pieces for a side...
+		//get all of their move to locations for each piece
+		//then save a list of all of the unique locations
+		ArrayList<ChessPiece> allmypcs = getCurrentSidePieces(clrval, gid, ignorelist, addpcs);
+		int numallmypcs = getNumItemsInList(allmypcs);
+		if (numallmypcs < 1) throw new IllegalStateException("there must be at least a king on one side!");
+		//else;//do nothing
+		int[][] tmplocslist = new int[64][2];
+		for (int x = 0; x < 64; x++)
+		{
+			tmplocslist[x][0] = -1;
+			tmplocslist[x][1] = -1;
+		}
+		int rszi = 0;
+		for (int x = 0; x < numallmypcs; x++)
+		{
+			int[][] pcmvlocs = allmypcs.get(x).getAllLocsThatCanBeReachedByPiece(ignorelist, addpcs);
+			if (pcmvlocs == null || pcmvlocs.length < 1);
+			else
+			{
+				//add these to the rlist
+				for (int c = 0; c < pcmvlocs.length; c++)
+				{
+					if (isLocOnListOfLocs(pcmvlocs[c][0], pcmvlocs[c][1], tmplocslist));
+					else
+					{
+						tmplocslist[rszi][0] = pcmvlocs[c][0];
+						tmplocslist[rszi][1] = pcmvlocs[c][1];
+						rszi++;
+					}
+				}
+			}
+		}
+		int[][] rlist = new int[rszi][2];
+		for (int x = 0; x < rszi; x++)
+		{
+			rlist[x][0] = tmplocslist[x][0];
+			rlist[x][1] = tmplocslist[x][1];
+		}
+		return rlist;
+	}
+	
 	
 	//NOTE: TAKES INTO ACCOUNT PAWNING WHEN CALLED ON PAWN ONLY, TAKES INTO ACCOUNT CASTLING WHEN CALLED ON KING ONLY,
 	//DOES NOT TAKE INTO ACCOUNT WHOSE TURN IT IS
@@ -3906,214 +4280,155 @@ class ChessPiece {
 	//if it does come down to just the free pieces, and those free pieces generate auto-stalemate -> yes
 	//if an entire side cannot move and it is their turn and not checkmate -> yes
 	
-	public static int[][] transpose(int[][] myarr)
+	//this asks is it possible for a specific side to capture an enemy piece (if the enemy stays in their current positions)
+	public static boolean canSideCaptureAPieceIfEnemyStaysSame(String sideclrtomv, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
 	{
-		if (myarr == null) return null;
-		else if (myarr.length < 1) return new int[0][myarr.length];
-		else
-		{
-			//System.out.println("OLD ARRAY:");
-			//for (int r = 0; r < myarr.length; r++)
-			//{
-			//	for (int c = 0; c < myarr[0].length; c++)
-			//	{
-			//		System.out.println("myarr[" + r + "][" + c + "] = " + myarr[r][c]);
-			//	}
-			//}
-			
-			//System.out.println("OLD DIMENSIONS: myarr.length = " + myarr.length);
-			//System.out.println("myarr[0].length = " + myarr[0].length);
-			
-			int[][] resarr = new int[myarr[0].length][myarr.length];
-			//System.out.println("NEW DIMENTIONS: resarr.length = " + resarr.length);
-			//System.out.println("resarr[0].length = " + resarr[0].length);
-			
-			for (int r = 0; r < myarr.length; r++)
-			{
-				for (int c = 0; c < myarr[0].length; c++) resarr[c][r] = myarr[r][c];
-			}
-			
-			//System.out.println("NEW ARRAY:");
-			//for (int r = 0; r < resarr.length; r++)
-			//{
-			//	for (int c = 0; c < resarr[0].length; c++)
-			//	{
-			//		System.out.println("resarr[" + r + "][" + c + "] = " + resarr[r][c]);
-			//	}
-			//}
-			//throw new IllegalStateException("NEED TO CHECK IF THIS WORKS!");
-			return resarr;
-		}
-	}
-	
-	public static int[][] getPieceMoveToLocsForLocs(int[][] smvlocs, String mytpval, String myclr,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
-	{
-		if (smvlocs == null || smvlocs.length < 1) return null;
+		//if we can move to an enemy piece's square then yes a capture is possible
+		//we need to take our free pieces for a side and see if they can make a capture
+		//we can do this by checking where each piece can possibly move to
+		//if enemy pieces reside at at least one location a capture is possible and not a stalemate.
 		
-		//for each location on the smvlocs list get the moveto locs and combine them all then return the list
-		int[][][] tempmvlocs = new int[smvlocs.length][2][];
-		int numadded = 0;
-		for (int x = 0; x < smvlocs.length; x++)
+		ArrayList<ChessPiece> myfpcs = filterListByColor(
+			getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, true), sideclrtomv);
+		int numfpcs = getNumItemsInList(myfpcs);
+		if (numfpcs < 1)
 		{
-			int[][] mvlocs = getPieceCanMoveToLocs(smvlocs[x][0], smvlocs[x][1], myclr, mytpval,
-				ignorelist, addpcs, gid, true);
-			if (mvlocs == null || mvlocs.length < 1) tempmvlocs[x] = null;
+			//System.out.println("sideclrtomv = " + sideclrtomv);
+			//throw new IllegalStateException("the side has legal moves, that means that there is at least one piece " +
+			//	"that is free, but none were found!");
+			return false;
+		}
+		//else;//do nothing
+		
+		ArrayList<ChessPiece> allepcs = getOpposingSidePieces(sideclrtomv, gid, ignorelist, addpcs);
+		int[][] epclocs = getLocsFromPieceList(allepcs);
+		//printLocsArray(epclocs, "epclocs");
+		//System.out.println();
+		//System.out.println("MY SIDE PIECES CAN MOVE TO:");
+		for (int x = 0; x < numfpcs; x++)
+		{
+			int[][] allpossiblemvlocsforpc = myfpcs.get(x).getAllLocsThatCanBeReachedByPiece(ignorelist, addpcs);
+			//System.out.println("myfpcs.get(" + x + ") = " + myfpcs.get(x));
+			//printLocsArray(allpossiblemvlocsforpc, "allpossiblemvlocsforpc");
+			if (allpossiblemvlocsforpc == null || allpossiblemvlocsforpc.length < 2)
+			{
+				throw new IllegalStateException("the piece was free meaning it has more than one location " +
+					"it can move to, but now it claims it cannot move!");
+			}
 			else
 			{
-				tempmvlocs[x][0] = new int[mvlocs.length];
-				tempmvlocs[x][1] = new int[mvlocs.length];
-				for (int c = 0; c < mvlocs.length; c++)
+				for (int r = 0; r < allpossiblemvlocsforpc.length; r++)
 				{
-					//System.out.println("mvlocs[" + c + "][0] = " + mvlocs[c][0]);
-					//System.out.println("mvlocs[" + c + "][1] = " + mvlocs[c][1]);
-					tempmvlocs[x][0][c] = mvlocs[c][0];
-					tempmvlocs[x][1][c] = mvlocs[c][1];
-				}
-				numadded += mvlocs.length;
-			}
-		}
-		
-		int[][] rmvlocs = new int[numadded][2];
-		for (int x = 0; x < numadded; x++)
-		{
-			rmvlocs[x][0] = -1;
-			rmvlocs[x][1] = -1;
-		}
-		int mvi = 0;
-		for (int x = 0; x < smvlocs.length; x++)
-		{
-			if (tempmvlocs[x] == null);
-			else
-			{
-				for (int c = 0; c < tempmvlocs[x][0].length; c++)
-				{
-					if (isLocOnListOfLocs(tempmvlocs[x][0][c], tempmvlocs[x][1][c], rmvlocs));
-					else
+					for (int c = 0; c < epclocs.length; c++)
 					{
-						rmvlocs[mvi][0] = tempmvlocs[x][0][c];
-						rmvlocs[mvi][1] = tempmvlocs[x][1][c];
-						mvi++;
-					}
-				}
-			}
-		}
-		//System.out.println("mvi = " + mvi);
-		
-		int[][] rlistmvlocs = new int[mvi][2];
-		for (int x = 0; x < mvi; x++)
-		{
-			rlistmvlocs[x][0] = rmvlocs[x][0];
-			rlistmvlocs[x][1] = rmvlocs[x][1];
-		}
-		//printLocsArray(rlistmvlocs, "rlistmvlocs");
-		return rlistmvlocs;
-	}
-	
-	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid, int[][] vlocs)
-	{
-		//what if our location is already on the vlocs list? need to stop the recursion
-		
-		//get the piece can move to locations no castling
-		//if there are no locations we can move to, then what?
-		//
-		//if there are locations we can move to, then what?
-		//we want to add all of these locations on the rlist of course...
-		//we go through all of the locations and for each location:
-		//(D7 - F7 and D8 - F8 inclusive on both)
-		//where can they go?
-		//-on the calling vlist will be the starting location that called it
-		//-then we get all the possible moveto locs that these can move to
-		//-then we add it to the return list provided it is not already on it
-		//
-		//  A   B   C   D   E   F   G   H  
-		//|---|---|---|---|BKG|---|---|---| 1
-		//|---|---|---|---|---|---|---|---| 2
-		//|---|---|---|---|---|---|---|---| 3
-		//|BPN|---|BPN|---|BPN|---|BPN|---| 4
-		//|WPN|---|WPN|---|WPN|---|WPN|---| 5
-		//|-4-|-3-|-2-|-2-|-2-|-2-|-2-|-3-| 6
-		//|-4-|-3-|-2-|-1-|-1-|-1-|-2-|-3-| 7
-		//|-4-|-3-|-2-|-1-|WKG|-1-|-2-|-3-| 8
-		//
-		//take the initial starting location and get the move to locs for it
-		//now take each of the locations (1s) and get their unique move to locs for it
-		//now take each of those locations (2s) and get their unique move to locs for it
-		//now take each of those locations (3s) and get their unique move to locs for it
-		//now take each of those locations (4s) and get their unique move to locs for it
-		//repeat until cannot add any new unique locations...
-		
-		//if we visit all the locations we can move to first, then the starting location will be on the vlocs
-		//do not add all locations on vlocs
-		//add locations that are not on vlocs
-		//the return list will be the vlocs + mvlocs not on vlocs
-			
-		int[][] mvlocs = getPieceCanMoveToLocs(sr, sc, myclr, mytpval, ignorelist, addpcs, gid, true);
-		//if no mvlocs return vlist
-		if (mvlocs == null || mvlocs.length < 1) return null;
-		else
-		{
-			//if all of mvlocs are on the vlist return the vlist
-			if (vlocs == null || vlocs.length < 1);
-			else
-			{
-				boolean allonit = true;
-				for (int x = 0; x < mvlocs.length; x++)
-				{
-					boolean fndit = false;
-					for (int c = 0; c < vlocs.length; c++)
-					{
-						if (vlocs[c][0] == mvlocs[x][0] &&
-							vlocs[c][1] == mvlocs[x][1])
+						if (allpossiblemvlocsforpc[r][0] == epclocs[c][0] &&
+							allpossiblemvlocsforpc[r][0] == epclocs[c][1])
 						{
-							fndit = true;
-							break;
+							//it is possible to kill an enemy piece, therefore not a stalemate
+							//System.out.println("A MATCH IS FOUND!");
+							return true;
 						}
 						//else;//do nothing
-					}
-					if (fndit);
-					else
-					{
-						allonit = false;
-						break;
-					}
+					}//end of c for loop
+				}//end of r for loop
+			}
+		}//end of x for loop
+		//System.out.println("NO MATCHES FOUND!");
+		return false;
+	}
+	
+	//this asks is a capture possible starting with the given color, then it uses the opposite color
+	//white is passed in by default for the color, so white then black or black then white
+	public static boolean canASideCaptureAPieceIfEnemyStaysSame(String sideclrtomv, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return (canSideCaptureAPieceIfEnemyStaysSame(sideclrtomv, ignorelist, addpcs, gid) ||
+			canSideCaptureAPieceIfEnemyStaysSame(getOppositeColor(sideclrtomv), ignorelist, addpcs, gid));
+	}
+	public static boolean canASideCaptureAPieceIfEnemyStaysSame(int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return canASideCaptureAPieceIfEnemyStaysSame("WHITE", ignorelist, addpcs, gid);
+	}
+	
+	//this asks is it possible for both sides to move to a common location (this assumes that both sides move)
+	public static boolean isACapturePossible(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		int[][] wmvlocs = getAllLocsThatCanBeReachedBySide("WHITE", ignorelist, addpcs, gid);
+		//printLocsArray(wmvlocs, "wmvlocs");
+		int[][] bmvlocs = getAllLocsThatCanBeReachedBySide("BLACK", ignorelist, addpcs, gid);
+		//printLocsArray(bmvlocs, "bmvlocs");
+		if (wmvlocs == null || wmvlocs.length < 1 || bmvlocs == null || bmvlocs.length < 1) return true;//not sure
+		//else;//do nothing
+		for (int x = 0; x < wmvlocs.length; x++)
+		{
+			for (int c = 0; c < bmvlocs.length; c++)
+			{
+				if (wmvlocs[x][0] == bmvlocs[c][0] &&
+					wmvlocs[x][1] == bmvlocs[c][1])
+				{
+					//System.out.println("THE FIRST CAPTURE LOC FOUND IS: " +
+					//	getLocStringAndConvertIt(wmvlocs[x][0], wmvlocs[x][1]));
+					return true;
 				}
-				if (allonit) return null;
 				//else;//do nothing
 			}
 		}
-		
-		//now determine the unique move to locs that this offers...
-		//keep getting it as long as size keeps increasing
-		int prevsz = 0;
-		int[][] mymvlocs = getPieceMoveToLocsForLocs(mvlocs, mytpval, myclr, ignorelist, addpcs, gid);
-		System.out.println("INIT prevsz = " + prevsz);
-		printLocsArray(mymvlocs, "lvtwomvlocs");
-		
-		if (mymvlocs == null);
-		else
-		{
-			while(prevsz < mymvlocs.length)
-			{
-				prevsz = mymvlocs.length;
-				System.out.println("NEW prevsz = " + prevsz);
-				
-				mymvlocs = getPieceMoveToLocsForLocs(mymvlocs, mytpval, myclr, ignorelist, addpcs, gid);
-				printLocsArray(mymvlocs, "mymvlocs");
-			}//end of while loop
-		}
-		
-		System.out.println("STARTING LOCATION IS " + getLocStringAndConvertIt(sr, sc));
-		printLocsArray(mymvlocs, "FINAL mymvlocs");
-		return mymvlocs;
-	}
-	public static int[][] getAllLocsThatCanBeReachedByPiece(int sr, int sc, String mytpval, String myclr,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
-	{
-		return getAllLocsThatCanBeReachedByPiece(sr, sc, mytpval, myclr, ignorelist, addpcs, gid, null);
+		return false;
 	}
 	
+	
+	//MAIN STALEMATE METHODS
+	
+	//is stalemate side's color's turn to move
+	public static boolean isStalemate(String sideclrtomv, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		//checks to see if both sides are in check starting with the color given then it will check the opposite color
+		if (isASideInCheck(sideclrtomv, ignorelist, addpcs, gid))
+		{
+			System.out.println("ONE SIDE IS IN CHECK! SO NO STALEMATE!");
+			return false;
+		}
+		//else;//do nothing
+		System.out.println("NO SIDE IS IN CHECK!");
+		
+		if (isAutoStalemate(ignorelist, addpcs, gid) ||
+			doesSideHaveNoLegalMoves(sideclrtomv, ignorelist, addpcs, gid))
+		{
+			System.out.println("EITHER THERE ARE NOT ENOUGH PIECES OR THE SIDE WHO IS SUPPOSED TO MOVE CANNOT! " +
+				"SO STALEMATE!");
+			return true;
+		}
+		//else;//do nothing
+		System.out.println("THERE ARE ENOUGH PIECES ON THE BOARD! A CAPTURE MIGHT BE POSSIBLE!");
+		
+		//if it is not possible to make a capture, then the game cannot end in checkmate -> yes it is a stalemate
+		//we need to take our free pieces for a side and see if they can make a capture
+		//we can do this by checking where each piece can possibly move to
+		//if enemy pieces reside at at least one location a capture is possible and not a stalemate.
+		
+		System.out.println("IS A CAPTURE POSSIBLE: " + isACapturePossible(ignorelist, addpcs, gid));
+		
+		if (canASideCaptureAPieceIfEnemyStaysSame(sideclrtomv, ignorelist, addpcs, gid))
+		{
+			System.out.println("IT IS POSSIBLE FOR ONE SIDE TO MAKE A CAPTURE!");
+			return false;
+		}
+		else
+		{
+			System.out.println("IT IS NOT POSSIBLE FOR ONE SIDE TO MAKE A CAPTURE SO STALEMATE!");
+			return true;//cannot capture an enemy piece -> stalemate
+		}
+	}
+	public static boolean isStalemateWhite(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isStalemate("WHITE", ignorelist, addpcs, gid);
+	}
+	public static boolean isStalemateBlack(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isStalemate("BLACK", ignorelist, addpcs, gid);
+	}
 	
 	
 	//SERVER METHODS
@@ -4233,8 +4548,8 @@ class ChessPiece {
 		ArrayList<ChessPiece> bpns = getAllPawnsOfColor("BLACK", allpcs);
 		if (getNumItemsInList(wpns) < 1 || getNumItemsInList(bpns) < 1)
 		{
-			System.out.println("ONE SIDE HAS NO PAWNS! THERE MUST BE AT LEAST ONE PAWN ON EACH SIDE NEAR " +
-				"EACH OTHER TO BE ABLE TO PAWN!");
+			//System.out.println("ONE SIDE HAS NO PAWNS! THERE MUST BE AT LEAST ONE PAWN ON EACH SIDE NEAR " +
+			//	"EACH OTHER TO BE ABLE TO PAWN!");
 			return false;
 		}
 		//else;//do nothing

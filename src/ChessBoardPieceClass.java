@@ -59,9 +59,9 @@ public class ChessBoardPieceClass {
     	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
     	//setUpBoardWhiteCheckmateAfterManyMoves(gid);
     	//STALEMATE TESTS
-    	setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
+    	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
     	//setUpBoardWithBlockedPawnsAndBishops(gid);
-    	//setUpBoardWhiteStalemateAfterManyMoves(gid);
+    	setUpBoardWhiteStalemateAfterManyMoves(gid);
     	//AUTO STALEMATES
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
@@ -120,7 +120,8 @@ public class ChessBoardPieceClass {
     			if (fndit);
     			else System.out.print("---");
     		}
-    		System.out.println("| " + (r + 1));
+    		if (ChessPiece.WHITE_MOVES_DOWN_RANKS) System.out.println("| " + (r + 1));
+    		else System.out.println("| " + (8 - r));
     	}
     }
     public static void printBoard(int gid)
@@ -806,6 +807,8 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(null, null, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(null, null, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(null, null, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(null, null, gid));
     }
@@ -838,12 +841,15 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
     	testCanMoveToLocs(gid, 0, 4, "BLACK", 0, 6, "BLACK", 0, 7, "BLACK", 0, 5, "BLACK", 1, 4, "BLACK", 3, 7, "WHITE",
     		ignorelist, addpcs);
     }
+    
     public static void setUpBoardWithTwoMoveCheckMateWhite(int gid)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
@@ -865,6 +871,8 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(null, null, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(null, null, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(null, null, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(null, null, gid));
     }
@@ -895,12 +903,15 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
     	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 7, "WHITE", 7, 5, "WHITE", 7, 4, "WHITE", 4, 7, "BLACK",
     		ignorelist, addpcs);
     }
+    //calls the above two move checkmate methods
     public static void setUpBoardWithTwoMoveCheckMate(int gid, boolean usewhite, boolean movethere)
     {
     	if (usewhite)
@@ -960,6 +971,8 @@ public class ChessBoardPieceClass {
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
@@ -1008,7 +1021,9 @@ public class ChessBoardPieceClass {
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
@@ -1092,13 +1107,15 @@ public class ChessBoardPieceClass {
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
-    	System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
-    	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
-    	System.out.println(ChessPiece.getAllLocsThatCanBeReachedByPiece(wkg.getRow(), wkg.getCol(), "KING", "WHITE",
-    		ignorelist, addpcs, gid));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//ChessPiece.printLocsArray(ChessPiece.getAllLocsThatCanBeReachedByPiece(wkg.getRow(), wkg.getCol(), "KING", "WHITE",
+    	//	ignorelist, addpcs, gid), "wkingpossiblecanmovetolocs");
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
@@ -1195,11 +1212,13 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
-    	System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
-    	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
@@ -1256,11 +1275,13 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
-    	System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
-    	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
@@ -1306,11 +1327,13 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, null));
     	System.out.println("ALL BISHOPS ON SAME COLOR SQUARES: " + ChessPiece.areAllBishopsOnSameColorSquare(nwpcslist));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, null, gid));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
-    	System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, null, gid));
-    	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, null, gid));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, null, gid));
+    	//System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, null, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, null, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, null, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, null, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, null, gid));
     	
@@ -1357,11 +1380,13 @@ public class ChessBoardPieceClass {
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
     	System.out.println("FREE PIECES: " + ChessPiece.getPiecesThatAreFreeToMove(ignorelist, addpcs, gid));
-    	System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
-    	System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
-    	System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
-    		ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("IS AUTO-STALEMATE: " + ChessPiece.isAutoStalemate(nwpcslist));
+    	//System.out.println("WHITE HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesWhiteHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	//System.out.println("BLACK HAS NO LEGAL MOVES IT CAN MAKE: " +
+    	//	ChessPiece.doesBlackHaveNoLegalMoves(ignorelist, addpcs, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(ignorelist, addpcs, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(ignorelist, addpcs, gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(ignorelist, addpcs, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(ignorelist, addpcs, gid));
     	
