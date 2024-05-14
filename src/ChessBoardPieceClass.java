@@ -50,7 +50,7 @@ public class ChessBoardPieceClass {
     	
     	//testPawning(gid, false);
     	//setUpBoardForPawnPromotion(gid, false);
-    	//setUpBoardForCastlingWhiteRight(gid, false);
+    	setUpBoardForCastlingWhiteRight(gid, false);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, false);
@@ -61,7 +61,7 @@ public class ChessBoardPieceClass {
     	//STALEMATE TESTS
     	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
     	//setUpBoardWithBlockedPawnsAndBishops(gid);
-    	setUpBoardWhiteStalemateAfterManyMoves(gid);
+    	//setUpBoardWhiteStalemateAfterManyMoves(gid);
     	//AUTO STALEMATES
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
@@ -83,9 +83,19 @@ public class ChessBoardPieceClass {
     	//wpn.moveTo(4, 0);
     	//ChessPiece bpn = ChessPiece.getPieceAt(1, 1, gid);
     	//bpn.genMoveToCommand(3, 1);
+    	//bpn.setLoc(3, 1);
     	//bpn.moveTo(3, 1);
     	//wpn.genMoveToCommand(3, 1);
+    	//wpn.setLoc(3, 1);
     	//wpn.moveTo(3, 1);
+    	//ChessPiece obpn = ChessPiece.getPieceAt(1, 0, gid);
+    	//obpn.genMoveToCommand(3, 0);
+    	//obpn.setLoc(3, 0);
+    	//obpn.setMoveCount(1);
+    	//System.out.println(obpn.getMoveCount());
+    	//printBoard(gid);
+    	//wpn.genMoveToCommand(2, 0);
+    	//wpn.setLoc(2, 0);
     	//printBoard(gid);
     }
     

@@ -874,7 +874,15 @@ class ChessPiece {
 	{
 		if (0 < this.movecount) this.movecount = this.movecount - 1;
 	}
-	
+	public int getMoveCount()
+	{
+		return this.movecount;
+	}
+	public void setMoveCount(int val)
+	{
+		if (val < 0) throw new IllegalStateException("illegal value found and used for the move count!");
+		this.movecount = val;
+	}
 	
 	public static boolean itemIsOnGivenList(String val, String[] arr)
 	{
@@ -941,6 +949,41 @@ class ChessPiece {
 	public String getColor()
 	{
 		return getTypeOrColor(true);
+	}
+	public static String getLongHandType(String tpval)
+	{
+		if (tpval == null || tpval.length() != 2) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
+		else if (tpval.equals("KG")) return "KING";
+		else if (tpval.equals("KT")) return "KNIGHT";
+		else if (tpval.equals("CE")) return "CASTLE";
+		else if (tpval.equals("QN")) return "QUEEN";
+		else if (tpval.equals("BP")) return "BISHOP";
+		else if (tpval.equals("PN")) return "PAWN";
+		else throw new IllegalStateException("ILLEGAL SHORT HAND TYPE FOUND!");
+	}
+	public static String getShortHandType(String tpval)
+	{
+		if (tpval == null || tpval.length() < 1) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
+		else if (itemIsOnGivenList(tpval, validTypes))
+		{
+			if (tpval.equals("ROOK")) return "CE";
+			else return "" + tpval.charAt(0) + tpval.charAt(tpval.length() - 1);
+		}
+		else throw new IllegalStateException("INVALID TYPE (" + tpval + ") FOUND HERE!");
+	}
+	public String getShortHandType()
+	{
+		return getShortHandType(getType());
+	}
+	public static String getShortHandColor(String clrval)
+	{
+		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("NULL OR EMPTY COLOR NOT ALLOWED HERE!");
+		else if (itemIsOnGivenList(clrval, validColors)) return "" + clrval.charAt(0);
+		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND HERE!");
+	}
+	public String getShortHandColor()
+	{
+		return getShortHandColor(getColor());
 	}
 	
 	public static String getOppositeColor(String clrval)
@@ -3958,6 +4001,59 @@ class ChessPiece {
 		return rlist;
 	}
 	
+	public boolean isMoveToASpecialMove(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		String[] tpsnospcmvs = {"QUEEN", "BISHOP", "KNIGHT", "CASTLE", "ROOK"};
+		if (itemIsOnGivenList(getType(), tpsnospcmvs)) return false;
+		else
+		{
+			int[][] allpclocs = getPieceCanMoveToLocs(getRow(), getCol(), getColor(), getType(), ignorelist, addpcs,
+				getGameID(), false);
+			int[][] normalpclocs = null;
+			if (getType().equals("KING"))
+			{
+				normalpclocs = getKingCanMoveToLocs(getRow(), getCol(), getColor(), ignorelist, addpcs, getGameID());
+			}
+			else
+			{
+				//pawn
+				normalpclocs = getPawnCanMoveToLocs(getRow(), getCol(), getColor(), ignorelist, addpcs, getGameID());
+			}
+			boolean onnrml = false;
+			boolean onall = false;
+			if (normalpclocs == null || normalpclocs.length < 1);
+			else
+			{
+				for (int x = 0; x < normalpclocs.length; x++)
+				{
+					if (normalpclocs[x][0] == nrval && normalpclocs[x][1] == ncval)
+					{
+						onnrml = true;
+						break;
+					}
+					//else;//do nothing
+				}
+			}
+			if (allpclocs == null || allpclocs.length < 1);
+			else
+			{
+				for (int x = 0; x < allpclocs.length; x++)
+				{
+					if (allpclocs[x][0] == nrval && allpclocs[x][1] == ncval)
+					{
+						onall = true;
+						break;
+					}
+					//else;//do nothing
+				}
+			}
+			//to be special it must be on all, but not on normal
+			//if it is on all and on normal, then it is normal
+			//if it is not on either it is not valid
+			return (onall && !onnrml);
+		}
+	}
+	
 	
 	//NOTE: TAKES INTO ACCOUNT PAWNING WHEN CALLED ON PAWN ONLY, TAKES INTO ACCOUNT CASTLING WHEN CALLED ON KING ONLY,
 	//DOES NOT TAKE INTO ACCOUNT WHOSE TURN IT IS
@@ -4433,14 +4529,382 @@ class ChessPiece {
 	
 	//SERVER METHODS
 	
-	//NOT DONE YET...
-	public static String genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval)
+	public static boolean isDigit(String wd)
 	{
-		String cmd = "" + clr + " " + tp + " at: " + getLocString(crval, ccval) + " to: " + getLocString(nrval, ncval);
-		System.out.println("cmd = " + cmd);
-		return cmd;
+		if (wd == null || wd.length() != 1) return false;
+		
+		String dgts = "0123456789";
+		boolean isdgt = false;
+		for (int di = 0; di < dgts.length(); di++)
+		{
+			if (wd.charAt(0) == dgts.charAt(di))
+			{
+				return true;
+			}
+			//else;//do nothing
+		}
+		return false;
 	}
-	public static String genMoveToCommand(String clr, String tp, int[] cloc, int[] nloc)
+	
+	//numei is inclusive
+	public static int[] getNumStartAndEndIndexs(String wd, int offset)
+	{
+		if (offset < 0) throw new IllegalStateException("offset MUST BE AT LEAST ZERO (0)!");
+		//else;//do nothing
+		int numsi = -1;
+		int numei = -1;
+		int[] res = new int[2];
+		res[0] = -1;
+		res[1] = -1;
+		for (int i = 0; i < wd.length(); i++)
+		{
+			if (isDigit("" + wd.charAt(i)))
+			{
+				numsi = i;
+				break;
+			}
+			//else;//do nothing
+		}
+		if (numsi < 0 || wd.length() - 1 < numsi) return res;
+		for (int i = numsi; i < wd.length(); i++)
+		{
+			if (isDigit("" + wd.charAt(i)))
+			{
+				if (i + 1 < wd.length());
+				else if (i + 1 == wd.length())
+				{
+					numei = wd.length() - 1;
+					break;
+				}
+				else throw new IllegalStateException("ILLEGAL VALUE FOUND AND USED HERE FOR DIGIT INDEX I!");
+			}
+			else
+			{
+				numei = i - 1;
+				break;
+			}
+		}
+		if (numei < 0 || numei < numsi || wd.length() - 1 < numei)
+		{
+			throw new IllegalStateException("END NUMBER INDEX NOT SET CORRECTLY!");
+		}
+		//else;//do nothing
+		res[0] = numsi + offset;
+		res[1] = numei + offset;
+		return res;
+	}
+	
+	public static boolean isANumber(String wd)
+	{
+		if (wd == null || wd.length() < 1) return false;
+		else
+		{
+			for (int i = 0; i < wd.length(); i++)
+			{
+				if (isDigit("" + wd.charAt(i)));
+				else return false;
+			}
+			return true;
+		}
+	}
+	
+	//NOT DONE YET...
+	public static String getShortHandNotationForWord(String wd)
+	{
+		if (wd == null || wd.length() < 1) return wd;
+		else
+		{
+			String[] myspcs = {" ", "\t", "\n"};
+			for (int i = 0; i < wd.length(); i++)
+			{
+				if (itemIsOnGivenList("" + wd.charAt(i), myspcs))
+				{
+					throw new IllegalStateException("THE WORD (" + wd +
+						") MUST NOT HAVE SPACING CHARACTERS ON IT, BUT IT DID!");
+				}
+				//else;//do nothing
+			}
+			if (wd.equals("CREATE")) return "+";
+			else if (wd.equals("DELETE")) return "-";
+			else if (itemIsOnGivenList(wd, validTypes)) return getShortHandType(wd);
+			else if (itemIsOnGivenList(wd, validColors)) return getShortHandColor(wd);
+			else if (wd.equals("to:") || wd.equals("TO:")) return "TO";
+			else if (wd.equals("WITH") || wd.equals("with")) return "W";
+			else if (wd.equals("LEFT") || wd.equals("left")) return "L";
+			else if (wd.equals("RIGHT") || wd.equals("right")) return "R";
+			else if (wd.equals("move(s)!") || wd.equals("move(s)") || wd.equals("moves!") || wd.equals("moves") ||
+				wd.equals("move!") || wd.equals("move"))
+			{
+				return "MS";
+			}
+			else if (wd.equals("at:") || wd.equals("AT:") || wd.equals("AT") || wd.equals("at")) return "";
+			else if (isANumber(wd)) return wd;
+			else
+			{
+				System.out.println("wd = " + wd);
+				System.out.println("NOT SURE WHAT TO DO HERE!");
+				return "";
+			}
+		}
+	}
+	public static String[] getShortHandMoves(String[] mvs)
+	{
+		if (mvs == null || mvs.length < 1) return mvs;
+		else
+		{
+			String[] nwmvs = new String[mvs.length];
+			for (int c = 0; c < mvs.length; c++)
+			{
+				String oldmv = "" + mvs[c];
+				String nwmv = "";
+				int si = 0;
+				boolean addstraight = false;
+				for (int i = 0; i < oldmv.length(); i++)
+				{
+					if (oldmv.charAt(i) == ' ' || i + 1 == oldmv.length())
+					{
+						if (addstraight)
+						{
+							//System.out.println("HANDLE ADD STRAIGHT HERE:");
+							if (i + 1 == oldmv.length()) nwmv += "" + oldmv.substring(si + 1);
+							else nwmv += "" + oldmv.substring(si + 1, i);
+							addstraight = false;
+						}
+						else nwmv += "" + getShortHandNotationForWord(oldmv.substring(si, i));
+						si = i + 1;
+					}
+					else if ((oldmv.charAt(i) == 'a' ||  oldmv.charAt(i) == 'A') &&
+						(oldmv.charAt(i + 1) == 't' || oldmv.charAt(i + 1) == 'T') && oldmv.charAt(i + 2) == ':' &&
+						oldmv.charAt(i + 3) == ' ' && oldmv.charAt(i + 4) != '(')
+					{
+						si = i + 3;
+						addstraight = true;
+						i = i + 4;
+						//System.out.println("AT: FOUND!");
+						//System.out.println("si = " + si);
+					}
+					else if ((oldmv.charAt(i) == 't' ||  oldmv.charAt(i) == 't') &&
+						(oldmv.charAt(i + 1) == 'o' || oldmv.charAt(i + 1) == 'O') && oldmv.charAt(i + 2) == ':' &&
+						oldmv.charAt(i + 3) == ' ' && oldmv.charAt(i + 4) != '(')
+					{
+						si = i + 3;
+						addstraight = true;
+						i = i + 4;
+						//System.out.println("TO: FOUND!");
+						//System.out.println("si = " + si);
+						nwmv += "TO";
+					}
+					else if (oldmv.charAt(i) == '(')
+					{
+						if (oldmv.charAt(i + 1) == 's');
+						else
+						{
+							int cpi = -1;
+							for (int k = i + 1; k < oldmv.length(); k++)
+							{
+								if (oldmv.charAt(k) == ')')
+								{
+									cpi = k;
+									break;
+								}
+								//else;//do nothing
+							}
+							if (cpi < 0 || cpi < i + 1 || oldmv.length() - 1 < cpi)
+							{
+								throw new IllegalStateException("ILLEGAL INDEX (" + cpi +
+									") FOUND AND USED FOR THE CLOSING PARENTHESIS INDEX!");
+							}
+							//else;//do nothing
+							int myr = -1;
+							int myc = -1;
+							//get the numstartindex and numendindex
+							//System.out.println("oldmv = " + oldmv);
+							//System.out.println("oldmv.substring(" + i + ", " + cpi + ") = " + oldmv.substring(i, cpi));
+							
+							int[] snumsieis = getNumStartAndEndIndexs(oldmv.substring(i, cpi), i);
+							//System.out.println("snumsieis[0] = " + snumsieis[0]);
+							//System.out.println("snumsieis[1] = " + snumsieis[1]);
+							
+							myr = Integer.parseInt(oldmv.substring(snumsieis[0], snumsieis[1] + 1));
+							int[] enumsieis = getNumStartAndEndIndexs(oldmv.substring(snumsieis[1] + 1, cpi),
+								snumsieis[1] + 1);
+							//System.out.println("enumsieis[0] = " + enumsieis[0]);
+							//System.out.println("enumsieis[1] = " + enumsieis[1]);
+							
+							myc = Integer.parseInt(oldmv.substring(enumsieis[0], enumsieis[1] + 1));
+							//System.out.println("myr = " + myr);
+							//System.out.println("myc = " + myc);
+							
+							nwmv += convertRowColToStringLoc(myr, myc);//nwmv += "LOC";//
+							i = cpi;
+							si = cpi + 1;
+						}
+					}
+					//else;//do nothing
+				}//end of i for loop
+				System.out.println("oldmv = " + oldmv);
+				System.out.println("nwmv = " + nwmv);
+				nwmvs[c] = "" + nwmv;
+			}//end of c for loop
+			return nwmvs;
+		}
+	}
+	
+	public static String convertShortHandMoveToLongVersion(String mv)
+	{
+		if (mv == null || mv.length() < 1) throw new IllegalStateException("mv must not be empty or null!");
+		//else;//do nothing
+		
+		String nwmv = "";
+		if (mv.charAt(0) == '-') nwmv += "DELETE ";
+		else if (mv.charAt(0) == '+') nwmv += "CREATE ";
+		else if (mv.charAt(0) == 'W') nwmv += "WHITE ";
+		else if (mv.charAt(0) == 'B') nwmv += "BLACK ";
+		else throw new IllegalStateException("ILLEGAL STARTING CHARACTER FOR THE MOVE!");
+		
+		String shtp = null;
+		int ei = -1;
+		if (mv.charAt(0) == '-' || mv.charAt(0) == '+')
+		{
+			//next will be color
+			if (mv.charAt(1) == 'W') nwmv += "WHITE ";
+			else if (mv.charAt(1) == 'B') nwmv += "BLACK ";
+			else throw new IllegalStateException("ILLEGAL SECOND CHARACTER FOR THE MOVE!");
+			
+			//next will be type
+			ei = 4;
+			shtp = mv.substring(2, 4);
+		}
+		else
+		{
+			//type is next
+			ei = 3;
+			shtp = mv.substring(1, 3);
+		}
+		nwmv += getLongHandType(shtp) + " at: " + mv.substring(ei, ei + 2) + " ";
+		if (mv.charAt(ei + 2) == 'T') nwmv += mv.substring(ei + 2, ei + 4) + ": " + mv.substring(ei + 4);
+		else if (mv.charAt(ei + 2) == 'W') nwmv += " with " + mv.substring(ei + 3, mv.length() - 2) + " move(s)!";
+		else
+		{
+			throw new IllegalStateException("ILLEGAL CHARACTER FOUND AT POSITION FAILED TO CONVERT SHORT HAND " +
+				"MOVE TO LONG HAND VERSION!");
+		}
+		System.out.println("mv = " + mv);
+		System.out.println("nwmv = " + nwmv);
+		return "" + nwmv;
+	}
+	public static String[] convertAllShortHandMovesToLongVersion(String[] mvs)
+	{
+		if (mvs == null || mvs.length < 1) return mvs;
+		else
+		{
+			String[] nwmvs = new String[mvs.length];
+			for (int x = 0; x < mvs.length; x++)
+			{
+				nwmvs[x] = convertShortHandMoveToLongVersion(mvs[x]);
+			}
+			return nwmvs;
+		}
+	}
+	
+	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		//SHORT HAND EXAMPLES
+		//WPNA5TOA6
+		//WCEA5TOA6
+		//WQNA5TOA6
+		//WKGA5TOA6
+		//WKTA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
+		//WBPA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
+		
+		//CASTLING MOVETO NOTATION
+		//WHITE LEFT CASTLE
+		//WLCE:
+		//WCEA8TOD8
+		//WKGE8TOC8
+		//
+		//OR:
+		//
+		//WLCEA8TOD8
+		//WKGE8TOC8
+		//
+		//WHITE RIGHT CASTLE
+		//WRCE:
+		//WCEH8TOF8
+		//WKGE8TOG8
+		//
+		//OR:
+		//
+		//WRCEH8TOF8
+		//WKGE8TOG8
+		
+		
+		//PAWNING NOTATION
+		//WHITE LEFT PAWN at: current_loc to: next_loc
+		//-BPWN??W?MVS
+		//WLPNB4TOA3
+		//
+		//WHITE RIGHT PAWN at: current_loc to: next_loc
+		//-BPWN??W?MVS
+		//WRPNB4TOA3
+		//
+		//BLACK LEFT PAWN at: current_loc to: next_loc
+		//-WPWN??W?MVS
+		//BLPNB5TOA6
+		//
+		
+		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
+		//SHORT HAND EXAMPLES
+		//-BPNA6W2MS
+		//WCEA5TOA6
+		
+		//- FOR DELETE
+		//+ FOR CREATE
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		ChessPiece mpc = getPieceAt(crval, ccval, allpcs);
+		//cannot handle special moves if called with certain pieces it might recognize a special move is possible
+		//to detect a special move, we need to get the generic move set, and the full move set, the difference is the
+		//special set
+		if (mpc.canMoveTo(nrval, ncval, ignorelist, addpcs))
+		{
+			if (mpc.isMoveToASpecialMove(nrval, ncval, ignorelist, addpcs))
+			{
+				System.out.println("MOVE IS A SPECIAL MOVE!");
+			}
+			//else;//do nothing safe to proceed
+		}
+		else throw new IllegalStateException("" + mpc + " CANNOT MOVE TO " + getLocString(nrval, ncval) + "!");
+		
+		//if command involves adding or removing a piece we need to include that here...
+		ChessPiece ecp = getPieceAt(nrval, ncval, allpcs);
+		String delcmd = null;
+		boolean usedelcmd = true;
+		if (ecp == null) usedelcmd = false;
+		else
+		{
+			delcmd = "DELETE " + ecp.getColor() + " " + ecp.getType() + " at: " + convertRowColToStringLoc(nrval, ncval) +
+				" with " + ecp.getMoveCount() + " move(s)!";
+		}
+		String cmd = "" + clr + " " + tp + " at: " + convertRowColToStringLoc(crval, ccval) + " to: " +
+			convertRowColToStringLoc(nrval, ncval);//convertRowColToStringLoc(nrval, ncval)
+		//getLocString(crval, ccval);//getLocString(nrval, ncval)
+		System.out.println("cmd = " + cmd);
+		int mxcnt = 0;
+		if (usedelcmd) mxcnt = 2;
+		else mxcnt = 1;
+		String[] mvcmd = new String[mxcnt];
+		if (usedelcmd)
+		{
+			mvcmd[0] = "" + delcmd;
+			mvcmd[1] = "" + cmd;
+		}
+		else mvcmd[0] = "" + cmd;
+		return getShortHandMoves(mvcmd);
+		//return convertAllShortHandMovesToLongVersion(getShortHandMoves(mvcmd));
+	}
+	public static String[] genMoveToCommand(String clr, String tp, int[] cloc, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		if (cloc == null || cloc.length != 2)
 		{
@@ -4453,17 +4917,23 @@ class ChessPiece {
 		}
 		//else;//do nothing
 		
-		return genMoveToCommand(clr, tp, cloc[0], cloc[1], nloc[0], nloc[1]);
+		return genMoveToCommand(clr, tp, cloc[0], cloc[1], nloc[0], nloc[1], gid, ignorelist, addpcs);
 	}
-	public static String genMoveToCommand(ChessPiece cp, int nrval, int ncval)
+	public static String[] genMoveToCommand(ChessPiece cp, int nrval, int ncval,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		if (cp == null)
 		{
 			throw new IllegalStateException("You need to provide the current chess piece location and the new location!");
 		}
-		else return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nrval, ncval);
+		else
+		{
+			return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nrval, ncval,
+				gid, ignorelist, addpcs);
+		}
 	}
-	public static String genMoveToCommand(ChessPiece cp, int[] nloc)
+	public static String[] genMoveToCommand(ChessPiece cp, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		if (nloc == null || nloc.length != 2)
 		{
@@ -4475,19 +4945,31 @@ class ChessPiece {
 		{
 			throw new IllegalStateException("You need to provide the current chess piece location and the new location!");
 		}
-		else return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nloc[0], nloc[1]);
+		else
+		{
+			return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nloc[0], nloc[1],
+				gid, ignorelist, addpcs);
+		}
 	}
-	public String genMoveToCommand(int[] nloc)
+	public String[] genMoveToCommand(int[] nloc, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		if (nloc == null || nloc.length != 2)
 		{
 			throw new IllegalStateException("You need to provide the next chess piece location!");
 		}
-		else return genMoveToCommand(this, nloc);
+		else return genMoveToCommand(this, nloc, getGameID(), ignorelist, addpcs);
 	}
-	public String genMoveToCommand(int nrval, int ncval)
+	public String[] genMoveToCommand(int[] nloc)
 	{
-		return genMoveToCommand(this, nrval, ncval);
+		return genMoveToCommand(nloc, null, null);
+	}
+	public String[] genMoveToCommand(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(this, nrval, ncval, getGameID(), ignorelist, addpcs);
+	}
+	public String[] genMoveToCommand(int nrval, int ncval)
+	{
+		return genMoveToCommand(nrval, ncval, null, null);
 	}
 	
 	
