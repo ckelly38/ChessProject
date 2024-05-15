@@ -175,6 +175,42 @@ class ChessPiece {
 		else return "UNKNOWN";
 	}
 	
+	//METHODS FOR GETTING NUM ITEMS IN LIST
+	
+	public static int getNumItemsInList(ArrayList mylist)
+	{
+		if (mylist == null) return 0;
+		else return mylist.size();
+	}
+	public static int getNumItemsInList(Object[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(int[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(double[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(float[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	public static int getNumItemsInList(long[] arr)
+	{
+		if (arr == null) return 0;
+		else return arr.length;
+	}
+	
+	
+	//SOME LOCATION METHODS
+	
 	public static boolean isvalidrorc(int val)
 	{
 		if (val < ChessPiece.ROWCOLMIN || ChessPiece.ROWCOLMAX < val) return false;
@@ -235,12 +271,26 @@ class ChessPiece {
 	}
 	public void setLoc(int rval, int cval)
 	{
-		if (canMoveToLoc(rval, cval))
+		boolean terr = false;
+		if (isvalidrorc(rval) && isvalidrorc(cval))
 		{
-			setRow(rval);
-			setCol(cval);
+			//if (usecastling || canMoveToLoc(rval, cval))
+			//{
+				setRow(rval);
+				setCol(cval);
+			//}
+			//else terr = true;
 		}
-		else throw new IllegalStateException("cannot move to new location " + getLocString(rval, cval) + "!");
+		else terr = true;
+		if (terr) throw new IllegalStateException("cannot move to new location " + getLocString(rval, cval) + "!");
+	}
+	public void setLoc(int[] loc)
+	{
+		if (loc == null || loc.length != 2)
+		{
+			throw new IllegalStateException("You need to provide the chess piece location!");
+		}
+		else setLoc(loc[0], loc[1]);
 	}
 	
 	public static void printSquareColors()
@@ -288,39 +338,6 @@ class ChessPiece {
 	{
 		if (cp == null) throw new IllegalStateException("cp is not allowed to be null!");
 		else return getColorOfLoc(cp.getRow(), cp.getCol());
-	}
-	
-	//METHODS FOR GETTING NUM ITEMS IN LIST
-	
-	public static int getNumItemsInList(ArrayList mylist)
-	{
-		if (mylist == null) return 0;
-		else return mylist.size();
-	}
-	public static int getNumItemsInList(Object[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
-	}
-	public static int getNumItemsInList(int[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
-	}
-	public static int getNumItemsInList(double[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
-	}
-	public static int getNumItemsInList(float[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
-	}
-	public static int getNumItemsInList(long[] arr)
-	{
-		if (arr == null) return 0;
-		else return arr.length;
 	}
 	
 	//CONVERT LOCS METHODS
@@ -1403,6 +1420,30 @@ class ChessPiece {
 	public static boolean isBoardValid(int gid)
 	{
 		return isBoardValid(getAllPiecesWithGameID(gid));
+	}
+	
+	
+	//HOW TO REMOVE PIECES?
+	//WE NEED TO REMOVE THEM FROM THE LIST OF PIECES.
+	//WE NEED TO MAKE THEIR REFERENCES BE NULL.
+	public static void removePieceAt(int rval, int cval, int gid)
+	{
+		int numpcs = getNumItemsInList(cps);
+		if (numpcs < 1);
+		else
+		{
+			for (int x = 0; x < numpcs; x++)
+			{
+				if (cps.get(x).getRow() == rval && cps.get(x).getCol() == cval && cps.get(x).getGameID() == gid)
+				{
+					System.out.println("REMOVED " + cps.get(x));
+					cps.remove(cps.get(x));
+					numpcs--;
+					x--;
+				}
+				//else;//do nothing
+			}
+		}
 	}
 	
 	
@@ -4807,8 +4848,83 @@ class ChessPiece {
 		}
 	}
 	
-	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
+	public static String[] genPawningMoveToCommand(String clr, int crval, int ccval, int nrval, int ncval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		//PAWNING NOTATION
+		//WHITE LEFT PAWN at: current_loc to: next_loc
+		//-BPWN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
+		//WLPNB4TOA3 (DISPLAY TO THE USER)
+		//
+		
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		ChessPiece mpc = getPieceAt(crval, ccval, allpcs);
+		
+		final boolean useleft = (ncval < ccval);
+		
+		//make sure we can do this otherwise error out
+		if (mpc.canPawnLeftOrRight(useleft, allpcs));
+		else throw new IllegalStateException("" + mpc + " CANNOT MOVE TO " + getLocString(nrval, ncval) + "!");
+		
+		//if command involves adding or removing a piece we need to include that here...
+		ChessPiece epc = mpc.getEnemyPawnForLeftOrRightPawning(useleft, allpcs);
+		String delcmd = null;
+		if (epc == null) throw new IllegalStateException("the enemy pawn must not be null!");
+		else
+		{
+			delcmd = "DELETE " + epc.getColor() + " " + epc.getType() + " at: " +
+				convertRowColToStringLoc(epc.getRow(), epc.getCol()) + " with " + epc.getMoveCount() + " move(s)!";
+		}
+		String dirstr = null;
+		if (useleft) dirstr = "LEFT";
+		else dirstr = "RIGHT";
+		String cmd = "" + clr + " " + dirstr + " PAWN at: " + convertRowColToStringLoc(crval, ccval) + " to: " +
+			convertRowColToStringLoc(nrval, ncval);//convertRowColToStringLoc(nrval, ncval)
+		//getLocString(crval, ccval);//getLocString(nrval, ncval);//convertRowColToStringLoc(nrval, ncval)
+		System.out.println("cmd = " + cmd);
+		String[] mvcmd = new String[2];
+		mvcmd[0] = "" + delcmd;
+		mvcmd[1] = "" + cmd;
+		return getShortHandMoves(mvcmd);
+	}
+	
+	public static String[] genCastlingMoveToCommand(String clr, boolean useleft, int gid,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		//WHITE LEFT CASTLE *** USE THIS NOTATION BECAUSE WE CAN GENERATE THE OTHERS
+		//WLCE: (DISPLAY TO USER ONLY)
+		//WCEA8TOD8
+		//WKGE8TOC8
+		String dirstr = null;
+		if (useleft) dirstr = "LEFT";
+		else dirstr = "RIGHT";
+		if (canSideCastleLeftOrRight(useleft, clr, ignorelist, addpcs, gid));
+		else throw new IllegalStateException("" + clr + " CANNOT CASTLE " + dirstr + "!");
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+		ChessPiece mkg = getCurrentSideKing(clr, allpcs);
+		int ncol = -1;
+		if (useleft) ncol = 0;
+		else ncol = 7;
+		ChessPiece clcp = getPieceAt(mkg.getRow(), ncol, allpcs);
+		int[] ncloc = getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, false, clr, ignorelist, addpcs, gid);
+		String ccmvcmd = "" + clr + " CASTLE at: " + convertRowColToStringLoc(clcp.getRow(), clcp.getCol()) + " to: " +
+			convertRowColToStringLoc(ncloc[0], ncloc[1]);//convertRowColToStringLoc(nrval, ncval)
+		//getLocString(crval, ccval);//getLocString(nrval, ncval)
+		System.out.println("ccmvcmd = " + ccmvcmd);
+		int[] nkgloc = getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, true, clr, ignorelist, addpcs, gid);
+		String kgmvcmd = "" + clr + " KING at: " + convertRowColToStringLoc(mkg.getRow(), mkg.getCol()) + " to: " +
+			convertRowColToStringLoc(nkgloc[0], nkgloc[1]);//convertRowColToStringLoc(nrval, ncval)
+		//getLocString(crval, ccval);//getLocString(nrval, ncval)
+		System.out.println("kgmvcmd = " + kgmvcmd);
+		String[] mvcmd = new String[3];
+		mvcmd[0] = "" + clr + " " + dirstr + " CASTLE:";
+		mvcmd[1] = "" + ccmvcmd;
+		mvcmd[2] = "" + kgmvcmd;
+		return getShortHandMoves(mvcmd);
+	}
+	
+	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv)
 	{
 		//SHORT HAND EXAMPLES
 		//WPNA5TOA6
@@ -4818,9 +4934,19 @@ class ChessPiece {
 		//WKTA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
 		//WBPA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
 		
+		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
+		//SHORT HAND EXAMPLES
+		//-BPNA6W2MS (MUST BE DONE FIRST)
+		//WCEA5TOA6 (DISPLAY TO THE USER)
+		
 		//CASTLING MOVETO NOTATION
-		//WHITE LEFT CASTLE
-		//WLCE:
+		//WHITE LEFT CASTLE at: A8 to: D8 AND KING at: E8 to: C8
+		//WLCEA8TOD8ANDKGE8TOC8
+		//
+		//OR:
+		//
+		//WHITE LEFT CASTLE *** USE THIS NOTATION BECAUSE WE CAN GENERATE THE OTHERS
+		//WLCE: (DISPLAY TO USER ONLY)
 		//WCEA8TOD8
 		//WKGE8TOC8
 		//
@@ -4842,8 +4968,8 @@ class ChessPiece {
 		
 		//PAWNING NOTATION
 		//WHITE LEFT PAWN at: current_loc to: next_loc
-		//-BPWN??W?MVS
-		//WLPNB4TOA3
+		//-BPWN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
+		//WLPNB4TOA3 (DISPLAY TO THE USER)
 		//
 		//WHITE RIGHT PAWN at: current_loc to: next_loc
 		//-BPWN??W?MVS
@@ -4854,11 +4980,6 @@ class ChessPiece {
 		//BLPNB5TOA6
 		//
 		
-		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
-		//SHORT HAND EXAMPLES
-		//-BPNA6W2MS
-		//WCEA5TOA6
-		
 		//- FOR DELETE
 		//+ FOR CREATE
 		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
@@ -4868,9 +4989,35 @@ class ChessPiece {
 		//special set
 		if (mpc.canMoveTo(nrval, ncval, ignorelist, addpcs))
 		{
-			if (mpc.isMoveToASpecialMove(nrval, ncval, ignorelist, addpcs))
+			if ((mpc.getType().equals("CASTLE") && usecslingasmv) ||
+				mpc.isMoveToASpecialMove(nrval, ncval, ignorelist, addpcs))
 			{
 				System.out.println("MOVE IS A SPECIAL MOVE!");
+				if (mpc.getType().equals("KING") || (mpc.getType().equals("CASTLE") && usecslingasmv))
+				{
+					System.out.println("WE ARE CASTLING!");
+					
+					boolean useleft = false;
+					if (mpc.getType().equals("KING")) useleft = (ncval < ccval);
+					else
+					{
+						//(mpc.getType().equals("CASTLE") && usecslingasmv)
+						//we called it on a castle and told it we want to castle
+						//there are two castles for each side
+						//if the castle is left of the king it will be left
+						//if the castle is right of the king it will be right
+						ChessPiece mkg = mpc.getMySideKing();
+						useleft = (mpc.getCol() < mkg.getCol());
+					}
+					System.out.println("useleft = " + useleft);
+					
+					return genCastlingMoveToCommand(clr, useleft, gid, ignorelist, addpcs);
+				}
+				else if (mpc.getType().equals("PAWN"))
+				{
+					return genPawningMoveToCommand(clr, crval, ccval, nrval, ncval, gid, ignorelist, addpcs);
+				}
+				else throw new IllegalStateException("THIS PIECE TYPE (" + mpc.getType() + ") HAS NO SPECIAL MOVES!");
 			}
 			//else;//do nothing safe to proceed
 		}
@@ -4903,8 +5050,13 @@ class ChessPiece {
 		return getShortHandMoves(mvcmd);
 		//return convertAllShortHandMovesToLongVersion(getShortHandMoves(mvcmd));
 	}
-	public static String[] genMoveToCommand(String clr, String tp, int[] cloc, int[] nloc,
+	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(clr, tp, crval, ccval, nrval, ncval, gid, ignorelist, addpcs, false);
+	}
+	public static String[] genMoveToCommand(String clr, String tp, int[] cloc, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv)
 	{
 		if (cloc == null || cloc.length != 2)
 		{
@@ -4917,10 +5069,15 @@ class ChessPiece {
 		}
 		//else;//do nothing
 		
-		return genMoveToCommand(clr, tp, cloc[0], cloc[1], nloc[0], nloc[1], gid, ignorelist, addpcs);
+		return genMoveToCommand(clr, tp, cloc[0], cloc[1], nloc[0], nloc[1], gid, ignorelist, addpcs, usecslingasmv);
+	}
+	public static String[] genMoveToCommand(String clr, String tp, int[] cloc, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(clr, tp, cloc, nloc, gid, ignorelist, addpcs, false);
 	}
 	public static String[] genMoveToCommand(ChessPiece cp, int nrval, int ncval,
-		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv)
 	{
 		if (cp == null)
 		{
@@ -4929,11 +5086,16 @@ class ChessPiece {
 		else
 		{
 			return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nrval, ncval,
-				gid, ignorelist, addpcs);
+				gid, ignorelist, addpcs, usecslingasmv);
 		}
 	}
-	public static String[] genMoveToCommand(ChessPiece cp, int[] nloc,
+	public static String[] genMoveToCommand(ChessPiece cp, int nrval, int ncval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(cp, nrval, ncval, gid, ignorelist, addpcs, false);
+	}
+	public static String[] genMoveToCommand(ChessPiece cp, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv)
 	{
 		if (nloc == null || nloc.length != 2)
 		{
@@ -4948,30 +5110,51 @@ class ChessPiece {
 		else
 		{
 			return genMoveToCommand(cp.getColor(), cp.getType(), cp.getRow(), cp.getCol(), nloc[0], nloc[1],
-				gid, ignorelist, addpcs);
+				gid, ignorelist, addpcs, usecslingasmv);
 		}
 	}
-	public String[] genMoveToCommand(int[] nloc, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	public static String[] genMoveToCommand(ChessPiece cp, int[] nloc,
+		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(cp, nloc, gid, ignorelist, addpcs, false);
+	}
+	public String[] genMoveToCommand(int[] nloc, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv)
 	{
 		if (nloc == null || nloc.length != 2)
 		{
 			throw new IllegalStateException("You need to provide the next chess piece location!");
 		}
-		else return genMoveToCommand(this, nloc, getGameID(), ignorelist, addpcs);
+		else return genMoveToCommand(this, nloc, getGameID(), ignorelist, addpcs, usecslingasmv);
+	}
+	public String[] genMoveToCommand(int[] nloc, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return genMoveToCommand(nloc, ignorelist, addpcs, false);
+	}
+	public String[] genMoveToCommand(int[] nloc, boolean usecslingasmv)
+	{
+		return genMoveToCommand(nloc, null, null, usecslingasmv);
 	}
 	public String[] genMoveToCommand(int[] nloc)
 	{
-		return genMoveToCommand(nloc, null, null);
+		return genMoveToCommand(nloc, false);
+	}
+	public String[] genMoveToCommand(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs,
+		boolean usecslingasmv)
+	{
+		return genMoveToCommand(this, nrval, ncval, getGameID(), ignorelist, addpcs, usecslingasmv);
 	}
 	public String[] genMoveToCommand(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
-		return genMoveToCommand(this, nrval, ncval, getGameID(), ignorelist, addpcs);
+		return genMoveToCommand(nrval, ncval, ignorelist, addpcs, false);
+	}
+	public String[] genMoveToCommand(int nrval, int ncval, boolean usecslingasmv)
+	{
+		return genMoveToCommand(nrval, ncval, null, null, usecslingasmv);
 	}
 	public String[] genMoveToCommand(int nrval, int ncval)
 	{
-		return genMoveToCommand(nrval, ncval, null, null);
+		return genMoveToCommand(nrval, ncval, false);
 	}
-	
 	
 	//PAWN SPECIAL METHODS
 	
@@ -5203,7 +5386,6 @@ class ChessPiece {
 		return canSidePawn(clrval, getAllPiecesWithGameID(gid));
 	}
 	
-	//NEED A METHOD TO PAWN A PAWN...
 	
 	public ChessPiece getEnemyPawnForLeftOrRightPawning(boolean useleft, ArrayList<ChessPiece> allpcs)
 	{
@@ -5301,6 +5483,44 @@ class ChessPiece {
 	public int[] getPawnRightLocation()
 	{
 		return getPawnRightLocation(getAllPiecesWithGameID(getGameID()));
+	}
+	
+	
+	//THIS MAKES THE MOVE, IT INCREMENTS THE MOVE COUNT FOR THE SURVIVING PAWN AND REMOVES THE OTHER ONE ON THIS BOARD ONLY
+	//THIS MUST BE CALLED ON THE PAWN THAT CAN PAWN
+	public void pawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs)
+	{
+		if (canPawnLeftOrRight(useleft, allpcs))
+		{
+			int[] eploc = getEnemyPawnLeftOrRightLocation(useleft, allpcs);
+			removePieceAt(eploc[0], eploc[1], getGameID());
+			int[] npnloc = getPawnLeftOrRightLocation(useleft, allpcs);
+			setLoc(npnloc[0], npnloc[1]);
+			incrementMoveCount();
+		}
+		else
+		{
+			String dirstr = null;
+			if (useleft) dirstr = "LEFT";
+			else dirstr = "RIGHT";
+			throw new IllegalStateException("CANNOT PAWN " + dirstr + "!");
+		}
+	}
+	public void pawnLeft(ArrayList<ChessPiece> allpcs)
+	{
+		pawnLeftOrRight(true, allpcs);
+	}
+	public void pawnLeft()
+	{
+		pawnLeft(getAllPiecesWithGameID(getGameID()));
+	}
+	public void pawnRight(ArrayList<ChessPiece> allpcs)
+	{
+		pawnLeftOrRight(false, allpcs);
+	}
+	public void pawnRight()
+	{
+		pawnRight(getAllPiecesWithGameID(getGameID()));
 	}
 	
 	
@@ -5478,7 +5698,6 @@ class ChessPiece {
 		return (canCastleLeft() || canCastleRight());
 	}
 	
-	//NEED A METHOD TO CASTLE THE CASTLE AND THE KING IN QUESTION...
 	
 	//returns an array with 2 integers both will be invalid if cannot castle that direction
 	public static int[] getLeftOrRightCastleSideNewCastleOrKingLoc(boolean useleft, boolean usekg, String clrval,
@@ -5568,6 +5787,52 @@ class ChessPiece {
 	public int[] getLeftCastleNewCastleLoc()
 	{
 		return getLeftCastleSideNewCastleLoc(getColor(), getGameID());
+	}
+	
+	
+	//THIS MAKES THE MOVE, AND INCREMENTS THE MOVE COUNT FOR THE KING FOR THE SIDE WHO DID IT ON THIS SIDE OF THE BOARD
+	public static void sideCastleLeftOrRight(String clrval, boolean useleft,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		if (canSideCastleLeftOrRight(useleft, clrval, ignorelist, addpcs, gid))
+		{
+			ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
+			ChessPiece mkg = getCurrentSideKing(clrval, allpcs);
+			int oc = -1;
+			if (useleft) oc = 0;
+			else oc = 7;
+			ChessPiece csl = getPieceAt(mkg.getRow(), oc, allpcs);
+			int[] nwkgloc = getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, true, clrval, ignorelist, addpcs, gid);
+			int[] nwcsloc = getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, false, clrval, ignorelist, addpcs, gid);
+			mkg.setLoc(nwkgloc[0], nwkgloc[1]);
+			csl.setLoc(nwcsloc[0], nwcsloc[1]);
+			mkg.incrementMoveCount();
+		}
+		else throw new IllegalStateException("" + clrval + " CANNOT CASTLE!");
+	}
+	public static void whiteCastleLeftOrRight(boolean useleft, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		sideCastleLeftOrRight("WHITE", useleft, ignorelist, addpcs, gid);
+	}
+	public static void whiteCastleLeft(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		whiteCastleLeftOrRight(true, ignorelist, addpcs, gid);
+	}
+	public static void whiteCastleRight(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		whiteCastleLeftOrRight(false, ignorelist, addpcs, gid);
+	}
+	public static void blackCastleLeftOrRight(boolean useleft, int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		sideCastleLeftOrRight("BLACK", useleft, ignorelist, addpcs, gid);
+	}
+	public static void blackCastleLeft(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		blackCastleLeftOrRight(true, ignorelist, addpcs, gid);
+	}
+	public static void blackCastleRight(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		blackCastleLeftOrRight(false, ignorelist, addpcs, gid);
 	}
 	
 	
