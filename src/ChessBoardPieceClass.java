@@ -48,8 +48,8 @@ public class ChessBoardPieceClass {
     	//testConvertingLocations();
     	//testCanMoveToLocs(gid, null, null);
     	
-    	//testPawning(gid, true);
-    	setUpBoardForPawnPromotion(gid, true);
+    	testPawning(gid, true);
+    	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
@@ -432,10 +432,26 @@ public class ChessBoardPieceClass {
     	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6"));
     	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H6"));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
+    	
+    	boolean tstmovandpromote = false;
+    	String mymvploc = null;
+    	if (tstmovandpromote)
+    	{
+    		mymvploc = "B1";
+    		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
+    		ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol(mymvploc), gid);
+    		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
+    	}
+    	else mymvploc = "A1";
+    	
     	printBoard(gid);
-    	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A1"), "QUEEN");
+    	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol(mymvploc), "QUEEN");
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
-    	if (true) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
+    	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	boolean stoptest = false;
+    	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
     	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("A1"), gid);
@@ -563,6 +579,11 @@ public class ChessBoardPieceClass {
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", gid));
     	String[] mymv = bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A6"));
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
+    	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	boolean stoptest = false;
+    	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
     	bpn.pawnLeft();
     	printBoard(gid);
     }
@@ -672,6 +693,11 @@ public class ChessBoardPieceClass {
     	printBoard(gid);
     	String[] mymv = ChessPiece.genCastlingMoveToCommand("WHITE", false, gid, null, null);
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
+    	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	boolean stoptest = false;
+    	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
     	ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
     	printBoard(gid);
     }

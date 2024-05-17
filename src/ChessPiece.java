@@ -976,7 +976,7 @@ class ChessPiece {
 		else if (tpval.equals("QN")) return "QUEEN";
 		else if (tpval.equals("BP")) return "BISHOP";
 		else if (tpval.equals("PN")) return "PAWN";
-		else throw new IllegalStateException("ILLEGAL SHORT HAND TYPE FOUND!");
+		else throw new IllegalStateException("ILLEGAL SHORT HAND TYPE (" + tpval + ") FOUND!");
 	}
 	public static String getShortHandType(String tpval)
 	{
@@ -4705,6 +4705,14 @@ class ChessPiece {
 			else if (wd.equals("DELETE")) return "-";
 			else if (itemIsOnGivenList(wd, validTypes)) return getShortHandType(wd);
 			else if (itemIsOnGivenList(wd, validColors)) return getShortHandColor(wd);
+			else if (itemIsOnGivenList(wd.substring(0, wd.length() - 1), validTypes))
+			{
+				return getShortHandType(wd.substring(0, wd.length() - 1)) + wd.charAt(wd.length() - 1);
+			}
+			else if (itemIsOnGivenList(wd.substring(0, wd.length() - 1), validColors))
+			{
+				return getShortHandColor(wd.substring(0, wd.length() - 1)) + wd.charAt(wd.length() - 1);
+			}
 			else if (wd.equals("into:") || wd.equals("INTO:")) return "INTO";
 			else if (wd.equals("TURN") || wd.equals("turn")) return "T";
 			else if (wd.equals("to:") || wd.equals("TO:")) return "TO";
@@ -4846,6 +4854,12 @@ class ChessPiece {
 		else if (mv.charAt(0) == 'W') nwmv += "WHITE ";
 		else if (mv.charAt(0) == 'B') nwmv += "BLACK ";
 		else if (mv.charAt(0) == 'T') nwmv += "TURN ";
+		else if (mv.indexOf("UNDO") == 0)
+		{
+			String retstr = "UNDO " + convertShortHandMoveToLongVersion(mv.substring(4));
+			System.out.println("nwmv = " + retstr);
+			return retstr;
+		}
 		else throw new IllegalStateException("ILLEGAL STARTING CHARACTER FOR THE MOVE!");
 		//System.out.println("OLD nwmv = " + nwmv);
 		
@@ -4858,23 +4872,44 @@ class ChessPiece {
 			else if (mv.charAt(1) == 'B') nwmv += "BLACK ";
 			else throw new IllegalStateException("ILLEGAL SECOND CHARACTER FOR THE MOVE!");
 			
+			if (mv.charAt(2) == 'L' || mv.charAt(2) == 'R')
+			{
+				ei = 5;
+				if (mv.charAt(2) == 'L') nwmv += "LEFT ";
+				else nwmv += "RIGHT ";
+			}
+			else ei = 4;
+			
 			//next will be type
-			ei = 4;
-			shtp = mv.substring(2, 4);
+			shtp = mv.substring(ei - 2, ei);
 		}
 		else
 		{
 			//type is next
-			ei = 3;
-			shtp = mv.substring(1, 3);
+			if (mv.charAt(1) == 'L' || mv.charAt(1) == 'R')
+			{
+				ei = 4;
+				if (mv.charAt(1) == 'L') nwmv += "LEFT ";
+				else nwmv += "RIGHT ";
+			}
+			else ei = 3;
+			shtp = mv.substring(ei - 2, ei);
 		}
-		nwmv += getLongHandType(shtp) + " at: " + mv.substring(ei, ei + 2) + " ";
+		if (mv.length() == 5)
+		{
+			nwmv += getLongHandType(shtp) + mv.substring(ei);
+			//System.out.print("FINAL ");
+			System.out.println("nwmv = " + nwmv);
+			return "" + nwmv;
+		}
+		else nwmv += getLongHandType(shtp) + " at: " + mv.substring(ei, ei + 2) + " ";
 		//System.out.println("NEW nwmv = " + nwmv);
 		//System.out.println("mv.charAt(ei + 2=" + (ei + 2) + ") = " + mv.charAt(ei + 2));
 		//System.out.println("mv.substring(ei + 6) = " + mv.substring(ei + 6));
 		
-		if (mv.charAt(ei + 2) == 'T') nwmv += mv.substring(ei + 2, ei + 4) + ": " + mv.substring(ei + 4);
-		else if (mv.charAt(ei + 2) == 'W') nwmv += " with " + mv.substring(ei + 3, mv.length() - 2) + " move(s)!";
+		//mv.substring(ei + 2, ei + 4)
+		if (mv.charAt(ei + 2) == 'T') nwmv += "to: " + mv.substring(ei + 4);
+		else if (mv.charAt(ei + 2) == 'W') nwmv += "with " + mv.substring(ei + 3, mv.length() - 2) + " move(s)!";
 		else if (mv.charAt(ei + 2) == 'I') nwmv += "into: " + getLongHandType(mv.substring(ei + 6)); 
 		else
 		{
@@ -5302,8 +5337,80 @@ class ChessPiece {
 	}
 	
 	
-	//NOT DONE YET NEED TO HANDLE PAWN PROMOTIONS 5-16-2024 4:45 AM
-	public static String[] genUndoMoveToShortHandCommand(String[] mvcmd)
+	public static String genUndoMoveToCommandForMoveCommand(String mvcmdonly, boolean redoit)
+	{
+		if (mvcmdonly == null || mvcmdonly.length() < 9 || 10 < mvcmdonly.length())
+		{
+			throw new IllegalStateException("illegal move or pawning command found and used here!");
+		}
+		//else;//do nothing
+		
+		//add undo in front of it for starters
+		//it will most likely be a move to command
+		//might be pawning or changing types
+		
+		//PAWNING NOTATION
+		//WCEA5TOA6 (MOVING)
+		//WLPNB4TOA3 (PAWING)
+		//0123456789
+		int si = -1;
+		if (mvcmdonly.charAt(1) == 'L' || mvcmdonly.charAt(1) == 'R') si = 4;//handle pawning
+		else si = 3;//handle normal moveto
+		String myretstr = null;
+		if (redoit) myretstr = "";
+		else myretstr = "UNDO";
+		myretstr += mvcmdonly.substring(0, si) + mvcmdonly.substring(si + 4) +
+			mvcmdonly.substring(si + 2, si + 4) + mvcmdonly.substring(si, si + 2);
+		return myretstr;
+	}
+	
+	public static String genUndoMoveToCommandForCreateDeleteCommand(String cdelmvcmdonly)
+	{
+		if (cdelmvcmdonly == null || cdelmvcmdonly.length() != 10)
+		{
+			throw new IllegalStateException("illegal create or delete command found and used here!");
+		}
+		//else;//do nothing
+		
+		if (cdelmvcmdonly.charAt(0) == '+' || cdelmvcmdonly.charAt(0) == '-')
+		{
+			//EXPECTED FORMAT FOR A DELETE OR CREATE COMMAND:
+			//-BPWN??W?MVS
+			//+BPWN??W?MVS
+			//-BPNA6W2MS
+			//0123456789
+			String mc = null;
+			if (cdelmvcmdonly.charAt(0) == '+') mc = "-";
+			else mc = "+";
+			return "" + mc + cdelmvcmdonly.substring(1);
+		}
+		else throw new IllegalStateException("illegal create or delete command found and used here!");
+	}
+	
+	public static String genUndoMoveToCommandForPromotionCommand(String promvcmdonly, boolean redoit)
+	{
+		if (promvcmdonly == null || promvcmdonly.length() != 12)
+		{
+			System.out.println("promvcmdonly = " + promvcmdonly);
+			if (promvcmdonly == null);
+			else System.out.println("promvcmdonly.length() = " + promvcmdonly.length());
+			throw new IllegalStateException("illegal promotion command found and used here!");
+		}
+		//else;//do nothing
+		
+		//promotion
+		//TWPNA1INTOQN
+		//012345678901
+		//0         1
+		String myretstr = null;
+		if (redoit) myretstr = "";
+		else myretstr = "UNDO";
+		myretstr += promvcmdonly.substring(0, 2) + promvcmdonly.substring(10) +
+			promvcmdonly.substring(4, 10) + promvcmdonly.substring(2, 4);
+		return myretstr;
+	}
+	
+	public static String[] genUndoMoveToShortHandCommand(String[] mvcmd, boolean redoit, boolean remundo)
 	{
 		if (mvcmd == null) return null;
 		
@@ -5323,6 +5430,11 @@ class ChessPiece {
 		//WHITE LEFT PAWN at: current_loc to: next_loc
 		//-BPWN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
 		//WLPNB4TOA3 (DISPLAY TO THE USER)
+		//
+		//PROMOTION NOTATION:
+		//TURN COLOR PAWN at: STRINGLOC into: OTHERTYPE
+		//TURN BLACK PAWN at: H8 into: QUEEN
+		//TBPNH8INTOQN
 		//
 		//SHORT HAND EXAMPLES
 		//WPNA5TOA6
@@ -5380,52 +5492,111 @@ class ChessPiece {
 		
 		String[] undomvs = new String[mvcmd.length];
 		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
-		if (mvcmd.length == 3)//NOT NECESSARILY CORRECT DUE TO PAWN PROMOTION
+		if (redoit && remundo)
 		{
-			//castling
 			for (int x = 0; x < mvcmd.length; x++)
 			{
-				if (x == 0) undomvs[x] = "UNDO" + mvcmd[x];
+				if (mvcmd[x].indexOf("UNDO") == 0) undomvs[x] = mvcmd[x].substring(4);
+				else undomvs[x] = "" + mvcmd[x];
+			}
+			return genUndoMoveToShortHandCommand(undomvs, redoit, false);
+		}
+		//else;//do nothing
+		if (mvcmd.length == 3)
+		{
+			//castling or capture and promotion
+			if (mvcmd[0].equals("WLCE:") || mvcmd[0].equals("WRCE:") || mvcmd[0].equals("BLCE:") || mvcmd[0].equals("BRCE:"))
+			{
+				//castling
+				for (int x = 0; x < mvcmd.length; x++)
+				{
+					if (x == 0)
+					{
+						if (redoit) undomvs[x] = "" + mvcmd[x];
+						else undomvs[x] = "UNDO" + mvcmd[x];
+					}
+					else undomvs[x] = genUndoMoveToCommandForMoveCommand(mvcmd[x], redoit);
+				}	
+			}
+			else
+			{
+				//handle the capture and promotion case here
+				//capture move promotion
+				//TWPNA1INTOQN
+				//012345678901
+				//0         1
+				if (redoit)
+				{
+					//capture move promote is the order we want
+					undomvs[0] = genUndoMoveToCommandForCreateDeleteCommand(mvcmd[2]);
+					undomvs[1] = genUndoMoveToCommandForMoveCommand(mvcmd[1], redoit);
+					undomvs[2] = genUndoMoveToCommandForPromotionCommand(mvcmd[0], redoit);
+				}
 				else
 				{
-					undomvs[x] = "UNDO" + mvcmd[x].substring(0, 3) + mvcmd[x].substring(7) + mvcmd[x].substring(5, 7) +
-						mvcmd[x].substring(3, 5);
+					//undoit demote move back uncapture order is used
+					undomvs[0] = genUndoMoveToCommandForPromotionCommand(mvcmd[2], redoit);
+					undomvs[1] = genUndoMoveToCommandForMoveCommand(mvcmd[1], redoit);
+					undomvs[2] = genUndoMoveToCommandForCreateDeleteCommand(mvcmd[0]);
 				}
 			}
 		}
-		else if (mvcmd.length == 2)//NOT NECESSARILY CORRECT DUE TO PAWN PROMOTION
+		else if (mvcmd.length == 2)
 		{
+			//move and promote or
 			//some sort of capture was involved
 			//swap the order
-			int si = -1;
-			if (mvcmd[1].charAt(1) == 'L' || mvcmd[1].charAt(1) == 'R') si = 4;
-			else si = 3;
-			String mc = null;
-			if (mvcmd[0].charAt(0) == '+') mc = "-";
-			else mc = "+";
-			undomvs[0] = "UNDO" + mvcmd[1].substring(0, si) + mvcmd[1].substring(si + 4) +
-				mvcmd[1].substring(si + 2, si + 4) + mvcmd[1].substring(si, si + 2);
-			undomvs[1] = "" + mc + mvcmd[0].substring(1);
+			int sai = -1;
+			if (redoit) sai = 1;
+			else sai = 0;
+			if (mvcmd[sai].charAt(0) == '+' || mvcmd[sai].charAt(0) == '-')
+			{
+				if (redoit)
+				{
+					undomvs[0] = genUndoMoveToCommandForCreateDeleteCommand(mvcmd[1]);
+					undomvs[1] = genUndoMoveToCommandForMoveCommand(mvcmd[0], redoit);
+				}
+				else
+				{
+					//undoit
+					//capture
+					undomvs[0] = genUndoMoveToCommandForMoveCommand(mvcmd[1], redoit);
+					undomvs[1] = genUndoMoveToCommandForCreateDeleteCommand(mvcmd[0]);
+				}
+			}
+			else
+			{
+				if (redoit)
+				{
+					//move and promote order is used
+					undomvs[0] = genUndoMoveToCommandForMoveCommand(mvcmd[1], redoit);
+					undomvs[1] = genUndoMoveToCommandForPromotionCommand(mvcmd[0], redoit);
+				}
+				else
+				{
+					//undoit
+					//move and promote -> demote then move back order is used
+					undomvs[0] = genUndoMoveToCommandForPromotionCommand(mvcmd[1], redoit);
+					undomvs[1] = genUndoMoveToCommandForMoveCommand(mvcmd[0], redoit);
+				}
+			}
 		}
-		else if (mvcmd.length == 1)//NOT NECESSARILY CORRECT DUE TO PAWN PROMOTION
+		else if (mvcmd.length == 1)
 		{
 			if (mvcmd[0].charAt(0) == '+' || mvcmd[0].charAt(0) == '-')
 			{
-				String mc = null;
-				if (mvcmd[0].charAt(0) == '+') mc = "-";
-				else mc = "+";
-				undomvs[0] = "" + mc + mvcmd[0].substring(1);
+				undomvs[0] = genUndoMoveToCommandForCreateDeleteCommand(mvcmd[0]);
+			}
+			else if (mvcmd[0].charAt(0) == 'T')
+			{
+				undomvs[0] = genUndoMoveToCommandForPromotionCommand(mvcmd[0], redoit);
 			}
 			else
 			{
 				//add undo in front of it for starters
 				//it will most likely be a move to command
 				//might be pawning or changing types
-				int si = -1;
-				if (mvcmd[0].charAt(1) == 'L' || mvcmd[0].charAt(1) == 'R') si = 4;//handle pawning
-				else si = 3;//handle normal moveto
-				undomvs[0] = "UNDO" + mvcmd[0].substring(0, si) + mvcmd[0].substring(si + 4) +
-					mvcmd[0].substring(si + 2, si + 4) + mvcmd[0].substring(si, si + 2);
+				undomvs[0] = genUndoMoveToCommandForMoveCommand(mvcmd[0], redoit);
 			}
 		}
 		else
@@ -5436,9 +5607,26 @@ class ChessPiece {
 		for (int x = 0; x < undomvs.length; x++) System.out.println("undomvs[" + x + "] = " + undomvs[x]);
 		return undomvs;
 	}
-	public String[] genUndoMoveToLongHandCommand(String[] mvcmd)
+	public static String[] genUndoMoveToLongHandCommand(String[] mvcmd, boolean redoit, boolean remundo)
 	{
-		return convertAllShortHandMovesToLongVersion(genUndoMoveToShortHandCommand(getShortHandMoves(mvcmd)));
+		return convertAllShortHandMovesToLongVersion(genUndoMoveToShortHandCommand(
+			getShortHandMoves(mvcmd), redoit, remundo));
+	}
+	public static String[] genUndoMoveToShortHandCommand(String[] mvcmd)
+	{
+		return genUndoMoveToShortHandCommand(mvcmd, false, false);
+	}
+	public static String[] genUndoMoveToLongHandCommand(String[] mvcmd)
+	{
+		return genUndoMoveToLongHandCommand(mvcmd, false, false);
+	}
+	public static String[] genRedoMoveToLongHandCommand(String[] mvcmd)
+	{
+		return genUndoMoveToLongHandCommand(mvcmd, true, true);
+	}
+	public static String[] genRedoMoveToShortHandCommand(String[] mvcmd)
+	{
+		return genUndoMoveToShortHandCommand(mvcmd, true, true);
 	}
 	
 	
