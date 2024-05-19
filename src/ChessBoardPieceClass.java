@@ -49,8 +49,8 @@ public class ChessBoardPieceClass {
     	//testCanMoveToLocs(gid, null, null);
     	
     	//testPawning(gid, true);
-    	setUpBoardForPawnPromotion(gid, true);
-    	//setUpBoardForCastlingWhiteRight(gid, true);
+    	//setUpBoardForPawnPromotion(gid, true);
+    	setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, false);
@@ -457,6 +457,7 @@ public class ChessBoardPieceClass {
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	//ChessPiece.makeLocalMove(wpn.genHintsCommandForSide(), gid, false);
     	
     	boolean tstlclmv = true;
     	if (tstlclmv)
@@ -620,6 +621,7 @@ public class ChessBoardPieceClass {
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	//ChessPiece.makeLocalMove(bpn.genHintsCommandForSide(), gid, false);
     	boolean stoptest = false;
     	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
     	ChessPiece.makeLocalMove(mymv, gid, false);
@@ -739,6 +741,7 @@ public class ChessBoardPieceClass {
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	//ChessPiece.makeLocalMove(wpn.genHintsCommandForSide(), gid, false);
     	boolean stoptest = false;
     	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
     	ChessPiece.makeLocalMove(mymv, gid, false);
