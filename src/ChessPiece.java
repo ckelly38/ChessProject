@@ -411,7 +411,7 @@ class ChessPiece {
 		}
 		return true;
 	}
-	//iswhitedown is true by default
+	//iswhitedown (does white move down ranks) is true by default
 	public static int[] convertStringLocToRowCol(String mlocstr, boolean iswhitedown)
 	{
 		locStringIsInCorrectFormat(mlocstr);
@@ -1502,6 +1502,7 @@ class ChessPiece {
 	{
 		return isBoardValid(getAllPiecesWithGameID(gid));
 	}
+	
 	
 	//HOW TO REMOVE PIECES?
 	//WE NEED TO REMOVE THEM FROM THE LIST OF PIECES.
@@ -4141,6 +4142,9 @@ class ChessPiece {
 		return rlist;
 	}
 	
+	
+	//DOES NOT TAKE INTO ACCOUNT PAWN PROMOTION AS BEING SPECIAL
+	//IF CALLED ON A CASTLE, DOES NOT CONSIDDER CASTLING
 	public boolean isMoveToASpecialMove(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		String[] tpsnospcmvs = {"QUEEN", "BISHOP", "KNIGHT", "CASTLE", "ROOK"};
@@ -5759,6 +5763,266 @@ class ChessPiece {
 		return genUndoMoveToShortHandCommand(mvcmd, true, true);
 	}
 	
+	public static String getTypeOfMoveCommand(String usrcmd)
+	{
+		if (usrcmd == null || usrcmd.length() < 2)
+		{
+			throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
+		}
+		//else;//do nothing
+		if (usrcmd.charAt(0) == '+') return "CREATE";
+		else if (usrcmd.charAt(0) == '-') return "DELETE";
+		else if (usrcmd.charAt(1) == 'L' || usrcmd.charAt(1) == 'R')
+		{
+			if (usrcmd.charAt(2) == 'P') return "PAWNING";
+			else return "CASTLEING";
+		}
+		else if (usrcmd.charAt(0) == 'T') return "PROMOTION";
+		else if (usrcmd.indexOf("TO") == 5) return "MOVE";
+		else if (usrcmd.indexOf("HINTS") == 5 || usrcmd.indexOf("HINTS") == 1) return "HINTS";
+		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
+	}
+	
+	//ONLY CONVERTS COMMANDS IN SHORT HAND NOTATION
+	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval)
+	{
+		//CASTLING NOTATION:
+		//WLCE:
+		//WRCE:
+		//BLCE:
+		//BRCE:
+		//take that and generate the move to commands needed for it as well
+		//WCEA8TOD8
+		//WKGE8TOC8
+		
+		//PAWNING NOTATION:
+		//WLPNB4TOA3
+		//0123456789
+		//
+		//take that and generate the delete command needed before it
+		
+		//PROMOTION NOTATION: (YOU ARE DONE, JUST RETURN IT)
+		//TBPNH8INTOQN
+		//012345678901
+		//0         1
+		
+		//MOVE NOTATION:
+		//WCEA5TOA6
+		//012345678
+		//
+		//needs to know if moving there requires a capture or not
+		//needs to know if moving there results in a promotion for the pawn or not
+		//if we are promoting a pawn, need to know what to promote it to
+		
+		//HINTS NOTATIONS: (YOU ARE DONE, JUST RETURN IT)
+		//WHINTS
+		//BPNH8HINTS
+		//0123456789
+		
+		//CREATE OR DELETE NOTATIONS: (YOU ARE DONE, JUST RETURN IT)
+		//-BPN??W?MS
+		//+BPN??W?MS
+		//0123456789
+		
+		String cmdtp = getTypeOfMoveCommand(usrcmd);
+		System.out.println("cmdtp = " + cmdtp);
+		System.out.println("usrcmd = " + usrcmd);
+		
+		if (cmdtp.equals("HINTS") || cmdtp.equals("CREATE") || cmdtp.equals("DELETE") || cmdtp.equals("PROMOTION"))
+		{
+			String[] resstr = new String[1];
+			resstr[0] = "" + usrcmd;
+			System.out.println("resstr[0] = " + resstr[0]);
+			return resstr;
+		}
+		else if (cmdtp.equals("PAWNING"))
+		{
+			String myclr = "" + usrcmd.charAt(0);
+			String fullclr = getLongHandColor(myclr);
+			boolean useleft = (usrcmd.charAt(1) == 'L');
+			String locstr = "" + usrcmd.substring(4, 6);
+			ArrayList<ChessPiece> allpcs = getAllPiecesWithGameID(gid);
+			
+			ChessPiece cp = getPieceAt(convertStringLocToRowCol(locstr), allpcs);
+			if (cp == null) throw new IllegalStateException("the current pawn must not be null!");
+			else
+			{
+				if (cp.getType().equals("PAWN") && cp.getColor().equals(fullclr));
+				else throw new IllegalStateException("the current pawn was not of the correct type and color!");
+			}
+			
+			if (cp.canPawnLeftOrRight(useleft, allpcs));
+			else throw new IllegalStateException("you cannot pawn!");
+			
+			ChessPiece ep = cp.getEnemyPawnForLeftOrRightPawning(useleft, allpcs);
+			if (ep == null) throw new IllegalStateException("the enemy pawn must not be null!");
+			else
+			{
+				if (ep.getType().equals("PAWN") && ep.getColor().equals(getOppositeColor(fullclr)));
+				else throw new IllegalStateException("the enemy pawn was not of the correct type and color!");
+			}
+			
+			String delcmd = "-" + getShortHandColor(ep.getColor()) + "PN" +
+				convertRowColToStringLoc(ep.getRow(), ep.getCol()) + "W" + ep.getMoveCount() + "MS";
+			String[] resstr = new String[2];
+			resstr[0] = "" + delcmd;
+			resstr[1] = "" + usrcmd;
+			System.out.println("resstr[0] = " + resstr[0]);
+			System.out.println("resstr[1] = " + resstr[1]);
+			return resstr;
+		}
+		else if (cmdtp.equals("CASTLEING"))
+		{
+			String[] resstr = new String[3];
+			resstr[0] = "" + usrcmd;
+			//need to generate the two move to commands
+			String myclr = "" + usrcmd.charAt(0);
+			String fullclr = getLongHandColor(myclr);
+			boolean useleft = (usrcmd.charAt(1) == 'L');
+			int mccol = -1;
+			if (useleft) mccol = 0;
+			else mccol = 7;
+			ChessPiece mkg = getCurrentSideKing(fullclr, getAllPiecesWithGameID(gid));
+			if (canSideCastleLeftOrRight(useleft, fullclr, null, null, gid));
+			else throw new IllegalStateException("CANNOT CASTLE!");
+			
+			if (mkg.getCol() == 4 && (mkg.getRow() == 7 || mkg.getRow() == 0));
+			else throw new IllegalStateException("CANNOT CASTLE! KING IS NOT AT THE CORRECT POSITION!");
+			String cslcmd = "" + myclr + "CE" + convertRowColToStringLoc(mkg.getRow(), mccol) + "TO" +
+				convertRowColToStringLoc(getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, false, fullclr, gid));
+			String kgcmd = "" + myclr + "KG" + convertRowColToStringLoc(mkg.getRow(), mkg.getCol()) + "TO" +
+				convertRowColToStringLoc(getLeftOrRightCastleSideNewCastleOrKingLoc(useleft, true, fullclr, gid));
+			resstr[1] = "" + cslcmd;
+			resstr[2] = "" + kgcmd;
+			System.out.println("resstr[0] = " + resstr[0]);
+			System.out.println("resstr[1] = " + resstr[1]);
+			System.out.println("resstr[2] = " + resstr[2]);
+			return resstr;
+		}
+		else if (cmdtp.equals("MOVE"))
+		{
+			//need to determine if the move is actually a special move
+			//need to determine if the move results in a capture
+			//need to determine if the move results in a pawn getting promoted
+			
+			//if type is not a pawn, then no promotion
+			//see if it is a pawn and the move is a special move
+			//-if so, then it is pawning...
+			//-if it is pawning convert it to pawning format and return that result instead
+			//-need to insert the direction in between the color and the rest of the move to command
+			
+			//static canPawnBePromotedAt(int nrval, int ncval, String clrval, String tpval)
+			//non-static isMoveToASpecialMove(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+			//if type is king, and we can determine that the move is a special move, then convert it to castling notation
+			
+			ArrayList<ChessPiece> allpcs = getAllPiecesWithGameID(gid);
+			String myclr = "" + usrcmd.charAt(0);
+			String mytp = "" + usrcmd.substring(1, 3);
+			String fullclr = getLongHandColor(myclr);
+			String slocstr = "" + usrcmd.substring(3, 5);
+			String elocstr = "" + usrcmd.substring(7);
+			int[] sloc = convertStringLocToRowCol(slocstr);
+			int[] eloc = convertStringLocToRowCol(elocstr);
+			
+			ChessPiece cp = getPieceAt(sloc[0], sloc[1], allpcs);
+			if (cp == null) throw new IllegalStateException("the current pawn must not be null!");
+			else
+			{
+				if (cp.getType().equals(getLongHandType(mytp)) && cp.getColor().equals(fullclr));
+				else throw new IllegalStateException("the current piece was not of the correct type and color!");
+			}
+			
+			if (cp.isMoveToASpecialMove(eloc[0], eloc[1], null, null))
+			{
+				//determine if it is castling or pawning
+				//need the direction
+				//then can generate the correct command
+				//then call this method with the correct command
+				boolean usecsling = cp.getType().equals("KING");
+				boolean useleft = (eloc[1] < sloc[1]);
+				String dirstr = null;
+				if (useleft) dirstr = "L";
+				else dirstr = "R";
+				String nwcmd = null;
+				if (usecsling) nwcmd = "" + myclr + dirstr + "CE:";
+				else nwcmd = "" + myclr + dirstr + usrcmd.substring(1);
+				return genFullMoveCommandFromDisplayedCommand(nwcmd, gid, ptpval);
+			}
+			//else;//do nothing safe to proceed
+			
+			boolean canpropawn = canPawnBePromotedAt(eloc[0], eloc[1], fullclr, cp.getType());
+			String propawncmd = null;
+			if (canpropawn)
+			{
+				//TBPNH8INTOQN
+				
+				String[] myvptps = {"QUEEN", "BISHOP", "CASTLE", "ROOK", "KNIGHT"};
+				String myctpval = null;
+				if (itemIsOnGivenList(ptpval, myvptps))
+				{
+					if (ptpval.equals("ROOK")) myctpval = "CASTLE";
+					else myctpval = "" + ptpval;
+					myctpval = getShortHandType(myctpval);
+				}
+				else
+				{
+					String[] myovptps = {"QN", "BP", "CE", "KT"};
+					if (itemIsOnGivenList(ptpval, myvptps)) myctpval = "" + ptpval;
+					else throw new IllegalStateException("CANNOT PROMOTE A PAWN TO GIVEN TYPE (" + ptpval + ")!");
+				}
+				
+				propawncmd = "T" + usrcmd.substring(0, 3) + elocstr + "INTO" + myctpval;
+				System.out.println("propawncmd = " + propawncmd);
+			}
+			//else;//do nothing
+			
+			//if command involves adding or removing a piece we need to include that here...
+			ChessPiece ecp = getPieceAt(eloc[0], eloc[1], allpcs);
+			String delcmd = null;
+			boolean usedelcmd = true;
+			if (ecp == null) usedelcmd = false;
+			else
+			{
+				if (ecp.getColor().equals(getOppositeColor(cp.getColor())));
+				else throw new IllegalStateException("enemy piece must be different than our color!");
+				
+				delcmd = "-" + getShortHandColor(ecp.getColor()) + getShortHandType(ecp.getType()) +
+					convertRowColToStringLoc(eloc[0], eloc[1]) + "W" + ecp.getMoveCount() + "MS";
+				System.out.println("delcmd = " + delcmd);
+			}
+			
+			int mxsz = 1;
+			if (usedelcmd) mxsz++;
+			if (canpropawn) mxsz++;
+			String[] resstr = new String[mxsz];
+			if (usedelcmd)
+			{
+				resstr[0] = "" + delcmd;
+				resstr[1] = "" + usrcmd;
+				if (canpropawn) resstr[2] = "" + propawncmd;
+			}
+			else
+			{
+				resstr[0] = "" + usrcmd;
+				if (canpropawn) resstr[1] = "" + propawncmd;
+			}
+			for (int x = 0; x < mxsz; x++) System.out.println("resstr[" + x + "] = " + resstr[x]);
+			return resstr;
+		}
+		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
+	}
+	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid)
+	{
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, "QUEEN");
+	}
+	public String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, String ptpval)
+	{
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, getGameID(), ptpval);
+	}
+	public String[] genFullMoveCommandFromDisplayedCommand(String usrcmd)
+	{
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, "QUEEN");
+	}
 	
 	//EXECUTES THE COMMANDS ABOVE ON THE LOCAL BOARD ONLY
 	//ONLY EXECUTES COMMANDS IN SHORT HAND NOTATION
@@ -5775,7 +6039,7 @@ class ChessPiece {
 		//
 		//PAWNING NOTATION
 		//WHITE LEFT PAWN at: current_loc to: next_loc
-		//-BPWN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
+		//-BPN??W?MS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
 		//WLPNB4TOA3 (DISPLAY TO THE USER)
 		//0123456789
 		//

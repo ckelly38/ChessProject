@@ -49,8 +49,8 @@ public class ChessBoardPieceClass {
     	//testCanMoveToLocs(gid, null, null);
     	
     	//testPawning(gid, true);
-    	//setUpBoardForPawnPromotion(gid, true);
-    	setUpBoardForCastlingWhiteRight(gid, true);
+    	setUpBoardForPawnPromotion(gid, true);
+    	//setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, false);
@@ -463,7 +463,10 @@ public class ChessBoardPieceClass {
     	if (tstlclmv)
     	{
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		ChessPiece.makeLocalMove(mymv, gid, false);
+    		String myscmd = "WPNB2TO" + mymvploc;
+    		String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    		ChessPiece.makeLocalMove(fullmv, gid, false);
+    		//ChessPiece.makeLocalMove(mymv, gid, false);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		printBoard(gid);
     	}
@@ -623,8 +626,13 @@ public class ChessBoardPieceClass {
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
     	//ChessPiece.makeLocalMove(bpn.genHintsCommandForSide(), gid, false);
     	boolean stoptest = false;
-    	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
-    	ChessPiece.makeLocalMove(mymv, gid, false);
+    	if (stoptest) throw new IllegalStateException("UNDO GEN PAWN COMMAND FAILED!");
+    	String scmd = "BLPNB5TOA6";
+    	String oscmd = "BPNB5TOA6";
+    	String myscmd = oscmd;//scmd
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    	ChessPiece.makeLocalMove(fullmv, gid, false);
+    	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//bpn.pawnLeft();
     	printBoard(gid);
     	ChessPiece.makeLocalMove(myunmv, gid, true);
@@ -743,8 +751,13 @@ public class ChessBoardPieceClass {
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
     	//ChessPiece.makeLocalMove(wpn.genHintsCommandForSide(), gid, false);
     	boolean stoptest = false;
-    	if (stoptest) throw new IllegalStateException("UNDO GEN PROMOTE PAWN COMMAND FAILED!");
-    	ChessPiece.makeLocalMove(mymv, gid, false);
+    	if (stoptest) throw new IllegalStateException("UNDO GEN CASTLING COMMAND FAILED!");
+    	String scmd = "WRCE:";
+    	String oscmd = "WKGE8TOG8";
+    	String myscmd = oscmd;//scmd
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    	ChessPiece.makeLocalMove(fullmv, gid, false);
+    	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
     	printBoard(gid);
     	ChessPiece.makeLocalMove(myunmv, gid, true);
