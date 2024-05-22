@@ -1,2 +1,3 @@
-"C:\\Users\\chris\\Desktop\\FIS Stuff\\ChessBoardPieceClass\\src\\ChessBoardPieceClass.java"
+"C:\\Users\\chris\\Desktop\\FIS Stuff\\ChessBoardPieceClass\\src\\ChessGame.java"
 "C:\\Users\\chris\\Desktop\\FIS Stuff\\ChessBoardPieceClass\\src\\ChessPiece.java"
+"C:\\Users\\chris\\Desktop\\FIS Stuff\\ChessBoardPieceClass\\src\\TestDriver.java"

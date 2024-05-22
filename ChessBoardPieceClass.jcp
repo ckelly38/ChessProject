@@ -19,7 +19,7 @@
 			<applet_ref/>
 			<debugger_ref/>
 			<param/>
-			<run>ChessBoardPieceClass</run>
+			<run>TestDriver</run>
 			<verify>true</verify>
 		</runtime>
 	</runtimes>
@@ -30,11 +30,15 @@
 				<path>src</path>
 			</folderitem>
 			<fileitem>
-				<path>src\ChessBoardPieceClass.java</path>
+				<path>src\ChessGame.java</path>
 				<folder>src</folder>
 			</fileitem>
 			<fileitem>
 				<path>src\ChessPiece.java</path>
+				<folder>src</folder>
+			</fileitem>
+			<fileitem>
+				<path>src\TestDriver.java</path>
 				<folder>src</folder>
 			</fileitem>
 		</include>
@@ -42,9 +46,15 @@
 	<tasks>
 		<todotaskitem>
 			<description>TODO, add your application code</description>
-			<filepath>src\ChessBoardPieceClass.java</filepath>
+			<filepath>src\TestDriver.java</filepath>
 			<line>16</line>
 			<timestamp>1713845236</timestamp>
+		</todotaskitem>
+		<todotaskitem>
+			<description>UNDONE MOVE:</description>
+			<filepath>src\ChessPiece.java</filepath>
+			<line>1588</line>
+			<timestamp>1716419786</timestamp>
 		</todotaskitem>
 	</tasks>
 </project>
