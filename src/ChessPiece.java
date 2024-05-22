@@ -64,6 +64,14 @@ class ChessPiece {
 	{
 		return 0 + this.gameID;
 	}
+	public static ChessGame getGame(int gid)
+	{
+		return ChessGame.getGame(gid);
+	}
+	public ChessGame getGame()
+	{
+		return getGame(getGameID());
+	}
 	
 	//GET ALL PIECES OF A GAME
 	
@@ -175,6 +183,185 @@ class ChessPiece {
 		else return "UNKNOWN";
 	}
 	
+	//GET TYPE AND COLOR METHODS
+	
+	private void setTypeOrColor(String val, boolean useclr)
+	{
+		String[] marr = null;
+		if (useclr) marr = validColors;
+		else marr = validTypes;
+		if (itemIsOnGivenList(val, marr))
+		{
+			if (useclr) this.color = "" + val;
+			else
+			{
+				if (val.equals("ROOK")) this.type = "CASTLE";
+				else this.type = "" + val;
+			}
+		}
+		else
+		{
+			String mitemstr = "";
+			if (useclr) mitemstr = "COLOR";
+			else mitemstr = "TYPE";
+			throw new IllegalStateException("ILLEGAL " + mitemstr + " (" + val + ") FOUND AND USED HERE!");
+		}
+	}
+	private void setType(String val)
+	{
+		setTypeOrColor(val, false);
+	}
+	private void setColor(String val)
+	{
+		setTypeOrColor(val, true);
+	}
+	public String getTypeOrColor(boolean useclr)
+	{
+		if (useclr) return "" + this.color;
+		else return "" + this.type;
+	}
+	public String getType()
+	{
+		return getTypeOrColor(false);
+	}
+	public String getColor()
+	{
+		return getTypeOrColor(true);
+	}
+	public static String getLongHandType(String tpval)
+	{
+		if (tpval == null || tpval.length() != 2) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
+		else if (tpval.equals("KG")) return "KING";
+		else if (tpval.equals("KT")) return "KNIGHT";
+		else if (tpval.equals("CE")) return "CASTLE";
+		else if (tpval.equals("QN")) return "QUEEN";
+		else if (tpval.equals("BP")) return "BISHOP";
+		else if (tpval.equals("PN")) return "PAWN";
+		else throw new IllegalStateException("ILLEGAL SHORT HAND TYPE (" + tpval + ") FOUND!");
+	}
+	public static String getShortHandType(String tpval)
+	{
+		if (tpval == null || tpval.length() < 1) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
+		else if (itemIsOnGivenList(tpval, validTypes))
+		{
+			if (tpval.equals("ROOK")) return "CE";
+			else return "" + tpval.charAt(0) + tpval.charAt(tpval.length() - 1);
+		}
+		else throw new IllegalStateException("INVALID TYPE (" + tpval + ") FOUND HERE!");
+	}
+	public String getShortHandType()
+	{
+		return getShortHandType(getType());
+	}
+	public static String getShortHandColor(String clrval)
+	{
+		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("NULL OR EMPTY COLOR NOT ALLOWED HERE!");
+		else if (itemIsOnGivenList(clrval, validColors)) return "" + clrval.charAt(0);
+		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND HERE!");
+	}
+	public String getShortHandColor()
+	{
+		return getShortHandColor(getColor());
+	}
+	public static String getLongHandColor(String clrval)
+	{
+		if (clrval == null || clrval.length() != 1) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
+		else if (clrval.equals("W")) return "WHITE";
+		else if (clrval.equals("B")) return "BLACK";
+		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
+	}
+	public static String getOppositeColor(String clrval)
+	{
+		if (clrval == null) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
+		else if (clrval.equals("WHITE")) return "BLACK";
+		else if (clrval.equals("BLACK")) return "WHITE";
+		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
+	}
+	
+	//MOVE COUNT METHODS
+	
+	private void incrementMoveCount()
+	{
+		this.movecount = this.movecount + 1;
+	}
+	private void decrementMoveCount()
+	{
+		if (0 < this.movecount) this.movecount = this.movecount - 1;
+	}
+	public int getMoveCount()
+	{
+		return this.movecount;
+	}
+	public void setMoveCount(int val)
+	{
+		if (val < 0) throw new IllegalStateException("illegal value found and used for the move count!");
+		this.movecount = val;
+	}
+	
+	public static boolean itemIsOnGivenList(String val, String[] arr)
+	{
+		if (arr == null || arr.length < 1) return false;
+		for (int i = 0; i < arr.length; i++)
+		{
+			if (val == null)
+			{
+				if (arr[i] == null) return true;
+				//else;//do nothing
+			}
+			else
+			{
+				if (arr[i] == null);
+				else
+				{
+					if (val.equals(arr[i])) return true;
+					//else;//do nothing
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static int[][] transpose(int[][] myarr)
+	{
+		if (myarr == null) return null;
+		else if (myarr.length < 1) return new int[0][myarr.length];
+		else
+		{
+			//System.out.println("OLD ARRAY:");
+			//for (int r = 0; r < myarr.length; r++)
+			//{
+			//	for (int c = 0; c < myarr[0].length; c++)
+			//	{
+			//		System.out.println("myarr[" + r + "][" + c + "] = " + myarr[r][c]);
+			//	}
+			//}
+			
+			//System.out.println("OLD DIMENSIONS: myarr.length = " + myarr.length);
+			//System.out.println("myarr[0].length = " + myarr[0].length);
+			
+			int[][] resarr = new int[myarr[0].length][myarr.length];
+			//System.out.println("NEW DIMENTIONS: resarr.length = " + resarr.length);
+			//System.out.println("resarr[0].length = " + resarr[0].length);
+			
+			for (int r = 0; r < myarr.length; r++)
+			{
+				for (int c = 0; c < myarr[0].length; c++) resarr[c][r] = myarr[r][c];
+			}
+			
+			//System.out.println("NEW ARRAY:");
+			//for (int r = 0; r < resarr.length; r++)
+			//{
+			//	for (int c = 0; c < resarr[0].length; c++)
+			//	{
+			//		System.out.println("resarr[" + r + "][" + c + "] = " + resarr[r][c]);
+			//	}
+			//}
+			//throw new IllegalStateException("NEED TO CHECK IF THIS WORKS!");
+			return resarr;
+		}
+	}
+	
+	
 	//METHODS FOR GETTING NUM ITEMS IN LIST
 	
 	public static int getNumItemsInList(ArrayList mylist)
@@ -276,6 +463,13 @@ class ChessPiece {
 		{
 			//if (usecastling || canMoveToLoc(rval, cval))
 			//{
+				//generate and save the last set loc call
+				//WPNA5TOA6
+				String mymvcmd = getShortHandColor() + getShortHandType() + convertRowColToStringLoc(getRow(), getCol()) +
+					"TO" + convertRowColToStringLoc(rval, cval);
+				System.out.println("SETLOC: mymvcmd = " + mymvcmd);
+				getGame().setLastSetLocMove(mymvcmd);
+				//System.out.println("SETLOC: mymvcmd = " + getGame().getLastSetLocMove());
 				setRow(rval);
 				setCol(cval);
 			//}
@@ -573,46 +767,6 @@ class ChessPiece {
 			}
 		}
 		System.out.println();
-	}
-	
-	public static int[][] transpose(int[][] myarr)
-	{
-		if (myarr == null) return null;
-		else if (myarr.length < 1) return new int[0][myarr.length];
-		else
-		{
-			//System.out.println("OLD ARRAY:");
-			//for (int r = 0; r < myarr.length; r++)
-			//{
-			//	for (int c = 0; c < myarr[0].length; c++)
-			//	{
-			//		System.out.println("myarr[" + r + "][" + c + "] = " + myarr[r][c]);
-			//	}
-			//}
-			
-			//System.out.println("OLD DIMENSIONS: myarr.length = " + myarr.length);
-			//System.out.println("myarr[0].length = " + myarr[0].length);
-			
-			int[][] resarr = new int[myarr[0].length][myarr.length];
-			//System.out.println("NEW DIMENTIONS: resarr.length = " + resarr.length);
-			//System.out.println("resarr[0].length = " + resarr[0].length);
-			
-			for (int r = 0; r < myarr.length; r++)
-			{
-				for (int c = 0; c < myarr[0].length; c++) resarr[c][r] = myarr[r][c];
-			}
-			
-			//System.out.println("NEW ARRAY:");
-			//for (int r = 0; r < resarr.length; r++)
-			//{
-			//	for (int c = 0; c < resarr[0].length; c++)
-			//	{
-			//		System.out.println("resarr[" + r + "][" + c + "] = " + resarr[r][c]);
-			//	}
-			//}
-			//throw new IllegalStateException("NEED TO CHECK IF THIS WORKS!");
-			return resarr;
-		}
 	}
 	
 	
@@ -918,145 +1072,6 @@ class ChessPiece {
 		}
 		else return isLocationEmpty(loc[0], loc[1], getGameID());
 	}
-	
-	//MOVE COUNT METHODS
-	
-	private void incrementMoveCount()
-	{
-		this.movecount = this.movecount + 1;
-	}
-	private void decrementMoveCount()
-	{
-		if (0 < this.movecount) this.movecount = this.movecount - 1;
-	}
-	public int getMoveCount()
-	{
-		return this.movecount;
-	}
-	public void setMoveCount(int val)
-	{
-		if (val < 0) throw new IllegalStateException("illegal value found and used for the move count!");
-		this.movecount = val;
-	}
-	
-	public static boolean itemIsOnGivenList(String val, String[] arr)
-	{
-		if (arr == null || arr.length < 1) return false;
-		for (int i = 0; i < arr.length; i++)
-		{
-			if (val == null)
-			{
-				if (arr[i] == null) return true;
-				//else;//do nothing
-			}
-			else
-			{
-				if (arr[i] == null);
-				else
-				{
-					if (val.equals(arr[i])) return true;
-					//else;//do nothing
-				}
-			}
-		}
-		return false;
-	}
-	
-	//GET TYPE AND COLOR METHODS
-	
-	private void setTypeOrColor(String val, boolean useclr)
-	{
-		String[] marr = null;
-		if (useclr) marr = validColors;
-		else marr = validTypes;
-		if (itemIsOnGivenList(val, marr))
-		{
-			if (useclr) this.color = "" + val;
-			else
-			{
-				if (val.equals("ROOK")) this.type = "CASTLE";
-				else this.type = "" + val;
-			}
-		}
-		else
-		{
-			String mitemstr = "";
-			if (useclr) mitemstr = "COLOR";
-			else mitemstr = "TYPE";
-			throw new IllegalStateException("ILLEGAL " + mitemstr + " (" + val + ") FOUND AND USED HERE!");
-		}
-	}
-	private void setType(String val)
-	{
-		setTypeOrColor(val, false);
-	}
-	private void setColor(String val)
-	{
-		setTypeOrColor(val, true);
-	}
-	public String getTypeOrColor(boolean useclr)
-	{
-		if (useclr) return "" + this.color;
-		else return "" + this.type;
-	}
-	public String getType()
-	{
-		return getTypeOrColor(false);
-	}
-	public String getColor()
-	{
-		return getTypeOrColor(true);
-	}
-	public static String getLongHandType(String tpval)
-	{
-		if (tpval == null || tpval.length() != 2) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
-		else if (tpval.equals("KG")) return "KING";
-		else if (tpval.equals("KT")) return "KNIGHT";
-		else if (tpval.equals("CE")) return "CASTLE";
-		else if (tpval.equals("QN")) return "QUEEN";
-		else if (tpval.equals("BP")) return "BISHOP";
-		else if (tpval.equals("PN")) return "PAWN";
-		else throw new IllegalStateException("ILLEGAL SHORT HAND TYPE (" + tpval + ") FOUND!");
-	}
-	public static String getShortHandType(String tpval)
-	{
-		if (tpval == null || tpval.length() < 1) throw new IllegalStateException("NULL OR EMPTY TYPE NOT ALLOWED HERE!");
-		else if (itemIsOnGivenList(tpval, validTypes))
-		{
-			if (tpval.equals("ROOK")) return "CE";
-			else return "" + tpval.charAt(0) + tpval.charAt(tpval.length() - 1);
-		}
-		else throw new IllegalStateException("INVALID TYPE (" + tpval + ") FOUND HERE!");
-	}
-	public String getShortHandType()
-	{
-		return getShortHandType(getType());
-	}
-	public static String getShortHandColor(String clrval)
-	{
-		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("NULL OR EMPTY COLOR NOT ALLOWED HERE!");
-		else if (itemIsOnGivenList(clrval, validColors)) return "" + clrval.charAt(0);
-		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND HERE!");
-	}
-	public String getShortHandColor()
-	{
-		return getShortHandColor(getColor());
-	}
-	public static String getLongHandColor(String clrval)
-	{
-		if (clrval == null || clrval.length() != 1) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
-		else if (clrval.equals("W")) return "WHITE";
-		else if (clrval.equals("B")) return "BLACK";
-		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
-	}
-	public static String getOppositeColor(String clrval)
-	{
-		if (clrval == null) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
-		else if (clrval.equals("WHITE")) return "BLACK";
-		else if (clrval.equals("BLACK")) return "WHITE";
-		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
-	}
-	
 	
 	//FILTER METHODS BY COLOR, TYPE, OR BOTH
 	
@@ -6212,6 +6227,14 @@ class ChessPiece {
 							convertStringLocToRowCol(mvcmd[pci + 1].substring(4, 6)), gid,
 							Integer.parseInt(mvcmd[pci + 1].substring(7, mvcmd[pci + 1].indexOf("MS"))), true);
 						System.out.println("CREATED: " + cp + "!");
+						int prevrw = -1;
+						if (cp.getColor().equals("WHITE")) prevrw = 6;
+						else prevrw = 1;
+						String mymvcmd = getShortHandColor(cp.getColor()) + getShortHandType(cp.getType()) +
+							convertRowColToStringLoc(prevrw, cp.getCol()) + "TO" +
+							convertRowColToStringLoc(cp.getRow(), cp.getCol());
+						System.out.println("UNDOPAWNING: mymvcmd = " + mymvcmd);
+						getGame(gid).setLastSetLocMove(mymvcmd);
 					}
 					else pn.pawnLeftOrRight(useleftforcandp, mpclist);
 				}
@@ -6451,8 +6474,6 @@ class ChessPiece {
 	}
 	
 	
-	//NOT NECESSARILY DONE YET...
-	//NEED A WAY TO DETECT IF THIS IS THE IMMEDIATE NEXT MOVE
 	public boolean canPawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs)
 	{
 		//if no pawns for one side -> false
@@ -6529,6 +6550,23 @@ class ChessPiece {
 				else
 				{
 					System.out.println("THIS IS NOT THE FIRST MOVE OF THE ENEMY PAWN!");
+					return false;
+				}
+				
+				String lstsetlocmv = getGame().getLastSetLocMove();
+				//WPN??TO??
+				//012345678
+				//if enemy piece is now at that destination location
+				//then we can say that we just moved it there...
+				//otherwise it is not the immediate next move, so cannot pawn
+				String lstmvdestlocstr = lstsetlocmv.substring(7);
+				int[] lstdestlocarr = convertStringLocToRowCol(lstmvdestlocstr);
+				if (ep.getRow() == lstdestlocarr[0] && ep.getCol() == lstdestlocarr[1]);
+				else
+				{
+					System.out.println("lstsetlocmv = " + lstsetlocmv);
+					System.out.println("lstmvdestlocstr = " + lstmvdestlocstr);
+					System.out.println("THIS IS NOT THE IMMEDIATE NEXT MOVE, SO CANNOT PAWN!");
 					return false;
 				}
 				
