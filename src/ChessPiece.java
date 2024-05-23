@@ -456,20 +456,25 @@ class ChessPiece {
 		loc[1] = getCol();
 		return loc;
 	}
-	public void setLoc(int rval, int cval)
+	//by default set the move
+	public void setLoc(int rval, int cval, boolean skipsetmv)
 	{
 		boolean terr = false;
 		if (isvalidrorc(rval) && isvalidrorc(cval))
 		{
 			//if (usecastling || canMoveToLoc(rval, cval))
 			//{
-				//generate and save the last set loc call
-				//WPNA5TOA6
-				String mymvcmd = getShortHandColor() + getShortHandType() + convertRowColToStringLoc(getRow(), getCol()) +
-					"TO" + convertRowColToStringLoc(rval, cval);
-				System.out.println("SETLOC: mymvcmd = " + mymvcmd);
-				getGame().setLastSetLocMove(mymvcmd);
-				//System.out.println("SETLOC: mymvcmd = " + getGame().getLastSetLocMove());
+				if (skipsetmv);
+				else
+				{
+					//generate and save the last set loc call
+					//WPNA5TOA6
+					String mymvcmd = getShortHandColor() + getShortHandType() + convertRowColToStringLoc(getRow(), getCol()) +
+						"TO" + convertRowColToStringLoc(rval, cval);
+					System.out.println("SETLOC: mymvcmd = " + mymvcmd);
+					getGame().setLastSetLocMove(mymvcmd);
+					//System.out.println("SETLOC: mymvcmd = " + getGame().getLastSetLocMove());
+				}
 				setRow(rval);
 				setCol(cval);
 			//}
@@ -478,13 +483,21 @@ class ChessPiece {
 		else terr = true;
 		if (terr) throw new IllegalStateException("cannot move to new location " + getLocString(rval, cval) + "!");
 	}
-	public void setLoc(int[] loc)
+	public void setLoc(int rval, int cval)
+	{
+		setLoc(rval, cval, false);
+	}
+	public void setLoc(int[] loc, boolean skipsetmv)
 	{
 		if (loc == null || loc.length != 2)
 		{
 			throw new IllegalStateException("You need to provide the chess piece location!");
 		}
-		else setLoc(loc[0], loc[1]);
+		else setLoc(loc[0], loc[1], skipsetmv);
+	}
+	public void setLoc(int[] loc)
+	{
+		setLoc(loc, false);
 	}
 	
 	public static void printSquareColors()
@@ -1564,13 +1577,13 @@ class ChessPiece {
 	//HOW TO STEP THROUGH A COMPLETED GAME (ONLY COMPLETED GAMES):
 	//WHAT DOES BACK AND NEXT DO? INCREASE OR DECREASE THE STEP_COUNTER/INDEX.
 	//
-	//TO GO BACKWARDS:
+	//TO GO BACKWARDS: (DONE)
 	//UNDO THE CURRENT MOVE (PUT ON UNOFFICIAL MOVE, AND THEN UNDO THE UNOFFICIAL MOVE)
 	//-COUNTER HAS TO DECREASE,
 	//-CLEAR UNOFFICIAL_MOVE.
 	//-THEN GET THE PREVIOUS MOVE
 	//
-	//TO GO FORWARDS: (MIGHT BE SMART TO START STEP_INDEX AT -1)
+	//TO GO FORWARDS: (MIGHT BE SMART TO START STEP_INDEX AT -1) (DONE)
 	//-INCREASE THE STEP COUNTER/INDEX
 	//-GET THE CURRENT MOVE (SET IT AS THE UNOFFICIAL MOVE)
 	//-MAKE IT (IT IS ALREADY OFFICIAL, SO DO NOT ADD TO LIST OF OFFICIAL MOVES)
@@ -5799,7 +5812,8 @@ class ChessPiece {
 	}
 	
 	//ONLY CONVERTS COMMANDS IN SHORT HAND NOTATION
-	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval)
+	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//CASTLING NOTATION:
 		//WLCE:
@@ -5843,6 +5857,7 @@ class ChessPiece {
 		System.out.println("cmdtp = " + cmdtp);
 		System.out.println("usrcmd = " + usrcmd);
 		
+		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
 		if (cmdtp.equals("HINTS") || cmdtp.equals("CREATE") || cmdtp.equals("DELETE") || cmdtp.equals("PROMOTION"))
 		{
 			String[] resstr = new String[1];
@@ -5856,7 +5871,6 @@ class ChessPiece {
 			String fullclr = getLongHandColor(myclr);
 			boolean useleft = (usrcmd.charAt(1) == 'L');
 			String locstr = "" + usrcmd.substring(4, 6);
-			ArrayList<ChessPiece> allpcs = getAllPiecesWithGameID(gid);
 			
 			ChessPiece cp = getPieceAt(convertStringLocToRowCol(locstr), allpcs);
 			if (cp == null) throw new IllegalStateException("the current pawn must not be null!");
@@ -5897,8 +5911,8 @@ class ChessPiece {
 			int mccol = -1;
 			if (useleft) mccol = 0;
 			else mccol = 7;
-			ChessPiece mkg = getCurrentSideKing(fullclr, getAllPiecesWithGameID(gid));
-			if (canSideCastleLeftOrRight(useleft, fullclr, null, null, gid));
+			ChessPiece mkg = getCurrentSideKing(fullclr, allpcs);
+			if (canSideCastleLeftOrRight(useleft, fullclr, ignorelist, addpcs, gid));
 			else throw new IllegalStateException("CANNOT CASTLE!");
 			
 			if (mkg.getCol() == 4 && (mkg.getRow() == 7 || mkg.getRow() == 0));
@@ -5930,7 +5944,6 @@ class ChessPiece {
 			//non-static isMoveToASpecialMove(int nrval, int ncval, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 			//if type is king, and we can determine that the move is a special move, then convert it to castling notation
 			
-			ArrayList<ChessPiece> allpcs = getAllPiecesWithGameID(gid);
 			String myclr = "" + usrcmd.charAt(0);
 			String mytp = "" + usrcmd.substring(1, 3);
 			String fullclr = getLongHandColor(myclr);
@@ -5938,6 +5951,9 @@ class ChessPiece {
 			String elocstr = "" + usrcmd.substring(7);
 			int[] sloc = convertStringLocToRowCol(slocstr);
 			int[] eloc = convertStringLocToRowCol(elocstr);
+			
+			//System.out.println("gid = " + gid);
+			//System.out.println("slocstr = " + slocstr);
 			
 			ChessPiece cp = getPieceAt(sloc[0], sloc[1], allpcs);
 			if (cp == null) throw new IllegalStateException("the current pawn must not be null!");
@@ -5947,7 +5963,7 @@ class ChessPiece {
 				else throw new IllegalStateException("the current piece was not of the correct type and color!");
 			}
 			
-			if (cp.isMoveToASpecialMove(eloc[0], eloc[1], null, null))
+			if (cp.isMoveToASpecialMove(eloc[0], eloc[1], ignorelist, addpcs))
 			{
 				//determine if it is castling or pawning
 				//need the direction
@@ -5961,7 +5977,7 @@ class ChessPiece {
 				String nwcmd = null;
 				if (usecsling) nwcmd = "" + myclr + dirstr + "CE:";
 				else nwcmd = "" + myclr + dirstr + usrcmd.substring(1);
-				return genFullMoveCommandFromDisplayedCommand(nwcmd, gid, ptpval);
+				return genFullMoveCommandFromDisplayedCommand(nwcmd, gid, ptpval, ignorelist, addpcs);
 			}
 			//else;//do nothing safe to proceed
 			
@@ -6026,13 +6042,17 @@ class ChessPiece {
 		}
 		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
 	}
+	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval)
+	{
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, ptpval, null, null);
+	}
 	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid)
 	{
-		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, "QUEEN");
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, "QUEEN", null, null);
 	}
 	public String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, String ptpval)
 	{
-		return genFullMoveCommandFromDisplayedCommand(usrcmd, getGameID(), ptpval);
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, getGameID(), ptpval, null, null);
 	}
 	public String[] genFullMoveCommandFromDisplayedCommand(String usrcmd)
 	{
@@ -6415,6 +6435,310 @@ class ChessPiece {
 	public static void makeLocalMove(String[] mvcmd, int gid)
 	{
 		makeLocalMove(mvcmd, gid, false);
+	}
+	
+	
+	public static int[][] getNewIgnoreListFromCommand(String[] mvcmds)
+	{
+		if (mvcmds == null || mvcmds.length < 1) return null;
+		else
+		{
+			String[] tpcmds = new String[mvcmds.length];
+			int numskp = 0;
+			for (int x = 0; x < mvcmds.length; x++)
+			{
+				tpcmds[x] = getTypeOfMoveCommand(mvcmds[x]);
+				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING")) numskp++;
+			}
+			int[][] ignorelist = new int[mvcmds.length - numskp][2];
+			int igi = 0;
+			for (int x = 0; x < mvcmds.length; x++)
+			{
+				String slocstr = null;
+				if (tpcmds[x].equals("CREATE") || tpcmds[x].equals("DELETE"))
+				{
+					//-BPN??W?MS
+					//+BPN??W?MS
+					//0123456789
+					slocstr = mvcmds[x].substring(4, 6);
+				}
+				else if (tpcmds[x].equals("PAWNING"))
+				{
+					//PAWNING NOTATION
+					//WLPNB4TOA3
+					//0123456789
+					slocstr = mvcmds[x].substring(4, 6);
+				}
+				else if (tpcmds[x].equals("MOVE"))
+				{
+					//MOVE NOTATION
+					//WPNB4TOA3
+					//012345678
+					slocstr = mvcmds[x].substring(3, 5);
+				}
+				else if (tpcmds[x].equals("PROMOTION"))
+				{
+					//PROMOTION NOTATION:
+					//TBPNH8INTOQN
+					//012345678901
+					//0         1
+					slocstr = mvcmds[x].substring(4, 6);
+				}
+				//else;//do nothing
+				
+				if (slocstr == null);
+				else
+				{
+					int[] sloc = convertStringLocToRowCol(slocstr);
+					ignorelist[igi][0] = sloc[0];
+					ignorelist[igi][1] = sloc[1];
+					igi++;
+				}
+			}//end of second x for loop
+			if (igi == ignorelist.length) return ignorelist;
+			else throw new IllegalStateException("illegal number of ignore locs found and used here!");
+		}
+	}
+	
+	public static ArrayList<ChessPiece> getNewAddPiecesListFromCommand(String[] mvcmds,
+		ArrayList<ChessPiece> oldaddpcs, int gid)
+	{
+		if (mvcmds == null || mvcmds.length < 1) return oldaddpcs;
+		else
+		{
+			String[] tpcmds = new String[mvcmds.length];
+			int numskp = 0;
+			for (int x = 0; x < mvcmds.length; x++)
+			{
+				tpcmds[x] = getTypeOfMoveCommand(mvcmds[x]);
+				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING")) numskp++;
+			}
+			
+			ArrayList<ChessPiece> addpcs = null;
+			boolean[] keepit = null;
+			if (oldaddpcs == null || oldaddpcs.size() < 1);
+			else
+			{
+				keepit = new boolean[oldaddpcs.size()];
+				for (int x = 0; x < oldaddpcs.size(); x++) keepit[x] = true;
+			}
+			
+			for (int x = 0; x < mvcmds.length; x++)
+			{
+				String slocstr = null;
+				String elocstr = null;
+				if (tpcmds[x].equals("DELETE"))
+				{
+					//-BPN??W?MS
+					//+BPN??W?MS
+					//0123456789
+					slocstr = mvcmds[x].substring(4, 6);
+					int[] sloc = convertStringLocToRowCol(slocstr);
+					boolean fndit = false;
+					if (oldaddpcs == null || oldaddpcs.size() < 1);
+					else
+					{
+						for (int p = 0; p < oldaddpcs.size(); p++)
+						{
+							if (oldaddpcs.get(p).getRow() == sloc[0] &&
+								oldaddpcs.get(p).getCol() == sloc[1])
+							{
+								fndit = true;
+								keepit[p] = false;
+								break;
+							}
+							//else;//do nothing
+						}
+					}
+				}
+				else if (tpcmds[x].equals("PAWNING") || tpcmds[x].equals("MOVE"))
+				{
+					int si = -1;
+					if (tpcmds[x].equals("PAWNING"))
+					{
+						//PAWNING NOTATION
+						//WLPNB4TOA3
+						//0123456789
+						slocstr = mvcmds[x].substring(4, 6);
+						elocstr = mvcmds[x].substring(8);
+						si = 2;
+					}
+					else if (tpcmds[x].equals("MOVE"))
+					{
+						//MOVE NOTATION
+						//WPNB4TOA3
+						//012345678
+						slocstr = mvcmds[x].substring(3, 5);
+						elocstr = mvcmds[x].substring(7);
+						si = 1;
+					}
+					else throw new IllegalStateException("THE TYPE MUST BE MOVE OR PAWNING, BUT NOW IT IS NOT!");
+					
+					int[] sloc = convertStringLocToRowCol(slocstr);
+					int[] eloc = convertStringLocToRowCol(elocstr);
+					//if old piece was on the add list, setLoc to eloc
+					//else add it at that loc with at least 2 moves
+					
+					boolean fndit = false;
+					if (oldaddpcs == null || oldaddpcs.size() < 1);
+					else
+					{
+						for (int p = 0; p < oldaddpcs.size(); p++)
+						{
+							if (oldaddpcs.get(p).getRow() == sloc[0] &&
+								oldaddpcs.get(p).getCol() == sloc[1])
+							{
+								fndit = true;
+								oldaddpcs.get(p).setLoc(eloc[0], eloc[1], true);
+								break;
+							}
+							//else;//do nothing
+						}
+					}
+					if (fndit);
+					else
+					{
+						String clrval = getLongHandColor("" + mvcmds[x].charAt(0));
+						String ntpstr = getLongHandType(mvcmds[x].substring(si, si + 2));
+						if (addpcs == null) addpcs = new ArrayList<ChessPiece>();
+						//else;//do nothing
+						addpcs.add(new ChessPiece(ntpstr, clrval, eloc[0], eloc[1], gid, 2, false));
+					}
+				}
+				else if (tpcmds[x].equals("PROMOTION") || tpcmds[x].equals("CREATE"))
+				{
+					//PROMOTION NOTATION:
+					//TBPNH8INTOQN
+					//012345678901
+					//0         1
+					slocstr = mvcmds[x].substring(4, 6);
+					String ntpstr = getLongHandType(mvcmds[x].substring(10));
+					String clrval = getLongHandColor("" + mvcmds[x].charAt(1));
+					int[] sloc = convertStringLocToRowCol(slocstr);
+					//PROMOTION if our piece is on the addlist already, just call setType()
+					//if not create the new piece use 1 for the default moves made unless provided
+					int initmvcnt = -1;
+					boolean addit = true;
+					if (tpcmds[x].equals("CREATE"))
+					{
+						String mymvcntstr = mvcmds[x].substring(7, mvcmds[x].indexOf("MS"));
+						initmvcnt = Integer.parseInt(mymvcntstr);
+					}
+					else
+					{
+						initmvcnt = 2;
+						boolean fndit = false;
+						if (oldaddpcs == null || oldaddpcs.size() < 1);
+						else
+						{
+							for (int p = 0; p < oldaddpcs.size(); p++)
+							{
+								if (oldaddpcs.get(p).getRow() == sloc[0] &&
+									oldaddpcs.get(p).getCol() == sloc[1])
+								{
+									fndit = true;
+									oldaddpcs.get(p).setType(ntpstr);
+									break;
+								}
+								//else;//do nothing
+							}
+						}
+						if (fndit) addit = false;
+						//else;//do nothing
+					}
+					
+					//+BPN??W?MS
+					//0123456789
+					
+					if (addit)
+					{
+						if (addpcs == null) addpcs = new ArrayList<ChessPiece>();
+						//else;//do nothing
+						addpcs.add(new ChessPiece(ntpstr, clrval, sloc[0], sloc[1], gid, initmvcnt, false));
+					}
+					//else;//do nothing
+				}
+				//else;//do nothing
+			}//end of second x for loop
+			if (oldaddpcs == null || oldaddpcs.size() < 1);
+			else
+			{
+				for (int x = 0; x < oldaddpcs.size(); x++)
+				{
+					if (keepit[x])
+					{
+						if (addpcs == null) addpcs = new ArrayList<ChessPiece>();
+						//else;//do nothing
+						addpcs.add(oldaddpcs.get(x));
+					}
+					//else;//do nothing
+				}
+			}
+			return addpcs;
+		}
+	}
+	
+	//calls genFullMoveCommandFromDisplayedCommand and allows the user to specify what types
+	//they want to promote the pawns to when the time comes
+	//if no types are given or not enough types are given queen is used by default
+	public static String[][] genFullMoveCommands(String[] mvcmds, int gid, String[] promotps)
+	{
+		if (mvcmds == null || mvcmds.length < 1) return null;
+		
+		String[][] myfullcmds = new String[mvcmds.length][];
+		int ptpvali = 0;
+		String ptpval = "QUEEN";
+		int[][] ignorelist = null;
+		ArrayList<ChessPiece> addpcs = null;
+		for (int x = 0; x < mvcmds.length; x++)
+		{
+			boolean canpropawn = false;
+			//WCEA5TOA6
+			//012345678
+			//CTPSS--EE
+			ptpval = "QUEEN";
+			String clrval = getLongHandColor("" + mvcmds[x].charAt(0));
+			if (mvcmds[x].charAt(1) == 'L' || mvcmds[x].charAt(1) == 'R');
+			else
+			{
+				String tpval = getLongHandType(mvcmds[x].substring(1, 3));
+				int[] eloc = convertStringLocToRowCol(mvcmds[x].substring(7));
+				canpropawn = canPawnBePromotedAt(eloc[0], eloc[1], clrval, tpval);
+			}
+			if (canpropawn)
+			{
+				if (promotps == null || promotps.length < 1);
+				else
+				{
+					if (ptpvali < promotps.length)
+					{
+						ptpval = promotps[ptpvali];
+						ptpvali++;
+					}
+					//else;//do nothing
+				}
+			}
+			//else;//do nothing
+			myfullcmds[x] = genFullMoveCommandFromDisplayedCommand(mvcmds[x], gid, ptpval, ignorelist, addpcs);
+			
+			//generate the new ignorelist taking into account the new commands without actually making the moves
+			//if you want to get rid of the piece, you could just ignore it and make sure it is not on the add list
+			//-if it is on the add list, then remove it.
+			//to move a piece to a new location: ignore current loc, then add the piece to the add list at the new loc
+			//-if piece is already on the add list, then just set its location to the new location
+			
+			//ignorelist = new int[1][2];
+			for (int p = 0; p < myfullcmds[x].length; p++)
+			{
+				System.out.println("myfullcmds[" + x + "][" + p + "] = " + myfullcmds[x][p]);
+			}
+			int[][] nwiglist = getNewIgnoreListFromCommand(myfullcmds[x]);
+			addpcs = getNewAddPiecesListFromCommand(myfullcmds[x], addpcs, gid);
+			ignorelist = combineIgnoreLists(ignorelist, nwiglist);
+			
+			//makeLocalShortHandMove(myfullcmds[x], gid);
+		}
+		return myfullcmds;
 	}
 	
 	

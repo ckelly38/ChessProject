@@ -15,7 +15,23 @@ public class TestDriver {
     	System.out.println("Hello World!");
     	int gid = 1;
     	ChessGame game = new ChessGame(1);
-    	//ChessGame og = new ChessGame(1);
+    	//ChessGame og = new ChessGame(1);//error
+    	String[] myunoffmvs = new String[9];
+    	myunoffmvs[0] = "WPNA7TOA5";
+    	myunoffmvs[1] = "BPNB2TOB4";
+    	myunoffmvs[2] = "WPNA5TOB4";
+    	myunoffmvs[3] = "BPNH2TOH4";
+    	myunoffmvs[4] = "WPNB4TOB3";
+    	myunoffmvs[5] = "BPNH4TOH5";
+    	myunoffmvs[6] = "WPNB3TOB2";
+    	myunoffmvs[7] = "BPNH5TOH6";
+    	myunoffmvs[8] = "WPNB2TOA1";
+    	String[] promotps = new String[2];
+    	promotps[0] = "CASTLE";
+    	promotps[1] = "BISHOP";
+    	setUpBoard(2);
+    	testStepForwardAndBackwardThroughAGame(ChessPiece.genFullMoveCommands(myunoffmvs, 2, promotps), 2, true);
+    	
     	setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
     	//ArrayList<ChessPiece> mycps = ChessPiece.cps;
@@ -37,8 +53,8 @@ public class TestDriver {
     	testGetPiecesGuardingLocation(gid);
     	setUpFutureCheck(gid);
     	
-    	System.out.println(ChessPiece.canSideCastle("WHITE", gid));
-    	System.out.println(ChessPiece.canSideCastle("BLACK", gid));
+    	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", gid));
+    	System.out.println("BLACK CAN CASTLE: " + ChessPiece.canSideCastle("BLACK", gid));
     	System.out.println();
     	
     	//System.out.println(ChessPiece.getColorOfLoc(7, 7));
@@ -50,12 +66,12 @@ public class TestDriver {
     	//testConvertingLocations();
     	//testCanMoveToLocs(gid, null, null);
     	
-    	testPawning(gid, true);
-    	//setUpBoardForPawnPromotion(gid, true);
+    	//testPawning(gid, true);
+    	setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
-    	//setUpBoardWithFourMoveCheckMate(gid, false);
+    	//setUpBoardWithFourMoveCheckMate(gid, true);
     	//setUpBoardWithTwoMoveCheckMateBlack(gid, false);
     	//setUpBoardWithTwoMoveCheckMateWhite(gid, false);
     	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
@@ -311,6 +327,50 @@ public class TestDriver {
     	testKingCanMoveToLocs(gid, 0, 4, "BLACK", ignorelist, null);
     	testCastleCanMoveToLocs(gid, 7, 7, "WHITE", ignorelist, null);
     	testCastleCanMoveToLocs(gid, 0, 7, "BLACK", ignorelist, null);
+    }
+    
+    public static void testStepForwardAndBackwardThroughAGame(String[][] tstmvs, int gid, boolean isdone)
+    {
+    	System.out.println();
+    	System.out.println("INSIDE OF TEST STEP FORWARD AND BACKWARD THROUGH A GAME():");
+    	System.out.println();
+    	if (tstmvs == null) System.out.println("tstmvs = null!");
+    	else if (tstmvs.length < 1) System.out.println("tstmvs is empty!");
+    	else
+    	{
+    		System.out.println("tstmvs.length = " + tstmvs.length);
+    		for (int x = 0; x < tstmvs.length; x++)
+    		{
+    			if (tstmvs[x] == null) System.out.println("tstmvs[" + x + "] = null!");
+    			else if (tstmvs[x].length < 1) System.out.println("tstmvs[" + x + "] is empty!");
+    			else
+    			{
+    				System.out.println("tstmvs[" + x + "].length = " + tstmvs[x].length);
+    				for (int p = 0; p < tstmvs[x].length; p++)
+    				{
+    					System.out.println("tstmvs[" + x + "][" + p + "] = " + tstmvs[x][p]);
+    				}
+    			}
+    		}
+    	}
+    	
+    	ChessGame og = new ChessGame(gid, tstmvs, isdone);
+    	//setUpBoard(gid);
+    	//og.stepBackward();//error
+    	og.stepForward();
+    	//printBoard(gid);
+    	og.stepBackward();
+    	printBoard(gid);
+    	//og.stepForward();
+    	//og.stepForward();
+    	//og.stepForward();
+    	//og.stepForward();
+    	//og.stepForward();
+    	//og.stepForward();
+    	//og.stepForward();//error
+    	og.makeAllGivenOfficialMoves();
+    	System.out.println("BOARD FOR GAME WITH ID " + gid + ":");
+    	printBoard(gid);
     }
     
     
@@ -941,17 +1001,19 @@ public class TestDriver {
 		//WPN AT E7 -> E6; WBP AT F8 -> C5; WQN AT D8 -> F6 -> F2
 		//BPN AT A2 -> A4 -> A5 -> A6
     	
-    	ChessPiece wpn = ChessPiece.getPieceAt(6, 6, gid);//E7
-    	wpn.genMoveToCommand(5, 6);//E6
+    	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false);//E6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 0, gid);//A2
-    	bpn.genMoveToCommand(3, 0);//A4
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false);//A4
+    	printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	wqn.genMoveToCommand(5, 5);//F6
-    	bpn.genMoveToCommand(4, 0);//A5
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false);//F6
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false);//A5
     	ChessPiece wbp = ChessPiece.getPieceAt(7, 5, gid);//F8
-    	wbp.genMoveToCommand(4, 2);//C5
-    	bpn.genMoveToCommand(5, 0);//A6
-    	wqn.genMoveToCommand(1, 5);//F2
+    	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false);//C5
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false);//A6
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false);//F2
+    	printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1000,21 +1062,42 @@ public class TestDriver {
     	else setUpBoardWithFourMoveCheckMateWithoutMovingThere(gid);
     }
     
+    public static String[][] getFourMoveCheckMateBlackMoves()
+    {
+    	String[][] tstmvs = new String[7][];
+    	tstmvs[0] = new String[1];
+    	tstmvs[0][0] = "WPNE7TOE6";
+    	tstmvs[1] = new String[1];
+    	tstmvs[1][0] = "BPNA2TOA4";
+    	tstmvs[2] = new String[1];
+    	tstmvs[2][0] = "WQND8TOF6";
+    	tstmvs[3] = new String[1];
+    	tstmvs[3][0] = "BPNA4TOA5";
+    	tstmvs[4] = new String[1];
+    	tstmvs[4][0] = "WBPF8TOC5";
+    	tstmvs[5] = new String[1];
+    	tstmvs[5][0] = "BPNA5TOA6";
+    	tstmvs[6] = new String[2];
+    	tstmvs[6][0] = "-BPNF2W0MS";
+    	tstmvs[6][1] = "WQNF6TOF2";
+    	return tstmvs;
+    }
+    
     public static void setUpBoardWithTwoMoveCheckMateBlack(int gid)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
 		
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	wpn.genMoveToCommand(5, 6);//G6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 6), gid, false);//G6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 5, gid);//F2
-    	bpn.genMoveToCommand(2, 5);//F3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false);//F3
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 0, gid);//A7
-    	owpn.genMoveToCommand(5, 0);//A6
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false);//A6
     	ChessPiece obpn = ChessPiece.getPieceAt(1, 6, gid);//G2
-    	obpn.genMoveToCommand(3, 6);//G4
+    	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false);//G4
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	wqn.genMoveToCommand(3, 7);//H4
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false);//H4
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1072,13 +1155,13 @@ public class TestDriver {
     	//BPN AT E2 -> E3; BQN AT D1 -> H5
     	
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 5, gid);//F7
-    	wpn.genMoveToCommand(5, 5);//F6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false);//F6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 4, gid);//E2
-    	bpn.genMoveToCommand(2, 4);//E3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false);//E3
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	owpn.genMoveToCommand(4, 6);//G5
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false);//G5
     	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);//D1
-    	bqn.genMoveToCommand(4, 7);//H5
+    	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false);//H5
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
