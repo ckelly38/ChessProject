@@ -16,21 +16,8 @@ public class TestDriver {
     	int gid = 1;
     	ChessGame game = new ChessGame(1);
     	//ChessGame og = new ChessGame(1);//error
-    	String[] myunoffmvs = new String[9];
-    	myunoffmvs[0] = "WPNA7TOA5";
-    	myunoffmvs[1] = "BPNB2TOB4";
-    	myunoffmvs[2] = "WPNA5TOB4";
-    	myunoffmvs[3] = "BPNH2TOH4";
-    	myunoffmvs[4] = "WPNB4TOB3";
-    	myunoffmvs[5] = "BPNH4TOH5";
-    	myunoffmvs[6] = "WPNB3TOB2";
-    	myunoffmvs[7] = "BPNH5TOH6";
-    	myunoffmvs[8] = "WPNB2TOA1";
-    	String[] promotps = new String[2];
-    	promotps[0] = "CASTLE";
-    	promotps[1] = "BISHOP";
-    	setUpBoard(2);
-    	testStepForwardAndBackwardThroughAGame(ChessPiece.genFullMoveCommands(myunoffmvs, 2, promotps), 2, true);
+    	//testPawnPromotionViaStepingForwardThroughGame(2);
+    	testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
     	
     	setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
@@ -67,7 +54,7 @@ public class TestDriver {
     	//testCanMoveToLocs(gid, null, null);
     	
     	//testPawning(gid, true);
-    	setUpBoardForPawnPromotion(gid, true);
+    	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, false);
     	//CHECKMATE TESTS
@@ -203,26 +190,35 @@ public class TestDriver {
     
     public static void testConvertingLocations()
     {
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("H8"));//7,7
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("B8"));//7,1
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("C6"));//5,2
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("E5"));//4,4
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("F3"));//2,5
-    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("D3"));//2,3
-    	System.out.println(ChessPiece.convertRowColToStringLoc(7, 7));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(7, 1));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(5, 2));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(4, 4));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(2, 5));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(2, 3));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("H8")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("B8")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("C6")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("E5")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("F3")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("D3")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("X9")));
-    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("A9")));
+    	boolean iswhitedown = true;
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));//7,7
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("B8", iswhitedown));//7,1
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));//5,2
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("E5", iswhitedown));//4,4
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));//2,5
+    	ChessPiece.printOneDIntArray(ChessPiece.convertStringLocToRowCol("D3", iswhitedown));//2,3
+    	System.out.println(ChessPiece.convertRowColToStringLoc(7, 7, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(7, 1, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(5, 2, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(4, 4, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(2, 5, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(2, 3, ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("H8", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("B8", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("C6", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("E5", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("F3", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("D3", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("X9", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
+    	System.out.println(ChessPiece.convertRowColToStringLoc(ChessPiece.convertStringLocToRowCol("A9", iswhitedown),
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS));
     }
     
     public static void testGetPiecesGuardingLocation(int gid)
@@ -230,17 +226,18 @@ public class TestDriver {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
     	
+    	boolean iswhitedown = true;
     	//System.out.println(ChessPiece.getPiecesGuardingLocation(6, 0));
     	//System.out.println();
     	//System.out.println(ChessPiece.getPiecesGuardingLocation(7, 4));
     	//System.out.println();
     	System.out.println("GETTING ENEMY PIECES GUARDING LOCATION (7, 4) " +
-    		ChessPiece.convertRowColToStringLoc(7, 4) + " NOW:");
+    		ChessPiece.convertRowColToStringLoc(7, 4, ChessPiece.WHITE_MOVES_DOWN_RANKS) + " NOW:");
     	System.out.println(ChessPiece.getEnemyPiecesGuardingLocation(7, 4, gid, null));
     	
     	System.out.println("GETTING ALL PIECES GUARDING LOCATION (6, 7) " +
-    		ChessPiece.convertRowColToStringLoc(6, 7) + " NOW:");
-    	int[] nloc = ChessPiece.convertStringLocToRowCol("H5");
+    		ChessPiece.convertRowColToStringLoc(6, 7, ChessPiece.WHITE_MOVES_DOWN_RANKS) + " NOW:");
+    	int[] nloc = ChessPiece.convertStringLocToRowCol("H5", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
     	addpcs.add(new ChessPiece("QUEEN", "BLACK", nloc, gid, false));
     	//int[][] ignorelist = null;
@@ -299,9 +296,10 @@ public class TestDriver {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
     	
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[2][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("H2");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("H7");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("H2", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("H7", iswhitedown);
     	//add list is null
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, null, gid);
@@ -357,10 +355,14 @@ public class TestDriver {
     	ChessGame og = new ChessGame(gid, tstmvs, isdone);
     	//setUpBoard(gid);
     	//og.stepBackward();//error
-    	og.stepForward();
-    	//printBoard(gid);
-    	og.stepBackward();
-    	printBoard(gid);
+    	if (isdone)
+    	{
+    		og.stepForward();
+    		//printBoard(gid);
+    		og.stepBackward();
+    		printBoard(gid);
+    	}
+    	//else;//do nothing will error out
     	//og.stepForward();
     	//og.stepForward();
     	//og.stepForward();
@@ -371,6 +373,50 @@ public class TestDriver {
     	og.makeAllGivenOfficialMoves();
     	System.out.println("BOARD FOR GAME WITH ID " + gid + ":");
     	printBoard(gid);
+    }
+    
+    public static void testPawnPromotionViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	String[] myunoffmvs = new String[9];
+    	myunoffmvs[0] = "WPNA7TOA5";
+    	myunoffmvs[1] = "BPNB2TOB4";
+    	myunoffmvs[2] = "WPNA5TOB4";
+    	myunoffmvs[3] = "BPNH2TOH4";
+    	myunoffmvs[4] = "WPNB4TOB3";
+    	myunoffmvs[5] = "BPNH4TOH5";
+    	myunoffmvs[6] = "WPNB3TOB2";
+    	myunoffmvs[7] = "BPNH5TOH6";
+    	myunoffmvs[8] = "WPNB2TOA1";
+    	String[] promotps = new String[2];
+    	promotps[0] = "CASTLE";
+    	promotps[1] = "BISHOP";
+    	setUpBoard(2);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown), gid, false);
+    }
+    
+    public static void testMovingPiecesAmbiguityViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	boolean addambigcmd = false;
+    	int mxsz = -1;
+    	if (addambigcmd) mxsz = 8;
+    	else mxsz = 7;
+    	String[] myunoffmvs = new String[mxsz];
+    	myunoffmvs[0] = "WKTTOH6";
+    	myunoffmvs[1] = "BPNTOA4";
+    	myunoffmvs[2] = "WPNTOB5";
+    	myunoffmvs[3] = "BPNTOH4";
+    	myunoffmvs[4] = "WPNTOA4";
+    	myunoffmvs[5] = "BCETOA3";
+    	myunoffmvs[6] = "WPNTOG5";
+    	if (addambigcmd) myunoffmvs[7] = "BCETOH3";//command should be ambiguous
+    	//else;//do nothing
+    	setUpBoard(gid);
+    	printBoard(gid);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown), gid, false);
     }
     
     
@@ -468,38 +514,39 @@ public class TestDriver {
     	//GOAL: PROMOTE WHITE PAWN TO SOMETHING?
     	//WPN AT A7 -> A5 -> B4 -> B3 -> B2 -> A1;
     	//BPN AT B2 -> B4; OBPN AT H2 -> H4 -> H5 -> H6;
-    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7"), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5"));
+    	boolean iswhitedown = true;
+    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2"), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4"));
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
     	printBoard(gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4"));
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("B4"), gid);
+    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("B4", iswhitedown), gid);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B4"));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
     	printBoard(gid);
     	System.out.println(ChessPiece.isBoardValid(gid));
-    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("H2"), gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H4"));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H4"));
+    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("H2", iswhitedown), gid);
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H4", iswhitedown));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H4", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B3"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B3"));
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B3", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B3", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H5"));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H5"));
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H5", iswhitedown));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H5", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B2"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B2"));
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B2", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B2", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6"));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H6"));
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
     	
     	boolean tstmovandpromote = false;
@@ -508,13 +555,13 @@ public class TestDriver {
     	{
     		mymvploc = "B1";
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol(mymvploc), gid);
+    		ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol(mymvploc, iswhitedown), gid);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	}
     	else mymvploc = "A1";
     	
     	printBoard(gid);
-    	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol(mymvploc), "QUEEN");
+    	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol(mymvploc, iswhitedown), "QUEEN");
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
@@ -555,9 +602,9 @@ public class TestDriver {
     	else
     	{
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-	    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("A1"), gid);
+	    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("A1", iswhitedown), gid);
 	    	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-	    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A1"));
+	    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A1", iswhitedown));
 	    	wpn.setMoveCount(wpn.getMoveCount() + 1);
 	    	//test pawn promotion methods here
 	    	printBoard(gid);
@@ -568,21 +615,21 @@ public class TestDriver {
 	    	printBoard(gid);
     	}
     	
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G7"));
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G7", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("G7"), gid);
+    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("G7", iswhitedown), gid);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G7"));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G7", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B1"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B1"));
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
     	printBoard(gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H8"));
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("H8"), gid);
+    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("H8", iswhitedown), gid);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H8"));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
     	//test pawn promotion methods here
     	printBoard(gid);
@@ -602,14 +649,17 @@ public class TestDriver {
     	//ignore black pawn at B2
     	//ignore black pawn at H2; add it at H6 (3 moves)
     	
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[4][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("H2");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2");
-    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A1");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("H2", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2", iswhitedown);
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A1", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	ChessPiece wpn = new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A1"), gid, 5, false);
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("H6"), gid, 3, false));
+    	ChessPiece wpn = new ChessPiece("PAWN", "WHITE",
+    		ChessPiece.convertStringLocToRowCol("A1", iswhitedown), gid, 5, false);
+    	addpcs.add(new ChessPiece("PAWN", "BLACK",
+    		ChessPiece.convertStringLocToRowCol("H6", iswhitedown), gid, 3, false));
     	addpcs.add(wpn);
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
@@ -624,15 +674,17 @@ public class TestDriver {
     	//black pawn at H6 -> G7 -> H8;
     	//WQN AT A1 -> B1;
     	int[][] nwiglist = new int[5][2];
-    	nwiglist[0] = ChessPiece.convertStringLocToRowCol("G7");
-    	nwiglist[1] = ChessPiece.convertStringLocToRowCol("H8");
-    	nwiglist[2] = ChessPiece.convertStringLocToRowCol("H6");
-    	nwiglist[3] = ChessPiece.convertStringLocToRowCol("B1");
-    	nwiglist[4] = ChessPiece.convertStringLocToRowCol("A1");
+    	nwiglist[0] = ChessPiece.convertStringLocToRowCol("G7", iswhitedown);
+    	nwiglist[1] = ChessPiece.convertStringLocToRowCol("H8", iswhitedown);
+    	nwiglist[2] = ChessPiece.convertStringLocToRowCol("H6", iswhitedown);
+    	nwiglist[3] = ChessPiece.convertStringLocToRowCol("B1", iswhitedown);
+    	nwiglist[4] = ChessPiece.convertStringLocToRowCol("A1", iswhitedown);
     	ArrayList<ChessPiece> nwaddpcs = new ArrayList<ChessPiece>();
-    	ChessPiece bpn = new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("H8"), gid, 5, false);
+    	ChessPiece bpn = new ChessPiece("PAWN", "BLACK",
+    		ChessPiece.convertStringLocToRowCol("H8", iswhitedown), gid, 5, false);
     	nwaddpcs.add(bpn);
-    	nwaddpcs.add(new ChessPiece("QUEEN", "WHITE", ChessPiece.convertStringLocToRowCol("B1"), gid, 6, false));
+    	nwaddpcs.add(new ChessPiece("QUEEN", "WHITE",
+    		ChessPiece.convertStringLocToRowCol("B1", iswhitedown), gid, 6, false));
     	ArrayList<ChessPiece> myonwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(nwiglist, nwaddpcs, nwpcslist);
     	printBoard(myonwpcslist);
     	System.out.println("A WHITE PAWN CAN BE PROMOTED: " + ChessPiece.canPawnForSideBePromoted("WHITE", myonwpcslist));
@@ -658,30 +710,31 @@ public class TestDriver {
 		//else;//do nothing
     	
     	//BPN AT B2 -> B4 -> B5; WPN AT A7 -> A5; WKT AT G8 -> H6 -> F5
-    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8"), gid);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6"));
-    	//ChessPiece.makeLocalMove(wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6")), gid, false);
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6"));
+    	boolean iswhitedown = true;
+    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
+    	//ChessPiece.makeLocalMove(wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown)), gid, false);
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2"), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4"));
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F5"));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F5"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F5", iswhitedown));
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F5", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B5"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B5"));
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B5", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B5", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7"), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5"));
+    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
     	printBoard(gid);
     	//now test pawning methods here
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", gid));
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", gid));
-    	String[] mymv = bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A6"));
+    	String[] mymv = bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A6", iswhitedown));
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
@@ -710,15 +763,17 @@ public class TestDriver {
     	//ignore knight at G8; add it at F5
     	//ignore pawn at A7; add it at A5
     	//ignore pawn at B2; add it at B5
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[3][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("G8");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("G8", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("B2", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	ChessPiece bpn = new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("B5"), gid, 2, false);
+    	ChessPiece bpn = new ChessPiece("PAWN", "BLACK",
+    		ChessPiece.convertStringLocToRowCol("B5", iswhitedown), gid, 2, false);
     	addpcs.add(bpn);
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F5"), gid, 2, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F5", iswhitedown), gid, 2, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
@@ -737,13 +792,13 @@ public class TestDriver {
     	else
     	{
     		System.out.println("BLACK PAWNING MOVE TO LEFT LOCATION: " + ChessPiece.getLocString(bplftloc) + " IS: " +
-    			ChessPiece.convertRowColToStringLoc(bplftloc));
+    			ChessPiece.convertRowColToStringLoc(bplftloc, ChessPiece.WHITE_MOVES_DOWN_RANKS));
     	}
     	if (bprgtloc == null) System.out.println("BLACK PAWNING MOVE TO RIGHT LOCATION: null");
     	else
     	{
     		System.out.println("BLACK PAWNING MOVE TO RIGHT LOCATION: " + ChessPiece.getLocString(bprgtloc) + " IS: " +
-    			ChessPiece.convertRowColToStringLoc(bprgtloc));
+    			ChessPiece.convertRowColToStringLoc(bprgtloc, ChessPiece.WHITE_MOVES_DOWN_RANKS));
     	}
     	System.out.println("BLACK ENEMY PAWN FOR LEFT PAWNING: " + bpn.getEnemyPawnForLeftPawning(nwpcslist));
     	System.out.println("BLACK ENEMY PAWN FOR RIGHT PAWNING: " + bpn.getEnemyPawnForRightPawning(nwpcslist));
@@ -777,28 +832,29 @@ public class TestDriver {
 		//else;//do nothing
 		
     	//WKT AT G8 -> H6; WPN AT E7 -> E6; WBP AT F8 -> C5
-    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8"), gid);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6"));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6"));
+    	boolean iswhitedown = true;
+    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2"), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4"));
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7"), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E6"));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("E6"));
+    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7", iswhitedown), gid);
+    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E6", iswhitedown));
+    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("E6", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5"));
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	ChessPiece wbp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F8"), gid);
-    	wbp.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C5"));
-    	wbp.setLoc(ChessPiece.convertStringLocToRowCol("C5"));
+    	ChessPiece wbp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F8", iswhitedown), gid);
+    	wbp.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C5", iswhitedown));
+    	wbp.setLoc(ChessPiece.convertStringLocToRowCol("C5", iswhitedown));
     	wbp.setMoveCount(wbp.getMoveCount() + 1);
-    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G2"), gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G4"));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G4"));
+    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G2", iswhitedown), gid);
+    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G4", iswhitedown));
+    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G4", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
     	//actually test the castling information here now...
     	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", gid));
@@ -834,18 +890,19 @@ public class TestDriver {
 		
     	//WKT AT G8 -> H6; WPN AT E7 -> E6; WBP AT F8 -> C5
     	//BPN AT A2 -> A4 -> A5; BPN AT G2 -> G4
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[5][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("G8");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("F8");
-    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A2");
-    	ignorelist[4] = ChessPiece.convertStringLocToRowCol("G2");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("G8", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("F8", iswhitedown);
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A2", iswhitedown);
+    	ignorelist[4] = ChessPiece.convertStringLocToRowCol("G2", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("G4"), gid, 1, false));
-    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("H6"), gid, 1, false));
-    	addpcs.add(new ChessPiece("BISHOP", "WHITE", ChessPiece.convertStringLocToRowCol("C5"), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("G4", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("H6", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("BISHOP", "WHITE", ChessPiece.convertStringLocToRowCol("C5", iswhitedown), gid, 1, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
@@ -873,23 +930,24 @@ public class TestDriver {
 		//else;//do nothing
 		
     	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
-    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8"), gid);
-    	String[] mymv = wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6"));
+    	boolean iswhitedown = true;
+    	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8", iswhitedown), gid);
+    	String[] mymv = wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("C6"));
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2"), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4"));
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E5"));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("E5"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E5", iswhitedown));
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("E5", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5"));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5"));
+    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3"));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F3"));
+    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
+    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
     	printBoard(gid);
     	//now test check and figure out how to get out of it
@@ -908,12 +966,13 @@ public class TestDriver {
     	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
     	//ignore knight at B8; add it at F3 OR D3;
     	//ignore pawn at A2; add it at A5;
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[2][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("B8");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A2");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("B8", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("A2", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5"), gid, 2, false));
-    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F3"), gid, 3, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A5", iswhitedown), gid, 2, false));
+    	addpcs.add(new ChessPiece("KNIGHT", "WHITE", ChessPiece.convertStringLocToRowCol("F3", iswhitedown), gid, 3, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
@@ -942,12 +1001,13 @@ public class TestDriver {
 		//else;//do nothing
     	
     	//now set up future check scenario
+    	boolean iswhitedown = true;
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);
     	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5"), gid, false));
+    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5", iswhitedown), gid, false));
     	int[][] ignorelist = new int[1][2];
     	ignorelist[0][0] = 6;
     	ignorelist[0][1] = 5;
@@ -1001,18 +1061,19 @@ public class TestDriver {
 		//WPN AT E7 -> E6; WBP AT F8 -> C5; WQN AT D8 -> F6 -> F2
 		//BPN AT A2 -> A4 -> A5 -> A6
     	
+    	boolean iswhitedown = true;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false);//E6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown);//E6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 0, gid);//A2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false);//A4
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false, iswhitedown);//A4
     	printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false);//F6
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false);//A5
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false, iswhitedown);//A5
     	ChessPiece wbp = ChessPiece.getPieceAt(7, 5, gid);//F8
-    	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false);//C5
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false);//A6
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false);//F2
+    	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false, iswhitedown);//C5
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false, iswhitedown);//F2
     	printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
@@ -1031,16 +1092,17 @@ public class TestDriver {
     	//ignore pawn at E7; add it at E6
     	//ignore bishop at F8; add it at C5
     	//ignore pawn at A2; add it at A6
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[4][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("F8");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D8");
-    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A2");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("F8", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D8", iswhitedown);
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A2", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("BISHOP", "WHITE", ChessPiece.convertStringLocToRowCol("C5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6"), gid, 1, false));
-    	addpcs.add(new ChessPiece("QUEEN", "WHITE", ChessPiece.convertStringLocToRowCol("F2"), gid, 2, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A6"), gid, 3, false));
+    	addpcs.add(new ChessPiece("BISHOP", "WHITE", ChessPiece.convertStringLocToRowCol("C5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("QUEEN", "WHITE", ChessPiece.convertStringLocToRowCol("F2", iswhitedown), gid, 2, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("A6", iswhitedown), gid, 3, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
@@ -1088,16 +1150,17 @@ public class TestDriver {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
 		
+    	boolean iswhitedown = true;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 6), gid, false);//G6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 6), gid, false, iswhitedown);//G6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 5, gid);//F2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false);//F3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false, iswhitedown);//F3
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 0, gid);//A7
-    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false);//A6
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
     	ChessPiece obpn = ChessPiece.getPieceAt(1, 6, gid);//G2
-    	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false);//G4
+    	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false, iswhitedown);//G4
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false);//H4
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false, iswhitedown);//H4
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1116,18 +1179,19 @@ public class TestDriver {
 		//BPN AT F2 -> F3; OBPN AT G2 -> G4;
 		//WPN AT E7 -> E6; WQN AT D8 -> H4; OWPN AT A7 -> A5;
 		
+		boolean iswhitedown = true;
 		int[][] ignorelist = new int[5][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("F2");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D8");
-    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A7");
-    	ignorelist[4] = ChessPiece.convertStringLocToRowCol("G2");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("F2", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("E7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D8", iswhitedown);
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("A7", iswhitedown);
+    	ignorelist[4] = ChessPiece.convertStringLocToRowCol("G2", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("QUEEN", "WHITE", ChessPiece.convertStringLocToRowCol("H4"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("F3"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("G4"), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("E6", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("A5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("QUEEN", "WHITE", ChessPiece.convertStringLocToRowCol("H4", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("F3", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("G4", iswhitedown), gid, 1, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
@@ -1154,14 +1218,15 @@ public class TestDriver {
 		//WPN AT F7 -> F6; OWPN AT G7 -> G5;
     	//BPN AT E2 -> E3; BQN AT D1 -> H5
     	
+    	boolean iswhitedown = true;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 5, gid);//F7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false);//F6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 4, gid);//E2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false);//E3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false, iswhitedown);//E3
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false);//G5
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false, iswhitedown);//G5
     	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);//D1
-    	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false);//H5
+    	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false, iswhitedown);//H5
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1180,16 +1245,17 @@ public class TestDriver {
     	//WPN AT F7 -> F6; OWPN AT G7 -> G5;
     	//BPN AT E2 -> E3; BQN AT D1 -> H5
     	
+    	boolean iswhitedown = true;
     	int[][] ignorelist = new int[4][2];
-    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("E2");
-    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("F7");
-    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D1");
-    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("G7");
+    	ignorelist[0] = ChessPiece.convertStringLocToRowCol("E2", iswhitedown);
+    	ignorelist[1] = ChessPiece.convertStringLocToRowCol("F7", iswhitedown);
+    	ignorelist[2] = ChessPiece.convertStringLocToRowCol("D1", iswhitedown);
+    	ignorelist[3] = ChessPiece.convertStringLocToRowCol("G7", iswhitedown);
     	ArrayList<ChessPiece> addpcs = new ArrayList<ChessPiece>();
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("F6"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("G5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5"), gid, 1, false));
-    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("E3"), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("F6", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "WHITE", ChessPiece.convertStringLocToRowCol("G5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("QUEEN", "BLACK", ChessPiece.convertStringLocToRowCol("H5", iswhitedown), gid, 1, false));
+    	addpcs.add(new ChessPiece("PAWN", "BLACK", ChessPiece.convertStringLocToRowCol("E3", iswhitedown), gid, 1, false));
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);

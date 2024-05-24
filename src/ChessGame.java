@@ -197,7 +197,8 @@ class ChessGame {
 		//then make it
 		
 		ChessPiece.makeLocalShortHandMove(
-			ChessPiece.genUndoMoveToShortHandCommand(this.OFFICIAL_MOVES.get(this.moveindex)), this.getGameID(), true);
+			ChessPiece.genUndoMoveToShortHandCommand(this.OFFICIAL_MOVES.get(this.moveindex)), this.getGameID(), true,
+			ChessPiece.WHITE_MOVES_DOWN_RANKS);
 			
 		System.out.println("OLD moveindex = " + this.moveindex);
 		
