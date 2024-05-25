@@ -1,0 +1,10 @@
+  0   1   2   3   4   5   6   7  (c)
+  A   B   C   D   E   F   G   H  RANK r
+|BCE|BKT|BBP|BQN|BKG|BBP|BKT|BCE| 8 1 0
+|BPN|BPN|BPN|BPN|BPN|BPN|BPN|BPN| 7 2 1
+|---|---|---|---|---|---|---|---| 6 3 2
+|---|---|---|---|---|---|---|---| 5 4 3
+|---|---|---|---|---|---|---|---| 4 5 4
+|---|---|---|---|---|---|---|---| 3 6 5
+|WPN|WPN|WPN|WPN|WPN|WPN|WPN|WPN| 2 7 6
+|WCE|WKT|WBP|WQN|WKG|WBP|WKT|WCE| 1 8 7
