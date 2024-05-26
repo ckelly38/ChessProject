@@ -17,7 +17,9 @@ public class TestDriver {
     	ChessGame game = new ChessGame(1);
     	//ChessGame og = new ChessGame(1);//error
     	//testPawnPromotionViaStepingForwardThroughGame(2);
-    	testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
+    	//testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
+    	//testCastlingViaStepingForwardThroughGame(2);
+    	testPawningViaStepingForwardThroughGame(2);
     	
     	setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
@@ -393,7 +395,7 @@ public class TestDriver {
     	promotps[1] = "BISHOP";
     	setUpBoard(2);
     	testStepForwardAndBackwardThroughAGame(
-    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown), gid, false);
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
     }
     
     public static void testMovingPiecesAmbiguityViaStepingForwardThroughGame(int gid)
@@ -416,9 +418,41 @@ public class TestDriver {
     	setUpBoard(gid);
     	printBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
-    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown), gid, false);
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
     
+    public static void testCastlingViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	String[] myunoffmvs = new String[7];
+    	myunoffmvs[0] = "WKTTOH6";
+    	myunoffmvs[1] = "BPNTOA4";
+    	myunoffmvs[2] = "WPNTOG5";
+    	myunoffmvs[3] = "BPNTOH4";
+    	myunoffmvs[4] = "WBPTOG7";
+    	myunoffmvs[5] = "BCETOA3";
+    	myunoffmvs[6] = "WKGTOG8";
+    	setUpBoard(gid);
+    	printBoard(gid);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
+    }
+    
+    public static void testPawningViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	String[] myunoffmvs = new String[6];
+    	myunoffmvs[0] = "WKTTOH6";
+    	myunoffmvs[1] = "BPNTOB4";
+    	myunoffmvs[2] = "WPNTOG5";
+    	myunoffmvs[3] = "BPNTOB5";
+    	myunoffmvs[4] = "WPNTOA5";
+    	myunoffmvs[5] = "BPNTOA6";
+    	setUpBoard(gid);
+    	printBoard(gid);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
+    }
     
     //TEST MOVE TO LOCS METHODS
     
@@ -573,7 +607,7 @@ public class TestDriver {
     	{
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		String myscmd = "WPNB2TO" + mymvploc;
-    		String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    		String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
     		ChessPiece.makeLocalMove(fullmv, gid, false);
     		//ChessPiece.makeLocalMove(mymv, gid, false);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
@@ -745,7 +779,7 @@ public class TestDriver {
     	String scmd = "BLPNB5TOA6";
     	String oscmd = "BPNB5TOA6";
     	String myscmd = oscmd;//scmd
-    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
     	ChessPiece.makeLocalMove(fullmv, gid, false);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//bpn.pawnLeft();
@@ -806,13 +840,13 @@ public class TestDriver {
     	else
     	{
     		System.out.println("BLACK PAWN CAN MOVE TO THE LEFT PAWNING LOCATION: " +
-    			bpn.canMoveTo(bplftloc[0], bplftloc[1], ignorelist, addpcs));
+    			bpn.canMoveTo(bplftloc[0], bplftloc[1], ignorelist, addpcs, false));
     	}
     	if (bprgtloc == null) System.out.println("BLACK PAWN CAN MOVE TO THE RIGHT PAWNING LOCATION: false");
     	else
     	{
     		System.out.println("BLACK PAWN CAN MOVE TO THE RIGHT PAWNING LOCATION: " +
-    			bpn.canMoveTo(bprgtloc[0], bprgtloc[1], ignorelist, addpcs));
+    			bpn.canMoveTo(bprgtloc[0], bprgtloc[1], ignorelist, addpcs, false));
     	}
     	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
     	testCanMoveToLocs(gid, 7, 4, "WHITE", 4, 5, "WHITE", 7, 7, "WHITE", 0, 2, "BLACK", 4, 1, "BLACK", 0, 3, "BLACK",
@@ -873,7 +907,7 @@ public class TestDriver {
     	String scmd = "WRCE:";
     	String oscmd = "WKGE8TOG8";
     	String myscmd = oscmd;//scmd
-    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN");
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
     	ChessPiece.makeLocalMove(fullmv, gid, false);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
