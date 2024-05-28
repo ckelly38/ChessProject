@@ -16,10 +16,12 @@ public class TestDriver {
     	int gid = 1;
     	ChessGame game = new ChessGame(1);
     	//ChessGame og = new ChessGame(1);//error
-    	//testPawnPromotionViaStepingForwardThroughGame(2);
+    	testPawnPromotionViaStepingForwardThroughGame(2);
     	//testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
     	//testCastlingViaStepingForwardThroughGame(2);
-    	testPawningViaStepingForwardThroughGame(2);
+    	//testPawningViaStepingForwardThroughGame(2);
+    	//testColorsForMovesAlternateViaStepingForwardThroughGame(2);
+    	//testOtherColorsAlternateViaStepingForwardThroughGame(2);
     	
     	setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
@@ -373,8 +375,93 @@ public class TestDriver {
     	//og.stepForward();
     	//og.stepForward();//error
     	og.makeAllGivenOfficialMoves();
+    	System.out.println();
     	System.out.println("BOARD FOR GAME WITH ID " + gid + ":");
     	printBoard(gid);
+    	System.out.println(og.getSideTurn(tstmvs, false) + "'S TURN NOW!");
+    	System.out.println();
+    }
+    
+    public static void testColorsForMovesAlternateViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	boolean onlymvwhite = false;
+    	boolean onlymvblack = false;
+    	String[] mymvs = new String[11];
+    	mymvs[0] = "WPNA7TOA5";
+    	mymvs[1] = "BPNB2TOB4";
+    	mymvs[2] = "WPNA5TOB4";
+    	mymvs[3] = "BPNH2TOH4";
+    	mymvs[4] = "WPNB4TOB3";
+    	mymvs[5] = "BPNH4TOH5";
+    	mymvs[6] = "WPNB3TOB2";
+    	mymvs[7] = "BPNH5TOH6";
+    	mymvs[8] = "WPNB2HINTS";
+    	mymvs[9] = "WPNB2TOA1";
+    	mymvs[10] = "WHINTS";
+    	int numwmvs = 7;
+    	int numbmvs = mymvs.length - numwmvs;
+    	int mxmvs = -1;
+    	if (onlymvwhite == onlymvblack)
+    	{
+    		if (onlymvwhite) throw new IllegalStateException("you are only moving white or only moving black, but not both!");
+    		else mxmvs = mymvs.length;
+    	}
+    	else
+    	{
+    		if (onlymvwhite) mxmvs = numwmvs;
+    		else mxmvs = numbmvs;
+    	}
+    	
+    	String[] myunoffmvs = new String[mxmvs];
+    	if (mxmvs == mymvs.length) for (int x = 0; x < mymvs.length; x++) myunoffmvs[x] = mymvs[x];
+    	else
+    	{
+    		int xsi = -1;
+    		if (onlymvwhite) xsi = 0;
+    		else xsi = 1;
+    		int mvi = 0;
+    		for (int x = xsi; x < mymvs.length; x += 2)
+    		{
+    			if (mvi < mxmvs);
+    			else break;
+    			
+    			myunoffmvs[mvi] = mymvs[x];
+    			mvi++;
+    			if (7 < x)
+    			{
+    				if (onlymvwhite) x--;
+    				else break;
+    			}
+    			//else;//do nothing
+    		}
+    	}
+    	String[] promotps = new String[2];
+    	promotps[0] = "CASTLE";
+    	promotps[1] = "BISHOP";
+    	setUpBoard(2);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
+    }
+    
+    public static void testOtherColorsAlternateViaStepingForwardThroughGame(int gid)
+    {
+    	boolean iswhitedown = true;
+    	String[] myunoffmvs = new String[8];
+    	myunoffmvs[0] = "WPNA7TOA5";
+    	myunoffmvs[1] = "BPNB2TOB4";
+    	myunoffmvs[2] = "WPNA5TOB4";
+    	myunoffmvs[3] = "BPNH2TOH4";
+    	myunoffmvs[4] = "WPNB4TOB3";
+    	myunoffmvs[5] = "BPNH4TOH5";
+    	myunoffmvs[6] = "WHINTS";
+    	myunoffmvs[7] = "BPNH5TOH6";
+    	String[] promotps = new String[2];
+    	promotps[0] = "CASTLE";
+    	promotps[1] = "BISHOP";
+    	setUpBoard(2);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
     }
     
     public static void testPawnPromotionViaStepingForwardThroughGame(int gid)
@@ -453,6 +540,7 @@ public class TestDriver {
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
+    
     
     //TEST MOVE TO LOCS METHODS
     

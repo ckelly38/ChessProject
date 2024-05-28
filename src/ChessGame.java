@@ -106,6 +106,135 @@ class ChessGame {
 		}
 	}
 	
+	public static void colorsForMovesAlternate(String[][] myoffmvs, boolean val)
+	{
+		String[] clrs = ChessPiece.getSideColorsForMoves(myoffmvs);
+		String[] tps = ChessPiece.getSideTypesForMoves(myoffmvs);
+		if (clrs == null || clrs.length != myoffmvs.length)
+		{
+			throw new IllegalStateException("myoffmvs must be the same size as the colors!");
+		}
+		else
+		{
+			String[] mvtps = {"MOVE", "CASTLEING", "PAWNING", "PROMOTION"};
+			for (int n = 0; n < myoffmvs.length; n++)
+			{
+				if (clrs[n].equals("WHITE") || clrs[n].equals("BLACK"))
+				{
+					if (n + 1 < myoffmvs.length)
+					{
+						System.out.println("tps[" + n + "] = " + tps[n]);
+						
+						boolean fismvcmd = ChessPiece.itemIsOnGivenList(tps[n], mvtps);
+						if (fismvcmd);
+						else continue;
+						
+						boolean needother = false;
+						if (clrs[n + 1].equals(ChessPiece.getOppositeColor(clrs[n])))
+						{
+							if (fismvcmd && ChessPiece.itemIsOnGivenList(tps[n + 1], mvtps))
+							{
+								//do nothing
+							}
+							else needother = true;
+						}
+						else
+						{
+							System.out.println("tps[" + (n + 1) + "] = " + tps[n + 1]);
+							boolean nxtismvcmd = ChessPiece.itemIsOnGivenList(tps[n + 1], mvtps);
+							if (fismvcmd && nxtismvcmd)
+							{
+								throw new IllegalStateException("COLORS DO NOT ALTERNATE AND MUST!");
+							}
+							else needother = true;
+						}
+						
+						if (needother)
+						{
+							int cmpi = -1;
+							for (int x = n + 1; x < myoffmvs.length; x++)
+							{
+								if (tps[x].equals("HINTS"));
+								else
+								{
+									cmpi = x;
+									break;
+								}
+							}
+							if (cmpi < 0 || myoffmvs.length - 1 < cmpi) break;
+							//else;//do nothing proceed below
+							if (clrs[cmpi].equals(ChessPiece.getOppositeColor(clrs[n])));
+							else throw new IllegalStateException("COLORS DO NOT ALTERNATE AND MUST!");
+						}
+						//else;//do nothing
+					}
+					//else;//do nothing
+				}
+				else throw new IllegalStateException("COLOR (" + clrs[n] + ") IS INVALID!");
+			}
+		}
+	}
+	public static void colorsForMovesAlternate(ArrayList<String[]> mvslist)
+	{
+		if (mvslist == null || mvslist.size() < 1) return;
+		else
+		{
+			String[][] mymvslist = new String[mvslist.size()][];
+			for (int x = 0; x < mvslist.size(); x++) mymvslist[x] = mvslist.get(x);
+			colorsForMovesAlternate(mymvslist, false);
+		}
+	}
+	public void colorsForMovesAlternate()
+	{
+		colorsForMovesAlternate(OFFICIAL_MOVES);
+	}
+	
+	public static String[][] convertArrayListStrArrToStringArr(ArrayList<String[]> mvslist)
+	{
+		if (mvslist == null || mvslist.size() < 1) return null;
+		else
+		{
+			String[][] mymvslist = new String[mvslist.size()][];
+			for (int x = 0; x < mvslist.size(); x++) mymvslist[x] = mvslist.get(x);
+			return mymvslist;
+		}
+	}
+	
+	public static String getSideTurn(String[][] myoffmvs, boolean val)
+	{
+		//get last side to make an actual move
+		//if no side -> return white
+		//if a side has return the opposite color side
+		String[] clrs = ChessPiece.getSideColorsForMoves(myoffmvs);
+		String[] tps = ChessPiece.getSideTypesForMoves(myoffmvs);
+		if (clrs == null && tps == null) return "WHITE";
+		else if (clrs.length != myoffmvs.length)
+		{
+			throw new IllegalStateException("myoffmvs must be the same size as the colors!");
+		}
+		else
+		{
+			String[] mvtps = {"MOVE", "CASTLEING", "PAWNING", "PROMOTION"};
+			int mvi = -1;
+			for (int n = 0; n < myoffmvs.length; n++)
+			{
+				if (ChessPiece.itemIsOnGivenList(tps[n], mvtps)) mvi = n;
+				//else;//do nothing
+			}
+			
+			if (mvi < 0 || myoffmvs.length - 1 < mvi) return "WHITE";
+			else return ChessPiece.getOppositeColor(clrs[mvi]);
+		}
+	}
+	public static String getSideTurn(ArrayList<String[]> mvslist)
+	{
+		return getSideTurn(convertArrayListStrArrToStringArr(mvslist), false);
+	}
+	public String getSideTurn()
+	{
+		return getSideTurn(OFFICIAL_MOVES);
+	}
+	
 	public void setOfficialMoves(String[][] myoffmvs)
 	{
 		int numofmvs = ChessPiece.getNumItemsInList(this.OFFICIAL_MOVES);
@@ -127,6 +256,9 @@ class ChessGame {
 		}
 		else
 		{
+			//right here validate it
+			colorsForMovesAlternate(myoffmvs, false);
+			
 			if (this.OFFICIAL_MOVES == null) this.OFFICIAL_MOVES = new ArrayList<String[]>();
 			else if (numofmvs < 1);
 			else this.clearOfficalMoves();
@@ -143,6 +275,7 @@ class ChessGame {
 					this.OFFICIAL_MOVES.add(mynwstrarr);
 				}
 			}
+			//colorsForMovesAlternate(this.OFFICIAL_MOVES);
 		}
 	}
 	

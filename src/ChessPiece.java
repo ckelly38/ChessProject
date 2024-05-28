@@ -73,6 +73,15 @@ class ChessPiece {
 		return getGame(getGameID());
 	}
 	
+	public static String getSideTurnFromGame(int gid)
+	{
+		return getGame(gid).getSideTurn();
+	}
+	public String getSideTurnFromGame()
+	{
+		return getSideTurnFromGame(getGameID());
+	}
+	
 	//GET ALL PIECES OF A GAME
 	
 	public static ArrayList<ChessPiece> getAllPiecesWithGameID(int val)
@@ -620,6 +629,7 @@ class ChessPiece {
 		return true;
 	}
 	//iswhitedown (does white move down ranks) is true by default
+	//this will convert the location string if iswhitedown is not the same as WHITE_MOVES_DOWN_RANKS
 	public static int[] convertStringLocToRowCol(String mlocstr, boolean iswhitedown)
 	{
 		locStringIsInCorrectFormat(mlocstr);
@@ -660,6 +670,7 @@ class ChessPiece {
 	//{
 	//	return convertStringLocToRowCol(mlocstr, true);
 	//}
+	
 	//retwhitedown is WHITE_MOVES_DOWN_RANKS by default
 	public static String convertRowColToStringLoc(int rval, int cval, boolean retwhitedown)
 	{
@@ -670,19 +681,19 @@ class ChessPiece {
 		if (retwhitedown) return "" + abet.charAt(cval) + "" + (rval + 1);
 		else return "" + abet.charAt(cval) + "" + (8 - rval);
 	}
-	//public static String convertRowColToStringLoc(int rval, int cval)
-	//{
-	//	return convertRowColToStringLoc(rval, cval, WHITE_MOVES_DOWN_RANKS);
-	//}
+	public static String convertRowColToStringLoc(int rval, int cval)
+	{
+		return convertRowColToStringLoc(rval, cval, WHITE_MOVES_DOWN_RANKS);
+	}
 	public static String convertRowColToStringLoc(int[] mloc, boolean retwhitedown)
 	{
 		if (mloc == null || mloc.length != 2) throw new IllegalStateException("the loc array must have two integers on it!");
 		else return convertRowColToStringLoc(mloc[0], mloc[1], retwhitedown);
 	}
-	//public static String convertRowColToStringLoc(int[] mloc)
-	//{
-	//	return convertRowColToStringLoc(mloc, WHITE_MOVES_DOWN_RANKS);
-	//}
+	public static String convertRowColToStringLoc(int[] mloc)
+	{
+		return convertRowColToStringLoc(mloc, WHITE_MOVES_DOWN_RANKS);
+	}
 	
 	//if not valid, it just prints it out and does not convert it
 	//uses WHITE_MOVES_DOWN_RANKS value
@@ -3108,6 +3119,55 @@ class ChessPiece {
 	public static boolean isASideInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
 	{
 		return isASideInCheck("WHITE", ignorelist, addpcs, gid);
+	}
+	
+	public static boolean isAtLeastOnePieceOfTypeForSideInCheck(String typeval, String clrval,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		ArrayList<ChessPiece> myclrpcs = filterListByColorAndType(typeval, clrval,
+			combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid));
+		int nummypcs = getNumItemsInList(myclrpcs);
+		if (nummypcs < 1);
+		else
+		{
+			for (int x = 0; x < nummypcs; x++)
+			{
+				if (myclrpcs.get(x).inCheck(ignorelist, addpcs)) return true;
+				//else;//do nothing
+			}
+		}
+		return false;
+	}
+	public static boolean isAtLeastOneQueenForSideInCheck(String clrval, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAtLeastOnePieceOfTypeForSideInCheck("QUEEN", clrval, ignorelist, addpcs, gid);
+	}
+	public static boolean isAtLeastOneWhitePieceOfTypeInCheck(String typeval, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAtLeastOnePieceOfTypeForSideInCheck(typeval, "WHITE", ignorelist, addpcs, gid);
+	}
+	public static boolean isAtLeastOneWhiteQueenInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAtLeastOneWhitePieceOfTypeInCheck("QUEEN", ignorelist, addpcs, gid);
+	}
+	public static boolean isAtLeastOneBlackPieceOfTypeInCheck(String typeval, int[][] ignorelist,
+		ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAtLeastOnePieceOfTypeForSideInCheck(typeval, "BLACK", ignorelist, addpcs, gid);
+	}
+	public static boolean isAtLeastOneBlackQueenInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		return isAtLeastOneBlackPieceOfTypeInCheck(typeval, ignorelist, addpcs, gid);
+	}
+	public boolean isAQueenForMySideInCheck(int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+	{
+		return isAtLeastOneQueenForSideInCheck(getColor(), ignorelist, addpcs, getGameID());
+	}
+	public boolean isAQueenForMySideInCheck()
+	{
+		return isAQueenForMySideInCheck(null, null);
 	}
 	
 	
@@ -6405,6 +6465,131 @@ class ChessPiece {
 		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
 	}
 	
+	public static String[] getSideColorOrTypesForMoves(String[][] mymvs, boolean usecolor)
+	{
+		//SHORT HAND EXAMPLES
+		//WPNA5TOA6 (MOVE)
+		//-BPNA6W2MS (CREATE OR DELETE)
+		//TBPNH8INTOQN (PROMOTION)
+		//WLCE: (CASTLING)
+		//WLPNB4TOA3 (PAWNING)
+		//WHINTS (HINTS)
+		//BPNH8HINTS (HINTS)
+		
+		//- FOR DELETE
+		//+ FOR CREATE
+		
+		if (mymvs == null || mymvs.length < 1) return null;
+		else
+		{
+			String[] myclrs = new String[mymvs.length];
+			String[] mytps = new String[mymvs.length];
+			for (int n = 0; n < mymvs.length; n++)
+			{
+				mytps[n] = null;
+				myclrs[n] = null;
+				String[] mytpsforcmd = new String[mymvs[n].length];
+				for (int x = 0; x < mymvs[n].length; x++) mytpsforcmd[x] = getTypeOfMoveCommand(mymvs[n][x]);
+				boolean addedtp = false;
+				int pci = -1;
+				if (mytpsforcmd == null || mytpsforcmd.length < 1 || 3 < mytpsforcmd.length)
+				{
+					throw new IllegalStateException("the type was an illegal length!");
+				}
+				else
+				{
+					if (mytpsforcmd.length == 1)
+					{
+						mytps[n] = "" + mytpsforcmd[0];
+						pci = 0;
+						addedtp = true;
+					}
+					else
+					{
+						for (int x = 0; x < mytpsforcmd.length; x++)
+						{
+							if (mytpsforcmd[x].equals("PAWNING") || mytpsforcmd[x].equals("CASTLEING") ||
+								mytpsforcmd[x].equals("HINTS"))
+							{
+								mytps[n] = "" + mytpsforcmd[x];
+								pci = x;
+								addedtp = true;
+								break;
+							}
+							//else;//do nothing
+						}
+					}
+				}
+				
+				int mvi = -1;
+				if (addedtp) mvi = pci;
+				else
+				{
+					//GIVEN TYPES OF STEPS FOR ONE MOVE COMMAND: DELETE MOVE PROMOTE -> WHAT IS THE OVERALL TYPE?
+					//IT WILL NEVER BE DELETE. WE WILL USE PROMOTION OVER MOVE.
+					for (int x = 0; x < mytpsforcmd.length; x++)
+					{
+						//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
+						if (mytpsforcmd[x].equals("PROMOTION"))
+						{
+							mytps[n] = "PROMOTION";
+							addedtp = true;
+							mvi = x;
+							break;
+						}
+						//else;//do nothing
+					}
+					
+					if (addedtp);
+					else
+					{
+						for (int x = 0; x < mytpsforcmd.length; x++)
+						{
+							//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
+							if (mytpsforcmd[x].equals("MOVE"))
+							{
+								mytps[n] = "MOVE";
+								addedtp = true;
+								mvi = x;
+								break;
+							}
+							//else;//do nothing
+						}
+						
+						if (addedtp);
+						else throw new IllegalStateException("AN INVALID TYPE OR INVALID COMMAND WAS FOUND HERE!");
+					}
+				}
+				
+				if (mytps[n] == null || mytps[n].length() < 1)
+				{
+					throw new IllegalStateException("the type must have already been set!");
+				}
+				else
+				{
+					//System.out.println("mytps[" + n + "] = " + mytps[n]);
+					String[] clrzeroimytps = {"CASTLEING", "PAWNING", "HINTS", "MOVE"};
+					int clrci = -1;
+					if (itemIsOnGivenList(mytps[n], clrzeroimytps)) clrci = 0;
+					else clrci = 1;
+					myclrs[n] = getLongHandColor("" + mymvs[n][mvi].charAt(clrci));
+					//System.out.println("myclrs[" + n + "] = " + myclrs[n]);
+				}
+			}//end of n for loop
+			if (usecolor) return myclrs;
+			else return mytps;
+		}
+	}
+	public static String[] getSideColorsForMoves(String[][] mymvs)
+	{
+		return getSideColorOrTypesForMoves(mymvs, true);
+	}
+	public static String[] getSideTypesForMoves(String[][] mymvs)
+	{
+		return getSideColorOrTypesForMoves(mymvs, false);
+	}
+	
+	
 	//ONLY CONVERTS COMMANDS IN SHORT HAND NOTATION
 	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean iswhitedown, boolean bpassimnxtmv)
@@ -6455,8 +6640,46 @@ class ChessPiece {
 		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
 		if (cmdtp.equals("HINTS") || cmdtp.equals("CREATE") || cmdtp.equals("DELETE") || cmdtp.equals("PROMOTION"))
 		{
+			int si = -1;
+			int ei = -1;
 			String[] resstr = new String[1];
-			resstr[0] = "" + usrcmd;
+			if (cmdtp.equals("HINTS"))
+			{
+				if (usrcmd.length() == 6)
+				{
+					resstr[0] = "" + usrcmd;
+					System.out.println("resstr[0] = " + resstr[0]);
+					return resstr;
+				}
+				else
+				{
+					si = 3;
+					ei = 5;
+				}
+			}
+			else
+			{
+				si = 4;
+				ei = 6;
+			}
+			System.out.println("si = " + si);
+			System.out.println("ei = " + ei);
+			
+			String slocstr = usrcmd.substring(si, ei);
+			String nwusrcmd = null;
+			System.out.println("OLD slocstr = " + slocstr);
+			
+			int[] sloc = convertStringLocToRowCol(slocstr, iswhitedown);
+			System.out.println("sloc[0] = " + sloc[0]);
+			System.out.println("sloc[1] = " + sloc[1]);
+			
+			slocstr = convertRowColToStringLoc(sloc[0], sloc[1], WHITE_MOVES_DOWN_RANKS);
+			System.out.println("NEW slocstr = " + slocstr);
+			
+			nwusrcmd = usrcmd.substring(0, si) + slocstr + usrcmd.substring(ei);
+			System.out.println("nwusrcmd = " + nwusrcmd);
+			
+			resstr[0] = "" + nwusrcmd;
 			System.out.println("resstr[0] = " + resstr[0]);
 			return resstr;
 		}
@@ -6465,9 +6688,10 @@ class ChessPiece {
 			String myclr = "" + usrcmd.charAt(0);
 			String fullclr = getLongHandColor(myclr);
 			boolean useleft = (usrcmd.charAt(1) == 'L');
-			String locstr = usrcmd.substring(4, 6);
+			String slocstr = usrcmd.substring(4, 6);
 			int[] sloc = null;
-			System.out.println("OLD locstr = " + locstr);
+			String nwusrcmd = null;
+			System.out.println("OLD slocstr = " + slocstr);
 			
 			//BLPNB5TOA6
 			//BLPNTOA6
@@ -6492,10 +6716,14 @@ class ChessPiece {
 					throw new IllegalStateException("THERE MUST BE A STARTING LOCATION IN ORDER FOR PAWN TO MOVE THERE!");
 				}
 				//else;//do nothing safe to proceed
-				locstr = convertRowColToStringLoc(sloc[0], sloc[1], WHITE_MOVES_DOWN_RANKS);
-				System.out.println("NEW locstr = " + locstr);
+				slocstr = convertRowColToStringLoc(sloc[0], sloc[1], WHITE_MOVES_DOWN_RANKS);
+				System.out.println("NEW slocstr = " + slocstr);
+				
+				nwusrcmd = usrcmd.substring(0, 4) + slocstr + usrcmd.substring(4, 6) + 
+					convertRowColToStringLoc(eloc[0], eloc[1], WHITE_MOVES_DOWN_RANKS);
+				System.out.println("nwusrcmd = " + nwusrcmd);
 			}
-			else sloc = convertStringLocToRowCol(locstr, iswhitedown);
+			else sloc = convertStringLocToRowCol(slocstr, iswhitedown);
 			System.out.println("sloc[0] = " + sloc[0]);
 			System.out.println("sloc[1] = " + sloc[1]);
 			
@@ -6521,7 +6749,8 @@ class ChessPiece {
 			String delcmd = genLongOrShortHandDeleteCommand(ep, "the enemy pawn must not be null!", true, true);
 			String[] resstr = new String[2];
 			resstr[0] = "" + delcmd;
-			resstr[1] = "" + usrcmd;
+			if (nwusrcmd == null || nwusrcmd.length() < 1) resstr[1] = "" + usrcmd;
+			else resstr[1] = "" + nwusrcmd;
 			System.out.println("resstr[0] = " + resstr[0]);
 			System.out.println("resstr[1] = " + resstr[1]);
 			return resstr;
@@ -7387,12 +7616,20 @@ class ChessPiece {
 			if (mvcmds[x].charAt(1) == 'L' || mvcmds[x].charAt(1) == 'R');
 			else
 			{
-				String tpval = getLongHandType(mvcmds[x].substring(1, 3));
-				int esi = -1;
-				if (mvcmds[x].charAt(3) == 'T') esi = 5;
-				else esi = 7;
-				int[] eloc = convertStringLocToRowCol(mvcmds[x].substring(esi), iswhitedown);
-				canpropawn = canPawnBePromotedAt(eloc[0], eloc[1], clrval, tpval);
+				String cmdtp = getTypeOfMoveCommand(mvcmds[x]);
+				System.out.println("mvcmds[" + x + "] = " + mvcmds[x]);
+				System.out.println("cmdtp = " + cmdtp);
+				
+				if (cmdtp.equals("MOVE"))
+				{
+					String tpval = getLongHandType(mvcmds[x].substring(1, 3));
+					int esi = -1;
+					if (mvcmds[x].charAt(3) == 'T') esi = 5;
+					else esi = 7;
+					int[] eloc = convertStringLocToRowCol(mvcmds[x].substring(esi), iswhitedown);
+					canpropawn = canPawnBePromotedAt(eloc[0], eloc[1], clrval, tpval);
+				}
+				//else;//do nothing
 			}
 			if (canpropawn)
 			{
