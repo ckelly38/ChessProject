@@ -8,6 +8,7 @@ class ChessGame {
 	//private String[] LAST_UNDONE_MOVE = null;
 	//private String[] LAST_REDONE_MOVE = null;
 	private ArrayList<String[]> OFFICIAL_MOVES = null;
+	private String[] UNOFFICIAL_MOVE = null;
 	public static ArrayList<ChessGame> all = new ArrayList<ChessGame>();
 	
 	public static String[][] convertStringArrayToMultidim(String[] sarr)
@@ -44,12 +45,6 @@ class ChessGame {
 		this(gid, null, false);
 	}
 	
-	
-	public int getGameID()
-	{
-		return this.gameID;
-	}
-	
 	public static ChessGame getGame(int gid)
 	{
 		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
@@ -67,6 +62,11 @@ class ChessGame {
 			//return null;
 			throw new IllegalStateException("GAME with ID (" + gid + ") not found!");
 		}
+	}
+	
+	public int getGameID()
+	{
+		return this.gameID;
 	}
 	
 	public boolean isCompleted()
@@ -116,7 +116,7 @@ class ChessGame {
 		}
 		else
 		{
-			String[] mvtps = {"MOVE", "CASTLEING", "PAWNING", "PROMOTION"};
+			String[] mvtps = ChessPiece.getMoveCommandTypes();
 			for (int n = 0; n < myoffmvs.length; n++)
 			{
 				if (clrs[n].equals("WHITE") || clrs[n].equals("BLACK"))
@@ -279,6 +279,55 @@ class ChessGame {
 		}
 	}
 	
+	public void setUnofficialMove(String[] mymvcmd)
+	{
+		if (mymvcmd == null || mymvcmd.length < 1) UNOFFICIAL_MOVE = null;
+		else
+		{
+			if (UNOFFICIAL_MOVE == null || UNOFFICIAL_MOVE.length < 1)
+			{
+				UNOFFICIAL_MOVE = new String[mymvcmd.length];
+				for (int n = 0; n < mymvcmd.length; n++) UNOFFICIAL_MOVE[n] = "" + mymvcmd[n];
+			}
+			else throw new IllegalStateException("YOU NEED TO MAKE THE MOVE OFFICIAL FIRST!");
+		}
+	}
+	
+	public void addOfficialMove(String[] mymvcmd)
+	{
+		if (mymvcmd == null || mymvcmd.length < 1)
+		{
+			throw new IllegalStateException("cannot add an empty or null move to the official move list!");
+		}
+		else
+		{
+			String[] mycp = new String[mymvcmd.length];
+			for (int n = 0; n < mymvcmd.length; n++) mycp[n] = "" + mymvcmd[n];
+			
+			if (OFFICIAL_MOVES == null) OFFICIAL_MOVES = new ArrayList<String[]>();
+			//else;//do nothing
+			
+			OFFICIAL_MOVES.add(mycp);
+		}
+	}
+	
+	public void makeUnofficialMoveOfficial()
+	{
+		addOfficialMove(UNOFFICIAL_MOVE);
+		setUnofficialMove(null);
+	}
+	
+	public void makeLastOfficialMoveUnofficial()
+	{
+		if (UNOFFICIAL_MOVE == null)
+		{
+			if (OFFICIAL_MOVES == null) throw new IllegalStateException("THERE MUST BE AT LEAST ONE OFFICIAL MOVE!");
+			else if (0 < OFFICIAL_MOVES.size()) setUnofficialMove(OFFICIAL_MOVES.get(OFFICIAL_MOVES.size() - 1));
+			else throw new IllegalStateException("THERE MUST BE AT LEAST ONE OFFICIAL MOVE!");
+		}
+		else throw new IllegalStateException("THE UNOFFICIAL MOVE MUST BE EMPTY!");
+	}
+	
 	public void stepForward()
 	{
 		//TO GO FORWARDS: (MIGHT BE SMART TO START STEP_INDEX AT -1)
@@ -303,7 +352,8 @@ class ChessGame {
 		}
 		else if (this.moveindex < numofmvs)
 		{
-			ChessPiece.makeLocalShortHandMove(this.OFFICIAL_MOVES.get(this.moveindex), this.getGameID());
+			ChessPiece.makeLocalShortHandMove(this.OFFICIAL_MOVES.get(this.moveindex), this.getGameID(), false,
+				ChessPiece.WHITE_MOVES_DOWN_RANKS, true);
 		}
 		else throw new IllegalStateException("CANNOT MOVE FORWARD, NO MORE MOVES PROVIDED!");
 	}
@@ -331,7 +381,7 @@ class ChessGame {
 		
 		ChessPiece.makeLocalShortHandMove(
 			ChessPiece.genUndoMoveToShortHandCommand(this.OFFICIAL_MOVES.get(this.moveindex)), this.getGameID(), true,
-			ChessPiece.WHITE_MOVES_DOWN_RANKS);
+			ChessPiece.WHITE_MOVES_DOWN_RANKS, true);
 			
 		System.out.println("OLD moveindex = " + this.moveindex);
 		

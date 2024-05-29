@@ -16,18 +16,19 @@ public class TestDriver {
     	int gid = 1;
     	ChessGame game = new ChessGame(1);
     	//ChessGame og = new ChessGame(1);//error
-    	testPawnPromotionViaStepingForwardThroughGame(2);
+    	//testPawnPromotionViaStepingForwardThroughGame(2);
     	//testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
     	//testCastlingViaStepingForwardThroughGame(2);
     	//testPawningViaStepingForwardThroughGame(2);
     	//testColorsForMovesAlternateViaStepingForwardThroughGame(2);
     	//testOtherColorsAlternateViaStepingForwardThroughGame(2);
+    	//testFourMoveCheckMateBlackViaStepingForwardThroughGame(2);
     	
-    	setUpBoard(gid);
+    	ChessPiece.setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
     	//ArrayList<ChessPiece> mycps = ChessPiece.cps;
     	//for (int c = 0; c < mycps.size(); c++) System.out.println(mycps.get(c));
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	System.out.println(ChessPiece.isBoardValid(gid));
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -60,11 +61,11 @@ public class TestDriver {
     	//testPawning(gid, true);
     	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
-    	//setUpBoardWithKnightCheckingKing(gid, false);
+    	//setUpBoardWithKnightCheckingKing(gid, true);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, true);
-    	//setUpBoardWithTwoMoveCheckMateBlack(gid, false);
-    	//setUpBoardWithTwoMoveCheckMateWhite(gid, false);
+    	setUpBoardWithTwoMoveCheckMateBlack(gid, true);
+    	//setUpBoardWithTwoMoveCheckMateWhite(gid, true);
     	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
     	//setUpBoardWhiteCheckmateAfterManyMoves(gid);
     	//STALEMATE TESTS
@@ -94,75 +95,34 @@ public class TestDriver {
     	//ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//wpn.setLoc(4, 0);
-    	//printBoard(gid);
+    	//ChessPiece.printBoard(gid);
     	//ChessPiece.makeLocalMove(myunmv, gid, true);
     	//printBoard(gid);
     	//wpn.setLoc(4, 0);
-    	//printBoard(gid);
+    	//ChessPiece.printBoard(gid);
     	//ChessPiece bpn = ChessPiece.getPieceAt(1, 1, gid);
     	//bpn.genMoveToCommand(3, 1);
     	//bpn.setLoc(3, 1);
-    	//printBoard(gid);
+    	//ChessPiece.printBoard(gid);
     	//wpn.genMoveToCommand(3, 1);
     	//System.out.println("TOTAL PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	//ChessPiece.removePieceAt(3, 1, gid);
     	//System.out.println("TOTAL PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	//wpn.setLoc(3, 1);
-    	//printBoard(gid);
+    	//ChessPiece.printBoard(gid);
     	//ChessPiece obpn = ChessPiece.getPieceAt(1, 0, gid);
     	//obpn.genMoveToCommand(3, 0);
     	//obpn.setLoc(3, 0);
     	//obpn.setMoveCount(1);
     	//System.out.println("OTHER BLACK PAWN MOVE COUNT: " + obpn.getMoveCount());
-    	//printBoard(gid);
+    	//ChessPiece.printBoard(gid);
     	//wpn.genMoveToCommand(2, 0);
     	//System.out.println("TOTAL PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	//ChessPiece.removePieceAt(3, 0, gid);
     	//wpn.setLoc(2, 0);
     	//wpn.pawnLeft();
     	//System.out.println("TOTAL PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	//printBoard(gid);
-    }
-    
-    //PRINT BOARD METHODS
-    
-    public static void printBoard(ArrayList<ChessPiece> mycps)
-    {
-    	//for (int c = 0; c < mycps.size(); c++) System.out.println(mycps.get(c));
-    	System.out.println("mycps.size() = " + mycps.size());
-    	String myabt = "ABCDEFGH";
-    	for (int c = 0; c < 8; c++) System.out.print("  " + myabt.charAt(c) + " ");
-    	System.out.println(" ");
-    	for (int r = 0; r < 8; r++)
-    	{
-    		for (int c = 0; c < 8; c++)
-    		{
-    			System.out.print("|");
-    			boolean fndit = false;
-    			for (int x = 0; x < mycps.size(); x++)
-    			{
-    				if (mycps.get(x).getRow() == r && mycps.get(x).getCol() == c)
-    				{
-    					//first letter of color, first letter of type, last letter of type
-    					String mtp = "" + mycps.get(x).getType();
-    					String mclr = "" + mycps.get(x).getColor();
-    					System.out.print("" + mclr.charAt(0) + mtp.charAt(0) + mtp.charAt(mtp.length() - 1));
-    					fndit = true;
-    					break;
-    				}
-    				//else;//do nothing
-    			}
-    			if (fndit);
-    			else System.out.print("---");
-    		}
-    		if (ChessPiece.WHITE_MOVES_DOWN_RANKS) System.out.println("| " + (r + 1));
-    		else System.out.println("| " + (8 - r));
-    	}
-    }
-    public static void printBoard(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		else printBoard(ChessPiece.getAllPiecesWithGameID(gid));
+    	//ChessPiece.printBoard(gid);
     }
     
     //TEST SOME BASIC METHODS
@@ -276,13 +236,13 @@ public class TestDriver {
     		System.out.println("addpcs = " + addpcs);
     		ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     		//System.out.println(nwpcslist);
-    		printBoard(nwpcslist);
+    		ChessPiece.printBoard(nwpcslist);
     		//System.out.println(ChessPiece.isBoardValid(nwpcslist));
     		System.out.println("DONE TESTING PRINT NEW SETUP BOARD!");
     	}
     	//else;//do nothing
     	
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	//not true for all test cases, but must be true for this case
     	if (nrmlcps.size() + 1 == nrmlwithaddpcs.size());
     	else throw new IllegalStateException("ADDING A QUEEN TEST FAILED!");
@@ -308,7 +268,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, null, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -330,6 +290,9 @@ public class TestDriver {
     	testCastleCanMoveToLocs(gid, 7, 7, "WHITE", ignorelist, null);
     	testCastleCanMoveToLocs(gid, 0, 7, "BLACK", ignorelist, null);
     }
+    
+    
+    //STEP FORWARD AND BACKWARD THROUGH A GAME TESTS
     
     public static void testStepForwardAndBackwardThroughAGame(String[][] tstmvs, int gid, boolean isdone)
     {
@@ -364,7 +327,7 @@ public class TestDriver {
     		og.stepForward();
     		//printBoard(gid);
     		og.stepBackward();
-    		printBoard(gid);
+    		ChessPiece.printBoard(gid);
     	}
     	//else;//do nothing will error out
     	//og.stepForward();
@@ -377,9 +340,19 @@ public class TestDriver {
     	og.makeAllGivenOfficialMoves();
     	System.out.println();
     	System.out.println("BOARD FOR GAME WITH ID " + gid + ":");
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	System.out.println(og.getSideTurn(tstmvs, false) + "'S TURN NOW!");
     	System.out.println();
+    }
+    
+    public static void testFourMoveCheckMateBlackViaStepingForwardThroughGame(int gid)
+    {
+    	ChessPiece.setUpBoard(gid);
+    	ChessPiece.printBoard(gid);
+    	boolean iswhitedown = true;
+    	boolean bpassimnxtmv = true;
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.convertAllLocationsForFullMoveCommands(getFourMoveCheckMateBlackMoves(), iswhitedown), gid, true);
     }
     
     public static void testColorsForMovesAlternateViaStepingForwardThroughGame(int gid)
@@ -439,7 +412,7 @@ public class TestDriver {
     	String[] promotps = new String[2];
     	promotps[0] = "CASTLE";
     	promotps[1] = "BISHOP";
-    	setUpBoard(2);
+    	ChessPiece.setUpBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
     }
@@ -459,7 +432,7 @@ public class TestDriver {
     	String[] promotps = new String[2];
     	promotps[0] = "CASTLE";
     	promotps[1] = "BISHOP";
-    	setUpBoard(2);
+    	ChessPiece.setUpBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
     }
@@ -480,7 +453,7 @@ public class TestDriver {
     	String[] promotps = new String[2];
     	promotps[0] = "CASTLE";
     	promotps[1] = "BISHOP";
-    	setUpBoard(2);
+    	ChessPiece.setUpBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, promotps, iswhitedown, true), gid, false);
     }
@@ -502,8 +475,8 @@ public class TestDriver {
     	myunoffmvs[6] = "WPNTOG5";
     	if (addambigcmd) myunoffmvs[7] = "BCETOH3";//command should be ambiguous
     	//else;//do nothing
-    	setUpBoard(gid);
-    	printBoard(gid);
+    	ChessPiece.setUpBoard(gid);
+    	ChessPiece.printBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
@@ -519,8 +492,8 @@ public class TestDriver {
     	myunoffmvs[4] = "WBPTOG7";
     	myunoffmvs[5] = "BCETOA3";
     	myunoffmvs[6] = "WKGTOG8";
-    	setUpBoard(gid);
-    	printBoard(gid);
+    	ChessPiece.setUpBoard(gid);
+    	ChessPiece.printBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
@@ -535,8 +508,8 @@ public class TestDriver {
     	myunoffmvs[3] = "BPNTOB5";
     	myunoffmvs[4] = "WPNTOA5";
     	myunoffmvs[5] = "BPNTOA6";
-    	setUpBoard(gid);
-    	printBoard(gid);
+    	ChessPiece.setUpBoard(gid);
+    	ChessPiece.printBoard(gid);
     	testStepForwardAndBackwardThroughAGame(
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
@@ -645,14 +618,14 @@ public class TestDriver {
     	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("B4", iswhitedown), gid);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	System.out.println(ChessPiece.isBoardValid(gid));
     	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("H2", iswhitedown), gid);
     	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H4", iswhitedown));
@@ -682,7 +655,7 @@ public class TestDriver {
     	}
     	else mymvploc = "A1";
     	
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol(mymvploc, iswhitedown), "QUEEN");
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
@@ -699,7 +672,7 @@ public class TestDriver {
     		ChessPiece.makeLocalMove(fullmv, gid, false);
     		//ChessPiece.makeLocalMove(mymv, gid, false);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		printBoard(gid);
+    		ChessPiece.printBoard(gid);
     	}
     	//else;//do nothing
     	
@@ -714,12 +687,12 @@ public class TestDriver {
 	    	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.makeLocalMove(myunmv, gid, true);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		printBoard(gid);
+    		ChessPiece.printBoard(gid);
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.makeLocalMove(mymv, gid, false);
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		printBoard(gid);
+    		ChessPiece.printBoard(gid);
     	}
     	else
     	{
@@ -729,12 +702,12 @@ public class TestDriver {
 	    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A1", iswhitedown));
 	    	wpn.setMoveCount(wpn.getMoveCount() + 1);
 	    	//test pawn promotion methods here
-	    	printBoard(gid);
+	    	ChessPiece.printBoard(gid);
 	    	System.out.println("WHITE CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("WHITE", gid));
 	    	System.out.println("BLACK CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("BLACK", gid));
 	    	wpn.promotePawnTo("QUEEN");
 	    	System.out.println(wpn);
-	    	printBoard(gid);
+	    	ChessPiece.printBoard(gid);
     	}
     	
     	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G7", iswhitedown));
@@ -746,7 +719,7 @@ public class TestDriver {
     	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
     	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("H8", iswhitedown), gid);
@@ -754,12 +727,12 @@ public class TestDriver {
     	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
     	obpn.setMoveCount(obpn.getMoveCount() + 1);
     	//test pawn promotion methods here
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	System.out.println("WHITE CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("WHITE", gid));
     	System.out.println("BLACK CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("BLACK", gid));
     	obpn.promotePawnTo("QUEEN");
     	System.out.println(obpn);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     }
     public static void setUpBoardForPawnPromotionWithoutMovingThere(int gid)
     {
@@ -786,13 +759,13 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test promotion methods here...
     	System.out.println("A WHITE PAWN CAN BE PROMOTED: " + ChessPiece.canPawnForSideBePromoted("WHITE", nwpcslist));
     	System.out.println("A BLACK PAWN CAN BE PROMOTED: " + ChessPiece.canPawnForSideBePromoted("BLACK", nwpcslist));
     	wpn.promotePawnTo("QUEEN");
     	System.out.println(wpn);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//black pawn at H6 -> G7 -> H8;
     	//WQN AT A1 -> B1;
     	int[][] nwiglist = new int[5][2];
@@ -808,12 +781,12 @@ public class TestDriver {
     	nwaddpcs.add(new ChessPiece("QUEEN", "WHITE",
     		ChessPiece.convertStringLocToRowCol("B1", iswhitedown), gid, 6, false));
     	ArrayList<ChessPiece> myonwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(nwiglist, nwaddpcs, nwpcslist);
-    	printBoard(myonwpcslist);
+    	ChessPiece.printBoard(myonwpcslist);
     	System.out.println("A WHITE PAWN CAN BE PROMOTED: " + ChessPiece.canPawnForSideBePromoted("WHITE", myonwpcslist));
     	System.out.println("A BLACK PAWN CAN BE PROMOTED: " + ChessPiece.canPawnForSideBePromoted("BLACK", myonwpcslist));
     	bpn.promotePawnTo("QUEEN");
     	System.out.println(bpn);
-    	printBoard(myonwpcslist);
+    	ChessPiece.printBoard(myonwpcslist);
     	//pcslocs in the order of: king, knight, castle (rook), bishop, pawn, queen
     	testCanMoveToLocs(gid, 7, 4, "WHITE", 7, 6, "WHITE", 7, 0, "WHITE", 0, 2, "BLACK", 1, 2, "BLACK", 7, 7, "BLACK",
     		ChessPiece.combineIgnoreLists(nwiglist, ignorelist), ChessPiece.combineTwoPieceLists(nwaddpcs, addpcs));
@@ -852,7 +825,7 @@ public class TestDriver {
     	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	//now test pawning methods here
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", gid));
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", gid));
@@ -871,11 +844,11 @@ public class TestDriver {
     	ChessPiece.makeLocalMove(fullmv, gid, false);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//bpn.pawnLeft();
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	ChessPiece.makeLocalMove(myunmv, gid, true);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	bpn.pawnLeft();
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     }
     public static void testPawningWithoutMovingThere(int gid)
     {
@@ -899,7 +872,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//call canPawnLeft on Black Pawn
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", nwpcslist));
     	System.out.println("BLACK CAN PAWN: " + ChessPiece.canSidePawn("BLACK", nwpcslist));
@@ -983,7 +956,7 @@ public class TestDriver {
     	System.out.println("BLACK CAN CASTLE: " + ChessPiece.canSideCastle("BLACK", gid));
     	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(null, null, gid));
     	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(null, null, gid));
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	String[] mymv = ChessPiece.genCastlingMoveToCommand("WHITE", false, gid, null, null);
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
@@ -999,11 +972,11 @@ public class TestDriver {
     	ChessPiece.makeLocalMove(fullmv, gid, false);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	//ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	ChessPiece.makeLocalMove(myunmv, gid, true);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     }
     public static void setUpBoardForCastlingWhiteRightWithoutMovingThere(int gid)
     {
@@ -1028,7 +1001,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//actually test the castling information here now...
     	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", ignorelist, addpcs, gid));
     	System.out.println("BLACK CAN CASTLE: " + ChessPiece.canSideCastle("BLACK", ignorelist, addpcs, gid));
@@ -1071,7 +1044,7 @@ public class TestDriver {
     	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
     	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
     	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	//now test check and figure out how to get out of it
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1098,7 +1071,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//now test check and figure out how to get out of it
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", nwpcslist);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", nwpcslist);
@@ -1137,7 +1110,7 @@ public class TestDriver {
     	System.out.println("addpcs = " + addpcs);
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	System.out.println();
     	
     	System.out.println("ACCORDING TO THE FUTURE BOARD:");
@@ -1160,7 +1133,7 @@ public class TestDriver {
     	//System.out.println(ChessPiece.getCountsForEachPieceTypeForASide(tstpctps));
     	//System.out.println(ChessPiece.isBoardValid(nwpcslist));
     	
-    	printBoard(gid);
+    	ChessPiece.printBoard(gid);
     	System.out.println();
     	
     	System.out.println("ACCORDING TO THE ACTUAL BOARD:");
@@ -1183,20 +1156,27 @@ public class TestDriver {
 		//WPN AT E7 -> E6; WBP AT F8 -> C5; WQN AT D8 -> F6 -> F2
 		//BPN AT A2 -> A4 -> A5 -> A6
     	
-    	boolean iswhitedown = true;
+    	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
     	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown);//E6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 0, gid);//A2
     	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false, iswhitedown);//A4
-    	printBoard(gid);
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
     	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false, iswhitedown);//A5
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece wbp = ChessPiece.getPieceAt(7, 5, gid);//F8
     	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false, iswhitedown);//C5
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false, iswhitedown);//F2
-    	printBoard(gid);
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1228,7 +1208,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1272,17 +1252,24 @@ public class TestDriver {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing
 		
-    	boolean iswhitedown = true;
-    	ChessPiece wpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 6), gid, false, iswhitedown);//G6
+    	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown);//E6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 5, gid);//F2
     	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false, iswhitedown);//F3
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 0, gid);//A7
     	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece obpn = ChessPiece.getPieceAt(1, 6, gid);//G2
     	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false, iswhitedown);//G4
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	//ChessPiece.printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
     	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false, iswhitedown);//H4
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1317,7 +1304,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1340,15 +1327,20 @@ public class TestDriver {
 		//WPN AT F7 -> F6; OWPN AT G7 -> G5;
     	//BPN AT E2 -> E3; BQN AT D1 -> H5
     	
-    	boolean iswhitedown = true;
+    	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 5, gid);//F7
     	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 4, gid);//E2
     	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false, iswhitedown);//E3
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 6, gid);//G7
     	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false, iswhitedown);//G5
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);//D1
     	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false, iswhitedown);//H5
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1381,7 +1373,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test check mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1451,7 +1443,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
@@ -1500,7 +1492,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
@@ -1585,7 +1577,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1688,7 +1680,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1753,7 +1745,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
@@ -1803,7 +1795,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, null, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
     	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
@@ -1859,7 +1851,7 @@ public class TestDriver {
     	//print the board first
     	ArrayList<ChessPiece> nwpcslist = ChessPiece.combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
     	//System.out.println(nwpcslist);
-    	printBoard(nwpcslist);
+    	ChessPiece.printBoard(nwpcslist);
     	//test stale mate and check detection here and methods determinging where a piece can move to
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck(ignorelist, addpcs));
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck(ignorelist, addpcs));
@@ -1878,60 +1870,5 @@ public class TestDriver {
     	testKingCanMoveToLocs(gid, 0, 6, "BLACK", ignorelist, addpcs);
     	//testBishopCanMoveToLocs(gid, r, c, "BLACK", ignorelist, addpcs);
     	//testBishopCanMoveToLocs(gid, r, c, "WHITE", ignorelist, addpcs);
-    }
-    
-    //NORMAL BOARD SETUP METHOD
-    
-    public static void setUpBoard(int gid)
-    {
-    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
-		//else;//do nothing safe to proceed
-    	
-    	//white pawns on row 6 cols 0 through 7
-    	//black pawns on row 1 cols 0 through 7
-    	for (int x = 0; x < 2; x++)
-    	{
-    		int r = -1;
-    		String clr = "";
-    		if (x == 0)
-    		{
-    			r = 6;
-    			clr = "WHITE";
-    		}
-    		else
-    		{
-    			r = 1;
-    			clr = "BLACK";
-    		}
-    		for (int c = 0; c < 8; c++)
-	    	{
-	    		ChessPiece cp = new ChessPiece("PAWN", clr, r, c, gid);
-	    		//cps.add(cp);
-	    	}
-	    	int orw = -1;
-	    	if (clr.equals("WHITE")) orw = 7;
-	    	else orw = 0;
-	    	String[] mvtypes = ChessPiece.getValidTypes();
-	    	for (int k = 0; k < mvtypes.length; k++)
-	    	{
-	    		if (mvtypes[k].equals("PAWN") || mvtypes[k].equals("ROOK")) continue;
-	    		else
-	    		{
-	    			System.out.println("mvtypes[" + k + "] = " + mvtypes[k]);
-	    			boolean uselft = true;
-	    			for (int i = 0; i < 2; i++)
-	    			{
-	    				if (i == 0);
-	    				else uselft = false;
-	    				int nwcl = ChessPiece.getSetUpColForType(mvtypes[k], uselft);
-	    				//System.out.println("i = " + i);
-	    				//System.out.println("CREATED NEW PIECE AT (" + orw + ", " + nwcl + ")");
-	    				ChessPiece ocp = new ChessPiece(mvtypes[k], clr, orw, nwcl, gid);
-	    				//cps.add(ocp);
-	    				if (mvtypes[k].equals("KING") || mvtypes[k].equals("QUEEN")) break;
-	    			}//end of i for loop
-	    		}
-	    	}//end of k for loop
-    	}//end of x for loop
     }
 }
