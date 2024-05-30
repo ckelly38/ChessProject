@@ -308,6 +308,7 @@ class ChessGame {
 			//else;//do nothing
 			
 			OFFICIAL_MOVES.add(mycp);
+			colorsForMovesAlternate();
 		}
 	}
 	

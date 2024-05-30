@@ -5787,13 +5787,13 @@ class ChessPiece {
 		
 		String fpart = null;
 		if (useshort) fpart = "T";
-		else fpart = "TURN";
+		else fpart = "TURN ";
 		String myclr = null;
 		if (useshort) myclr = getShortHandColor(clr);
 		else myclr = "" + clr + " ";
 		String mytp = null;
 		if (useshort) mytp = "PN";
-		else mytp = " PAWN at: ";
+		else mytp = "PAWN at: ";
 		String lpart = null;
 		if (useshort) lpart = "INTO";
 		else lpart = " into: ";
@@ -7089,9 +7089,9 @@ class ChessPiece {
 		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
 	}
 	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval,
-		boolean bpassimnxtmv)
+		boolean iswhitedown, boolean bpassimnxtmv)
 	{
-		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, ptpval, null, null, WHITE_MOVES_DOWN_RANKS, bpassimnxtmv);
+		return genFullMoveCommandFromDisplayedCommand(usrcmd, gid, ptpval, null, null, iswhitedown, bpassimnxtmv);
 	}
 	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid)
 	{
@@ -7190,7 +7190,10 @@ class ChessPiece {
 		//UNDOWCEA6TOA5 (decrements the move count)
 		//+BPN??W?MS
 		
+		System.out.println();
+		System.out.println("BEGIN EXECUTING THE MOVE COMMAND NOW:");
 		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
+		System.out.println();
 		System.out.println("isundo = " + isundo);
 		
 		if (isundo)
@@ -7370,17 +7373,35 @@ class ChessPiece {
 					getLongHandColor("" + mvcmd[x].charAt(1)),
 					convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid,
 					Integer.parseInt(mvcmd[x].substring(7, mvcmd[x].indexOf("MS"))), true);
+				//need to update the piece list...
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				
+				mpclist = getAllPiecesWithGameID(gid);
+				
+				System.out.println("TOTAL PIECES: " + mpclist.size());
 				System.out.println("CREATED: " + cp + "!");
 			}
 			else if (tpcmds[x].equals("DELETE"))
 			{
 				//extract the location
 				removePieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid);
+				
+				//need to update the piece list...
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				
+				mpclist = getAllPiecesWithGameID(gid);
+				
+				System.out.println("TOTAL PIECES: " + mpclist.size());
 				System.out.println("DELETED THE PIECE!");
 			}
 			else if (tpcmds[x].equals("PROMOTION"))
 			{
+				System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
+				System.out.println("slocstr = mvcmd[" + x + "].substring(4, 6) = " + mvcmd[x].substring(4, 6));
+				System.out.println("iswhitedown = " + iswhitedown);
+				
 				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), mpclist);
+				System.out.println("pn = " + pn);
 				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
 				else
 				{
@@ -7473,6 +7494,7 @@ class ChessPiece {
 			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!"); 
 		}//end of x for loop
 		System.out.println("DONE MAKING THE FULL MOVE!");
+		System.out.println();
 	}
 	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
 	{
@@ -7498,12 +7520,21 @@ class ChessPiece {
 	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean isshorthand, boolean iswhitedown,
 		boolean isofficial)
 	{
+		System.out.println("CALLING SHORT OR LONG HAND MOVE with: iswhitedown = " + iswhitedown);
 		if (isshorthand) makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
 		else makeLocalLongHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
 	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isofficial)
+	{
+		makeLocalMove(mvcmd, gid, isundo, true, iswhitedown, isofficial);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
+	{
+		makeLocalMove(mvcmd, gid, isundo, iswhitedown, false);
+	}
 	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo)
 	{
-		makeLocalMove(mvcmd, gid, isundo, true, WHITE_MOVES_DOWN_RANKS, false);
+		makeLocalMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
 	}
 	public static void makeLocalMove(String[] mvcmd, int gid)
 	{

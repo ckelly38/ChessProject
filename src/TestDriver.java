@@ -61,10 +61,10 @@ public class TestDriver {
     	//testPawning(gid, true);
     	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
-    	//setUpBoardWithKnightCheckingKing(gid, true);
+    	setUpBoardWithKnightCheckingKing(gid, true);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, true);
-    	setUpBoardWithTwoMoveCheckMateBlack(gid, true);
+    	//setUpBoardWithTwoMoveCheckMateBlack(gid, true);
     	//setUpBoardWithTwoMoveCheckMateWhite(gid, true);
     	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
     	//setUpBoardWhiteCheckmateAfterManyMoves(gid);
@@ -598,6 +598,29 @@ public class TestDriver {
     }
     
     
+    //DRIVER MAKE MOVE
+    
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown, String ptpval)
+    {
+    	ChessPiece.makeLocalShortHandMove(
+    		cp.genMoveToCommand(ChessPiece.convertStringLocToRowCol(elocstr, iswhitedown), ptpval), cp.getGameID(), false,
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	cp.getGame().makeUnofficialMoveOfficial();
+    }
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown)
+    {
+    	driverMakeMove(cp, elocstr, iswhitedown, "QUEEN");
+    }
+    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, String ptpval)
+    {
+    	ChessPiece cp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol(slocstr, iswhitedown), gid);
+    	driverMakeMove(cp, elocstr, iswhitedown, ptpval);
+    }
+    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown)
+    {
+    	driverMakeMove(gid, slocstr, elocstr, iswhitedown, "QUEEN");
+    }
+    
     //SET UP BOARD METHODS
     //SET UP BOARD PAWN PROMOTION
     
@@ -611,38 +634,27 @@ public class TestDriver {
     	//BPN AT B2 -> B4; OBPN AT H2 -> H4 -> H5 -> H6;
     	boolean iswhitedown = true;
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
+    	driverMakeMove(wpn, "A5", iswhitedown);
+    	//wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	//wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
+    	//wpn.setMoveCount(wpn.getMoveCount() + 1);
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
+    	driverMakeMove(bpn, "B4", iswhitedown);
+    	
     	ChessPiece.printBoard(gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("B4", iswhitedown), gid);
+    	driverMakeMove(wpn, "B4", iswhitedown);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
+    	
     	ChessPiece.printBoard(gid);
     	System.out.println(ChessPiece.isBoardValid(gid));
+    	
     	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("H2", iswhitedown), gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H4", iswhitedown));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H4", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B3", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B3", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H5", iswhitedown));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H5", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B2", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B2", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
+    	driverMakeMove(obpn, "H4", iswhitedown);
+    	driverMakeMove(wpn, "B3", iswhitedown);
+    	driverMakeMove(obpn, "H5", iswhitedown);
+    	driverMakeMove(wpn, "B2", iswhitedown);
+    	driverMakeMove(obpn, "H6", iswhitedown);
     	
     	boolean tstmovandpromote = false;
     	String mymvploc = null;
@@ -657,6 +669,12 @@ public class TestDriver {
     	
     	ChessPiece.printBoard(gid);
     	String[] mymv = wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol(mymvploc, iswhitedown), "QUEEN");
+    	
+    	System.out.println();
+    	System.out.println("INITIAL MOVE COMMAND NOW!");
+    	for (int x = 0; x < mymv.length; x++) System.out.println("mymv[" + x + "] = " + mymv[x]);
+    	System.out.println();
+    	
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
@@ -667,10 +685,20 @@ public class TestDriver {
     	if (tstlclmv)
     	{
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
+    		
     		String myscmd = "WPNB2TO" + mymvploc;
-    		String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
-    		ChessPiece.makeLocalMove(fullmv, gid, false);
+    		String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", iswhitedown, false);
+    		
+    		System.out.println();
+    		System.out.println("INITIAL FULL MOVE!");
+    		for (int x = 0; x < fullmv.length; x++) System.out.println("fullmv[" + x + "] = " + fullmv[x]);
+    		System.out.println("**ChessPiece.WHITE_MOVES_DOWN_RANKS = " + ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    		System.out.println();
+    		
+    		ChessPiece.makeLocalMove(fullmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
     		//ChessPiece.makeLocalMove(mymv, gid, false);
+    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.printBoard(gid);
     	}
@@ -685,22 +713,32 @@ public class TestDriver {
 	    	System.out.println("BLACK CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("BLACK", gid));
 	    	
 	    	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		ChessPiece.makeLocalMove(myunmv, gid, true);
+    		
+    		ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
+    		ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.printBoard(gid);
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    		ChessPiece.makeLocalMove(mymv, gid, false);
+    		
+    		ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.printBoard(gid);
     	}
     	else
     	{
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
+	    	
 	    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("A1", iswhitedown), gid);
+	    	
 	    	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
+	    	
 	    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A1", iswhitedown));
 	    	wpn.setMoveCount(wpn.getMoveCount() + 1);
+	    	
 	    	//test pawn promotion methods here
 	    	ChessPiece.printBoard(gid);
 	    	System.out.println("WHITE CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("WHITE", gid));
@@ -710,27 +748,26 @@ public class TestDriver {
 	    	ChessPiece.printBoard(gid);
     	}
     	
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G7", iswhitedown));
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("G7", iswhitedown), gid);
+    	
+    	driverMakeMove(obpn, "G7", iswhitedown);
+    	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G7", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("B1", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
+    	
+    	driverMakeMove(wpn, "B1", iswhitedown);
     	ChessPiece.printBoard(gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
+    	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	ChessPiece.removePieceAt(ChessPiece.convertStringLocToRowCol("H8", iswhitedown), gid);
+    	
+    	driverMakeMove(obpn, "H8", iswhitedown, "QUEEN");
+    	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("H8", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
+    	
     	//test pawn promotion methods here
     	ChessPiece.printBoard(gid);
     	System.out.println("WHITE CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("WHITE", gid));
     	System.out.println("BLACK CAN PROMOTE A PAWN: " + ChessPiece.canPawnForSideBePromoted("BLACK", gid));
-    	obpn.promotePawnTo("QUEEN");
+    	//obpn.promotePawnTo("QUEEN");
     	System.out.println(obpn);
     	ChessPiece.printBoard(gid);
     }
@@ -807,24 +844,20 @@ public class TestDriver {
     	//BPN AT B2 -> B4 -> B5; WPN AT A7 -> A5; WKT AT G8 -> H6 -> F5
     	boolean iswhitedown = true;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	//ChessPiece.makeLocalMove(wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown)), gid, false);
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	driverMakeMove(wkt, "H6", iswhitedown);
+    	//ChessPiece.makeLocalShortHandMove(
+    	//	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown)), gid, false,
+    	//	ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	//wkt.getGame(gid).makeUnofficialMoveOfficial();
+    	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B4", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F5", iswhitedown));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F5", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("B5", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("B5", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
+    	driverMakeMove(bpn, "B4", iswhitedown);
+    	driverMakeMove(wkt, "F5", iswhitedown);
+    	driverMakeMove(bpn, "B5", iswhitedown);
+    	
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
+    	driverMakeMove(wpn, "A5", iswhitedown);
+    	
     	ChessPiece.printBoard(gid);
     	//now test pawning methods here
     	System.out.println("WHITE CAN PAWN: " + ChessPiece.canSidePawn("WHITE", gid));
@@ -840,14 +873,20 @@ public class TestDriver {
     	String scmd = "BLPNB5TOA6";
     	String oscmd = "BPNB5TOA6";
     	String myscmd = oscmd;//scmd
-    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
-    	ChessPiece.makeLocalMove(fullmv, gid, false);
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", iswhitedown, false);
+    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	//bpn.pawnLeft();
     	ChessPiece.printBoard(gid);
-    	ChessPiece.makeLocalMove(myunmv, gid, true);
+    	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
+    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
     	ChessPiece.printBoard(gid);
+    	
+    	ChessPiece.getGame(gid).setUnofficialMove(mymv);
     	bpn.pawnLeft();
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	
     	ChessPiece.printBoard(gid);
     }
     public static void testPawningWithoutMovingThere(int gid)
@@ -929,28 +968,24 @@ public class TestDriver {
     	//WKT AT G8 -> H6; WPN AT E7 -> E6; WBP AT F8 -> C5
     	boolean iswhitedown = true;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	driverMakeMove(wkt, "H6", iswhitedown);
+    	//wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
+    	//wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
+    	//wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
+    	driverMakeMove(bpn, "A4", iswhitedown);
+    	
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7", iswhitedown), gid);
-    	wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E6", iswhitedown));
-    	wpn.setLoc(ChessPiece.convertStringLocToRowCol("E6", iswhitedown));
-    	wpn.setMoveCount(wpn.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
+    	driverMakeMove(wpn, "E6", iswhitedown);
+    	driverMakeMove(bpn, "A5", iswhitedown);
+    	
     	ChessPiece wbp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F8", iswhitedown), gid);
-    	wbp.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C5", iswhitedown));
-    	wbp.setLoc(ChessPiece.convertStringLocToRowCol("C5", iswhitedown));
-    	wbp.setMoveCount(wbp.getMoveCount() + 1);
+    	driverMakeMove(wbp, "C5", iswhitedown);
+    	
     	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G2", iswhitedown), gid);
-    	obpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("G4", iswhitedown));
-    	obpn.setLoc(ChessPiece.convertStringLocToRowCol("G4", iswhitedown));
-    	obpn.setMoveCount(obpn.getMoveCount() + 1);
+    	driverMakeMove(obpn, "G4", iswhitedown);
+    	
     	//actually test the castling information here now...
     	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", gid));
     	System.out.println("BLACK CAN CASTLE: " + ChessPiece.canSideCastle("BLACK", gid));
@@ -968,14 +1003,20 @@ public class TestDriver {
     	String scmd = "WRCE:";
     	String oscmd = "WKGE8TOG8";
     	String myscmd = oscmd;//scmd
-    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", false);
-    	ChessPiece.makeLocalMove(fullmv, gid, false);
+    	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", iswhitedown, false);
+    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	//ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
     	ChessPiece.printBoard(gid);
-    	ChessPiece.makeLocalMove(myunmv, gid, true);
+    	
+    	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
+    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    	
     	ChessPiece.printBoard(gid);
+    	ChessPiece.getGame(gid).setUnofficialMove(mymv);
     	ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
     }
     public static void setUpBoardForCastlingWhiteRightWithoutMovingThere(int gid)
@@ -1029,21 +1070,16 @@ public class TestDriver {
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8", iswhitedown), gid);
     	String[] mymv = wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	//wkt.setLoc(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
+    	//wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A4", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("E5", iswhitedown));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("E5", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	bpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	bpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
-    	bpn.setMoveCount(bpn.getMoveCount() + 1);
-    	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
-    	wkt.setLoc(ChessPiece.convertStringLocToRowCol("F3", iswhitedown));
-    	wkt.setMoveCount(wkt.getMoveCount() + 1);
+    	driverMakeMove(bpn, "A4", iswhitedown);
+    	driverMakeMove(wkt, "E5", iswhitedown);
+    	driverMakeMove(bpn, "A5", iswhitedown);
+    	driverMakeMove(wkt, "F3", iswhitedown);
     	ChessPiece.printBoard(gid);
     	//now test check and figure out how to get out of it
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
