@@ -61,7 +61,7 @@ public class TestDriver {
     	//testPawning(gid, true);
     	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
-    	setUpBoardWithKnightCheckingKing(gid, true);
+    	//setUpBoardWithKnightCheckingKing(gid, true);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, true);
     	//setUpBoardWithTwoMoveCheckMateBlack(gid, true);
@@ -72,6 +72,7 @@ public class TestDriver {
     	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
     	//setUpBoardWithBlockedPawnsAndBishops(gid);
     	//setUpBoardWhiteStalemateAfterManyMoves(gid);
+    	setUpBoardWhiteStalemateKingAndQueenVsKing(gid);
     	//AUTO STALEMATES
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
@@ -1906,5 +1907,64 @@ public class TestDriver {
     	testKingCanMoveToLocs(gid, 0, 6, "BLACK", ignorelist, addpcs);
     	//testBishopCanMoveToLocs(gid, r, c, "BLACK", ignorelist, addpcs);
     	//testBishopCanMoveToLocs(gid, r, c, "WHITE", ignorelist, addpcs);
+    }
+    
+    public static void setUpBoardWhiteStalemateKingAndQueenVsKing(int gid)
+    {
+    	//black king on a corner
+    	//white king diagnal 2 spots away from it
+    	//white queen needs to move to a position
+    	ArrayList<ChessPiece> mypcs = new ArrayList<ChessPiece>();
+    	mypcs.add(new ChessPiece("KING", "BLACK", 7, 0, gid, 10, false));
+    	mypcs.add(new ChessPiece("KING", "WHITE", 5, 2, gid, 10, false));
+    	mypcs.add(new ChessPiece("QUEEN", "WHITE", 6, 3, gid, 10, false));
+    	ChessPiece.setUpBoard(gid, mypcs);
+    	ChessPiece.printBoard(gid);
+    	//now program the move(s)
+    	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	ChessPiece wqn = ChessPiece.getPieceAt(6, 3, gid);//D7
+    	
+    	String[] mymv = wqn.genMoveToCommand(6, 2);
+    	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
+    	//String[] myounmv = ChessPiece.genFullMoveCommandFromDisplayedCommand("UNDO", gid);
+    	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
+    	//ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
+    	
+    	ChessPiece.makeLocalShortHandMove(mymv, gid, false, iswhitedown);//C7
+    	//ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
+    	//now print the results of stalemate and checkmate
+    	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
+    	ChessPiece bkg = ChessPiece.getCurrentSideKing("BLACK", gid);
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(null, null, gid));
+    	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(null, null, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(null, null, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(null, null, gid));
+    	//undo it
+    	String[] myounmv = ChessPiece.genFullMoveCommandFromDisplayedCommand("UNDO", gid);
+    	//System.out.println("MY UNDO MOVE:");
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
+    	//System.out.println("MY O UNDO MOVE:");
+    	ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);
+    	
+    	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
+    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    	ChessPiece.printBoard(gid);
+    	//make the other move
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
+    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.printBoard(gid);
+    	//check the results
+    	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
+    	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
+    	System.out.println("WHITE IS IN CHECKMATE: " + ChessPiece.inCheckmateWhite(null, null, gid));
+    	System.out.println("BLACK IS IN CHECKMATE: " + ChessPiece.inCheckmateBlack(null, null, gid));
+    	System.out.println("WHITE IN STALEMATE: " + ChessPiece.isStalemateWhite(null, null, gid));
+    	System.out.println("BLACK IN STALEMATE: " + ChessPiece.isStalemateBlack(null, null, gid));
     }
 }

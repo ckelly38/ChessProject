@@ -84,7 +84,7 @@ class ChessPiece {
 	
 	//NORMAL BOARD SETUP METHOD
     
-    public static void setUpBoard(int gid)
+    public static void setUpBoard(int gid, boolean pawnsonly)
     {
     	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
 		//else;//do nothing safe to proceed
@@ -110,32 +110,77 @@ class ChessPiece {
 	    		ChessPiece cp = new ChessPiece("PAWN", clr, r, c, gid);
 	    		//cps.add(cp);
 	    	}
-	    	int orw = -1;
-	    	if (clr.equals("WHITE")) orw = 7;
-	    	else orw = 0;
-	    	String[] mvtypes = ChessPiece.getValidTypes();
-	    	for (int k = 0; k < mvtypes.length; k++)
+	    	if (pawnsonly);
+	    	else
 	    	{
-	    		if (mvtypes[k].equals("PAWN") || mvtypes[k].equals("ROOK")) continue;
-	    		else
-	    		{
-	    			System.out.println("mvtypes[" + k + "] = " + mvtypes[k]);
-	    			boolean uselft = true;
-	    			for (int i = 0; i < 2; i++)
-	    			{
-	    				if (i == 0);
-	    				else uselft = false;
-	    				int nwcl = ChessPiece.getSetUpColForType(mvtypes[k], uselft);
-	    				//System.out.println("i = " + i);
-	    				//System.out.println("CREATED NEW PIECE AT (" + orw + ", " + nwcl + ")");
-	    				ChessPiece ocp = new ChessPiece(mvtypes[k], clr, orw, nwcl, gid);
-	    				//cps.add(ocp);
-	    				if (mvtypes[k].equals("KING") || mvtypes[k].equals("QUEEN")) break;
-	    			}//end of i for loop
-	    		}
-	    	}//end of k for loop
+	    		int orw = -1;
+		    	if (clr.equals("WHITE")) orw = 7;
+		    	else orw = 0;
+		    	String[] mvtypes = ChessPiece.getValidTypes();
+		    	for (int k = 0; k < mvtypes.length; k++)
+		    	{
+		    		if (mvtypes[k].equals("PAWN") || mvtypes[k].equals("ROOK")) continue;
+		    		else
+		    		{
+		    			System.out.println("mvtypes[" + k + "] = " + mvtypes[k]);
+		    			boolean uselft = true;
+		    			for (int i = 0; i < 2; i++)
+		    			{
+		    				if (i == 0);
+		    				else uselft = false;
+		    				int nwcl = ChessPiece.getSetUpColForType(mvtypes[k], uselft);
+		    				//System.out.println("i = " + i);
+		    				//System.out.println("CREATED NEW PIECE AT (" + orw + ", " + nwcl + ")");
+		    				ChessPiece ocp = new ChessPiece(mvtypes[k], clr, orw, nwcl, gid);
+		    				//cps.add(ocp);
+		    				if (mvtypes[k].equals("KING") || mvtypes[k].equals("QUEEN")) break;
+		    			}//end of i for loop
+		    		}
+		    	}//end of k for loop
+	    	}
     	}//end of x for loop
     }
+	public static void setUpBoard(int gid)
+	{
+		setUpBoard(gid, false);
+	}
+	
+	public static void clearBoard(int gid)
+	{
+		ArrayList<ChessPiece> allpcs = getAllPiecesWithGameID(gid);
+		int numpcs = getNumItemsInList(allpcs);
+		if (numpcs < 1);
+		else
+		{
+			for (int x = 0; x < allpcs.size(); x++)
+			{
+				removePieceAt(allpcs.get(x).getRow(), allpcs.get(x).getCol(), gid);
+			}
+			for (int x = 0; x < allpcs.size(); x++) allpcs.set(x, null);
+			allpcs.clear();
+			allpcs = null;
+		}
+	}
+	
+	public static void setUpBoard(int gid, ArrayList<ChessPiece> addpcs)
+	{
+		//clear the old board
+		//now make copies of those add pcs
+		//this is the new board
+		int numpcs = getNumItemsInList(addpcs);
+		if (numpcs < 1);//do nothing
+		else
+		{
+			clearBoard(gid);
+			
+			ArrayList<ChessPiece> mylist = new ArrayList<ChessPiece>();
+			for (int x = 0; x < numpcs; x++)
+			{
+				mylist.add(new ChessPiece(addpcs.get(x).getType(), addpcs.get(x).getColor(),
+					addpcs.get(x).getRow(), addpcs.get(x).getCol(), gid, addpcs.get(x).getMoveCount(), true));
+			}
+		}
+	}
 	
 	//PRINT BOARD METHODS
     
@@ -6771,9 +6816,20 @@ class ChessPiece {
 		//+BPN??W?MS
 		//0123456789
 		
+		System.out.println("usrcmd = " + usrcmd);
+		if (usrcmd.equals("UNDO"))
+		{
+			//get the unofficial move
+			//if unofficial move is empty we want to take the last official move and make it unofficial
+			//then take the unofficial move and generate the command to undo it...
+			//then we need to generate the full undo commands
+			//String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
+			return getGame(gid).genCommandToUndoLastMadeMove();
+		}
+		//else;//do nothing safe to proceed
+		
 		String cmdtp = getTypeOfMoveCommand(usrcmd);
 		System.out.println("cmdtp = " + cmdtp);
-		System.out.println("usrcmd = " + usrcmd);
 		
 		ArrayList<ChessPiece> allpcs = combineBoardAddAndIgnoreLists(ignorelist, addpcs, gid);
 		if (cmdtp.equals("HINTS") || cmdtp.equals("CREATE") || cmdtp.equals("DELETE") || cmdtp.equals("PROMOTION"))

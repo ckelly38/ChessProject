@@ -9,6 +9,10 @@ class ChessGame {
 	//private String[] LAST_REDONE_MOVE = null;
 	private ArrayList<String[]> OFFICIAL_MOVES = null;
 	private String[] UNOFFICIAL_MOVE = null;
+	private boolean wresigned = false;
+	private boolean bresigned = false;
+	private boolean whitewins = false;
+	private boolean blackwins = false;
 	public static ArrayList<ChessGame> all = new ArrayList<ChessGame>();
 	
 	public static String[][] convertStringArrayToMultidim(String[] sarr)
@@ -301,32 +305,76 @@ class ChessGame {
 		}
 		else
 		{
-			String[] mycp = new String[mymvcmd.length];
-			for (int n = 0; n < mymvcmd.length; n++) mycp[n] = "" + mymvcmd[n];
-			
-			if (OFFICIAL_MOVES == null) OFFICIAL_MOVES = new ArrayList<String[]>();
-			//else;//do nothing
-			
-			OFFICIAL_MOVES.add(mycp);
-			colorsForMovesAlternate();
+			if (isCompleted())
+			{
+				throw new IllegalStateException("cannot add the official because the game is already completed!");
+			}
+			else
+			{
+				String[] mycp = new String[mymvcmd.length];
+				for (int n = 0; n < mymvcmd.length; n++) mycp[n] = "" + mymvcmd[n];
+				
+				if (OFFICIAL_MOVES == null) OFFICIAL_MOVES = new ArrayList<String[]>();
+				//else;//do nothing
+				
+				OFFICIAL_MOVES.add(mycp);
+				colorsForMovesAlternate();
+			}
 		}
 	}
 	
 	public void makeUnofficialMoveOfficial()
 	{
-		addOfficialMove(UNOFFICIAL_MOVE);
-		setUnofficialMove(null);
+		if (isCompleted())
+		{
+			throw new IllegalStateException("cannot make the unofficial move official because the game " +
+				"is already completed!");
+		}
+		else
+		{
+			addOfficialMove(UNOFFICIAL_MOVE);
+			setUnofficialMove(null);
+		}
 	}
 	
 	public void makeLastOfficialMoveUnofficial()
 	{
+		//what to do if isCompleted is true?
+		//do we allow this to function?
+		//if a move ends the game in stalemate, but there was a better move to make for instance checkmate,
+		//will it be allowed to undo the position that got it in stalemate and put it in checkmate instead?
+		//if (isCompleted())
+		
 		if (UNOFFICIAL_MOVE == null)
 		{
 			if (OFFICIAL_MOVES == null) throw new IllegalStateException("THERE MUST BE AT LEAST ONE OFFICIAL MOVE!");
-			else if (0 < OFFICIAL_MOVES.size()) setUnofficialMove(OFFICIAL_MOVES.get(OFFICIAL_MOVES.size() - 1));
+			else if (0 < OFFICIAL_MOVES.size())
+			{
+				setUnofficialMove(OFFICIAL_MOVES.get(OFFICIAL_MOVES.size() - 1));
+				OFFICIAL_MOVES.set(OFFICIAL_MOVES.size() - 1, null);
+				OFFICIAL_MOVES.remove(OFFICIAL_MOVES.size() - 1);
+			}
 			else throw new IllegalStateException("THERE MUST BE AT LEAST ONE OFFICIAL MOVE!");
 		}
 		else throw new IllegalStateException("THE UNOFFICIAL MOVE MUST BE EMPTY!");
+	}
+	
+	public String[] genCommandToUndoLastMadeMove()
+	{
+		//take the unofficial move
+		//UNOFFICIAL_MOVE
+		//if it is empty, then get the last official command
+		//makeLastOfficialMoveUnofficial()
+		//then get the UNOFFICIAL_MOVE
+		//then generate the undo command
+		String[] mymv = null;
+		if (UNOFFICIAL_MOVE == null)
+		{
+			if (OFFICIAL_MOVES == null || OFFICIAL_MOVES.size() < 1) throw new IllegalStateException("No move found!");
+			else mymv = OFFICIAL_MOVES.get(OFFICIAL_MOVES.size() - 1);
+		}
+		else mymv = UNOFFICIAL_MOVE;
+		return ChessPiece.genUndoMoveToShortHandCommand(mymv);
 	}
 	
 	public void stepForward()
@@ -396,5 +444,30 @@ class ChessGame {
 		int numofmvs = ChessPiece.getNumItemsInList(this.OFFICIAL_MOVES);
 		if (numofmvs < 1);
 		else for (int x = 0; x < numofmvs; x++) this.stepForward();
+	}
+	
+	public void setColorWins(String clrval, boolean nwval)
+	{
+		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("color cannot be null or empty!");
+		else if (clrval.equals("WHITE")) whitewins = nwval;
+		else if (clrval.equals("BLACK")) blackwins = nwval;
+		else throw new IllegalStateException("invalid color (" + clrval + ") found and used here!");
+		completed = true;
+		
+		//make the command
+		//add official move then
+		//execute it in the game class
+		//mark game as completed
+		//communicate with the server and tell them that the game is completed and send all the data back
+	}
+	
+	public void setColorResigns(String clrval, boolean nwval)
+	{
+		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("color cannot be null or empty!");
+		else if (clrval.equals("WHITE")) wresigned = nwval;
+		else if (clrval.equals("BLACK")) bresigned = nwval;
+		else throw new IllegalStateException("invalid color (" + clrval + ") found and used here!");
+		if (nwval) setColorWins(ChessPiece.getOppositeColor(clrval), true);
+		//else;//do nothing no resignation made
 	}
 }
