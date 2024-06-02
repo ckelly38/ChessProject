@@ -1926,10 +1926,10 @@ public class TestDriver {
     	
     	String[] mymv = wqn.genMoveToCommand(6, 2);
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
-    	//String[] myounmv = ChessPiece.genFullMoveCommandFromDisplayedCommand("UNDO", gid);
+    	//String[] myounmv = ChessPiece.genFullMoveCommandFromDisplayedCommand("UNDO", gid);//error no move to pull from
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
-    	//ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);
+    	//ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);//error no move to pull from
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
     	
     	ChessPiece.makeLocalShortHandMove(mymv, gid, false, iswhitedown);//C7
@@ -1955,6 +1955,25 @@ public class TestDriver {
     	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
     	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
     	ChessPiece.printBoard(gid);
+    	
+    	boolean tstrdoundocmds = true;
+    	if (tstrdoundocmds)
+    	{
+    		System.out.println();
+    		System.out.println("TEST REDO COMMAND:");
+	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToRedoLastUndoneMove(), gid);
+	    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+	    	ChessPiece.printBoard(gid);
+	    	System.out.println();
+	    	
+	    	System.out.println("TEST UNDO COMMAND:");
+	    	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
+	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToUndoLastMadeMove(), gid, true, iswhitedown);
+	    	ChessPiece.printBoard(gid);
+	    	System.out.println();
+    	}
+    	//else;//do nothing
+    	
     	//make the other move
     	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();

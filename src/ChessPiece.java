@@ -5715,6 +5715,8 @@ class ChessPiece {
 	
 	//GEN-MOVETO METHODS
 	
+	//INDIVIDUAL MOVE TO COMMANDS (MOVETO, CASTLING, PAWNING, CREATE OR DELETE, HINTS, PROMOTION)
+	
 	public static String genLongOrShortHandDeleteOrCreateCommand(String clr, String tp, int r, int c, int mvscnt,
 		boolean usecreate, boolean useshort)
 	{
@@ -5932,6 +5934,8 @@ class ChessPiece {
 		return getShortHandMoves(mvcmd);
 	}
 	
+	//MAIN HINT METHODS SIMILAR TO GEN MOVE TO
+	
 	//result array will only have one item on it
 	public static String[] genHintsCommandForPiece(String clr, String tp, int crval, int ccval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -5998,6 +6002,8 @@ class ChessPiece {
 		return genHintsCommandForSide(getColor());
 	}
 	
+	//COMMAND TYPE METHODS
+	
 	public static String getTypeOfMoveCommand(String usrcmd)
 	{
 		if (usrcmd == null || usrcmd.length() < 2)
@@ -6046,6 +6052,133 @@ class ChessPiece {
 	{
 		return itemIsOnGivenList(cmdtp, getMoveCommandTypes());
 	}
+	
+	public static String[] getSideColorOrTypesForMoves(String[][] mymvs, boolean usecolor)
+	{
+		//SHORT HAND EXAMPLES
+		//WPNA5TOA6 (MOVE)
+		//-BPNA6W2MS (CREATE OR DELETE)
+		//TBPNH8INTOQN (PROMOTION)
+		//WLCE: (CASTLING)
+		//WLPNB4TOA3 (PAWNING)
+		//WHINTS (HINTS)
+		//BPNH8HINTS (HINTS)
+		
+		//- FOR DELETE
+		//+ FOR CREATE
+		
+		if (mymvs == null || mymvs.length < 1) return null;
+		else
+		{
+			String[] myclrs = new String[mymvs.length];
+			String[] mytps = new String[mymvs.length];
+			for (int n = 0; n < mymvs.length; n++)
+			{
+				mytps[n] = null;
+				myclrs[n] = null;
+				String[] mytpsforcmd = new String[mymvs[n].length];
+				for (int x = 0; x < mymvs[n].length; x++) mytpsforcmd[x] = getTypeOfMoveCommand(mymvs[n][x]);
+				boolean addedtp = false;
+				int pci = -1;
+				if (mytpsforcmd == null || mytpsforcmd.length < 1 || 3 < mytpsforcmd.length)
+				{
+					throw new IllegalStateException("the type was an illegal length!");
+				}
+				else
+				{
+					if (mytpsforcmd.length == 1)
+					{
+						mytps[n] = "" + mytpsforcmd[0];
+						pci = 0;
+						addedtp = true;
+					}
+					else
+					{
+						for (int x = 0; x < mytpsforcmd.length; x++)
+						{
+							if (mytpsforcmd[x].equals("PAWNING") || mytpsforcmd[x].equals("CASTLEING") ||
+								mytpsforcmd[x].equals("HINTS"))
+							{
+								mytps[n] = "" + mytpsforcmd[x];
+								pci = x;
+								addedtp = true;
+								break;
+							}
+							//else;//do nothing
+						}
+					}
+				}
+				
+				int mvi = -1;
+				if (addedtp) mvi = pci;
+				else
+				{
+					//GIVEN TYPES OF STEPS FOR ONE MOVE COMMAND: DELETE MOVE PROMOTE -> WHAT IS THE OVERALL TYPE?
+					//IT WILL NEVER BE DELETE. WE WILL USE PROMOTION OVER MOVE.
+					for (int x = 0; x < mytpsforcmd.length; x++)
+					{
+						//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
+						if (mytpsforcmd[x].equals("PROMOTION"))
+						{
+							mytps[n] = "PROMOTION";
+							addedtp = true;
+							mvi = x;
+							break;
+						}
+						//else;//do nothing
+					}
+					
+					if (addedtp);
+					else
+					{
+						for (int x = 0; x < mytpsforcmd.length; x++)
+						{
+							//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
+							if (mytpsforcmd[x].equals("MOVE"))
+							{
+								mytps[n] = "MOVE";
+								addedtp = true;
+								mvi = x;
+								break;
+							}
+							//else;//do nothing
+						}
+						
+						if (addedtp);
+						else throw new IllegalStateException("AN INVALID TYPE OR INVALID COMMAND WAS FOUND HERE!");
+					}
+				}
+				
+				if (mytps[n] == null || mytps[n].length() < 1)
+				{
+					throw new IllegalStateException("the type must have already been set!");
+				}
+				else
+				{
+					//System.out.println("mytps[" + n + "] = " + mytps[n]);
+					String[] clrzeroimytps = {"CASTLEING", "PAWNING", "HINTS", "MOVE"};
+					int clrci = -1;
+					if (itemIsOnGivenList(mytps[n], clrzeroimytps)) clrci = 0;
+					else clrci = 1;
+					myclrs[n] = getLongHandColor("" + mymvs[n][mvi].charAt(clrci));
+					//System.out.println("myclrs[" + n + "] = " + myclrs[n]);
+				}
+			}//end of n for loop
+			if (usecolor) return myclrs;
+			else return mytps;
+		}
+	}
+	public static String[] getSideColorsForMoves(String[][] mymvs)
+	{
+		return getSideColorOrTypesForMoves(mymvs, true);
+	}
+	public static String[] getSideTypesForMoves(String[][] mymvs)
+	{
+		return getSideColorOrTypesForMoves(mymvs, false);
+	}
+	
+	
+	//MAIN GEN MOVE TO COMMAND METHODS
 	
 	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv, String ptpval,
@@ -6355,6 +6488,9 @@ class ChessPiece {
 		return genMoveToCommand(nrval, ncval, false);
 	}
 	
+	
+	//UNDO OR REDO COMMANDS
+	
 	public static String genUndoMoveToCommandForMoveCommand(String mvcmdonly, boolean redoit)
 	{
 		if (mvcmdonly == null || mvcmdonly.length() < 9 || 10 < mvcmdonly.length())
@@ -6648,130 +6784,11 @@ class ChessPiece {
 		return genUndoMoveToShortHandCommand(mvcmd, true, true);
 	}
 	
-	public static String[] getSideColorOrTypesForMoves(String[][] mymvs, boolean usecolor)
-	{
-		//SHORT HAND EXAMPLES
-		//WPNA5TOA6 (MOVE)
-		//-BPNA6W2MS (CREATE OR DELETE)
-		//TBPNH8INTOQN (PROMOTION)
-		//WLCE: (CASTLING)
-		//WLPNB4TOA3 (PAWNING)
-		//WHINTS (HINTS)
-		//BPNH8HINTS (HINTS)
-		
-		//- FOR DELETE
-		//+ FOR CREATE
-		
-		if (mymvs == null || mymvs.length < 1) return null;
-		else
-		{
-			String[] myclrs = new String[mymvs.length];
-			String[] mytps = new String[mymvs.length];
-			for (int n = 0; n < mymvs.length; n++)
-			{
-				mytps[n] = null;
-				myclrs[n] = null;
-				String[] mytpsforcmd = new String[mymvs[n].length];
-				for (int x = 0; x < mymvs[n].length; x++) mytpsforcmd[x] = getTypeOfMoveCommand(mymvs[n][x]);
-				boolean addedtp = false;
-				int pci = -1;
-				if (mytpsforcmd == null || mytpsforcmd.length < 1 || 3 < mytpsforcmd.length)
-				{
-					throw new IllegalStateException("the type was an illegal length!");
-				}
-				else
-				{
-					if (mytpsforcmd.length == 1)
-					{
-						mytps[n] = "" + mytpsforcmd[0];
-						pci = 0;
-						addedtp = true;
-					}
-					else
-					{
-						for (int x = 0; x < mytpsforcmd.length; x++)
-						{
-							if (mytpsforcmd[x].equals("PAWNING") || mytpsforcmd[x].equals("CASTLEING") ||
-								mytpsforcmd[x].equals("HINTS"))
-							{
-								mytps[n] = "" + mytpsforcmd[x];
-								pci = x;
-								addedtp = true;
-								break;
-							}
-							//else;//do nothing
-						}
-					}
-				}
-				
-				int mvi = -1;
-				if (addedtp) mvi = pci;
-				else
-				{
-					//GIVEN TYPES OF STEPS FOR ONE MOVE COMMAND: DELETE MOVE PROMOTE -> WHAT IS THE OVERALL TYPE?
-					//IT WILL NEVER BE DELETE. WE WILL USE PROMOTION OVER MOVE.
-					for (int x = 0; x < mytpsforcmd.length; x++)
-					{
-						//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
-						if (mytpsforcmd[x].equals("PROMOTION"))
-						{
-							mytps[n] = "PROMOTION";
-							addedtp = true;
-							mvi = x;
-							break;
-						}
-						//else;//do nothing
-					}
-					
-					if (addedtp);
-					else
-					{
-						for (int x = 0; x < mytpsforcmd.length; x++)
-						{
-							//System.out.println("mytpsforcmd[" + x + "] = " + mytpsforcmd[x]);
-							if (mytpsforcmd[x].equals("MOVE"))
-							{
-								mytps[n] = "MOVE";
-								addedtp = true;
-								mvi = x;
-								break;
-							}
-							//else;//do nothing
-						}
-						
-						if (addedtp);
-						else throw new IllegalStateException("AN INVALID TYPE OR INVALID COMMAND WAS FOUND HERE!");
-					}
-				}
-				
-				if (mytps[n] == null || mytps[n].length() < 1)
-				{
-					throw new IllegalStateException("the type must have already been set!");
-				}
-				else
-				{
-					//System.out.println("mytps[" + n + "] = " + mytps[n]);
-					String[] clrzeroimytps = {"CASTLEING", "PAWNING", "HINTS", "MOVE"};
-					int clrci = -1;
-					if (itemIsOnGivenList(mytps[n], clrzeroimytps)) clrci = 0;
-					else clrci = 1;
-					myclrs[n] = getLongHandColor("" + mymvs[n][mvi].charAt(clrci));
-					//System.out.println("myclrs[" + n + "] = " + myclrs[n]);
-				}
-			}//end of n for loop
-			if (usecolor) return myclrs;
-			else return mytps;
-		}
-	}
-	public static String[] getSideColorsForMoves(String[][] mymvs)
-	{
-		return getSideColorOrTypesForMoves(mymvs, true);
-	}
-	public static String[] getSideTypesForMoves(String[][] mymvs)
-	{
-		return getSideColorOrTypesForMoves(mymvs, false);
-	}
 	
+	//GEN FULL MOVE COMMAND FROM DISPLAYED COMMAND METHODS
+	
+	//TAKES A SIMPLIFIED VERSION OF THE COMMAND AND FULLY EXPANDS IT TO INCLUDE ALL THE STEPS
+	//RETURNS SHORTHAND VERSION ONLY
 	
 	//ONLY CONVERTS COMMANDS IN SHORT HAND NOTATION
 	public static String[] genFullMoveCommandFromDisplayedCommand(String usrcmd, int gid, String ptpval,
@@ -6825,6 +6842,10 @@ class ChessPiece {
 			//then we need to generate the full undo commands
 			//String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
 			return getGame(gid).genCommandToUndoLastMadeMove();
+		}
+		else if (usrcmd.equals("REDO"))
+		{
+			return getGame(gid).genCommandToRedoLastUndoneMove();
 		}
 		//else;//do nothing safe to proceed
 		
@@ -7160,441 +7181,6 @@ class ChessPiece {
 	public String[] genFullMoveCommandFromDisplayedCommand(String usrcmd)
 	{
 		return genFullMoveCommandFromDisplayedCommand(usrcmd, "QUEEN");
-	}
-	
-	//EXECUTES THE COMMANDS ABOVE ON THE LOCAL BOARD ONLY
-	//ONLY EXECUTES COMMANDS IN SHORT HAND NOTATION
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
-		boolean isofficial)
-	{
-		if (mvcmd == null || mvcmd.length < 1) return;
-		//else;//do nothing
-		
-		//CASTLING NOTATION
-		//WHITE LEFT CASTLE *** USE THIS NOTATION BECAUSE WE CAN GENERATE THE OTHERS
-		//WLCE: (DISPLAY TO USER ONLY)
-		//WCEA8TOD8
-		//WKGE8TOC8
-		//
-		//PAWNING NOTATION
-		//WHITE LEFT PAWN at: current_loc to: next_loc
-		//-BPN??W?MS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
-		//WLPNB4TOA3 (DISPLAY TO THE USER)
-		//0123456789
-		//
-		//PROMOTION NOTATION:
-		//TURN COLOR PAWN at: STRINGLOC into: OTHERTYPE
-		//TURN BLACK PAWN at: H8 into: QUEEN
-		//TBPNH8INTOQN
-		//012345678901
-		//0         1
-		//
-		//SHORT HAND MOVE TO EXAMPLES
-		//WHITE PAWN at: A5 to: A6
-		//WPNA5TOA6
-		//WCEA5TOA6
-		//WQNA5TOA6
-		//WKGA5TOA6
-		//WKTA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
-		//WBPA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
-		//012345678
-		//
-		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
-		//SHORT HAND EXAMPLES
-		//-BPNA6W2MS (MUST BE DONE FIRST)
-		//WCEA5TOA6 (DISPLAY TO THE USER)
-		//
-		//- FOR DELETE
-		//+ FOR CREATE
-		//
-		//TO UNDO DIFFERENT TYPES OF COMMANDS:
-		//
-		//FOR A DELETE COMMAND:
-		//-BPN??W?MS (BEFORE UNDO)
-		//+BPN??W?MS (AFTER UNDO) (THE ONLY DIFFERENCE IS INSTEAD OF A - WE NOW HAVE A +)
-		//0123456789
-		//
-		//DELETE <COLOR> <TYPE> at: STRINGLOC with <MOVE_COUNT> move(s)!
-		//CREATE <COLOR> <TYPE> at: STRINGLOC with <MOVE_COUNT> move(s)!
-		//
-		//FOR A MOVETO COMMAND:
-		//WCEA5TOA6
-		//   old new
-		//UNDOWCEA6TOA5 (and decrement the move count)
-		//       new old
-		//
-		//<COLOR> <TYPE> at: STRINGLOC to: STRINGLOC
-		//
-		//TO UNDO CASTLING:
-		//ADD UNDO IN FRONT OF ALL OF IT
-		//THEN SWAP THE LOCATIONS ON THE MOVES ONLY DECREMENT KING MOVE COUNT
-		//UNDOWLCE: (DISPLAY TO USER ONLY)
-		//UNDOWCEA8TOD8
-		//UNDOWKGE8TOC8 (decrements the move count for the king only because we only incremented that for the king)
-		//
-		//TO UNDO PAWNING OR A CAPTURE:
-		//FIRST SWAP THE TWO PARTS OF THE MOVE
-		//ADD UNDO TO THE MOVE ITSELF
-		//FOR THE DELETE CHANGE IT TO CREATE OR - TO + AND VISE-VERSAS IF APPLICABLE
-		//
-		//UNDOWLPNA3TOB4 (decrements the move count)
-		//+BPN??W?MS
-		//
-		//TO UNDO A CAPTURE:
-		//
-		//UNDO THE MOVE FIRST:
-		//UNDOWCEA6TOA5 (decrements the move count)
-		//+BPN??W?MS
-		
-		System.out.println();
-		System.out.println("BEGIN EXECUTING THE MOVE COMMAND NOW:");
-		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
-		System.out.println();
-		System.out.println("isundo = " + isundo);
-		
-		if (isundo)
-		{
-			String[] nwmvs = new String[mvcmd.length];
-			boolean fndundo = false;
-			for (int x = 0; x < mvcmd.length; x++)
-			{
-				if (mvcmd[x].indexOf("UNDO") == 0)
-				{
-					nwmvs[x] = mvcmd[x].substring(4);
-					if (fndundo);
-					else fndundo = true;
-				}
-				else nwmvs[x] = "" + mvcmd[x];
-			}
-			System.out.println("fndundo = " + fndundo);
-			
-			if (fndundo)
-			{
-				//clear the unofficial move
-				if (isofficial);
-				else getGame(gid).setUnofficialMove(null);
-				
-				makeLocalMove(nwmvs, gid, isundo);
-				return;
-			}
-			//else;//do nothing safe to proceed below
-		}
-		else
-		{
-			//set this as the new unofficial move
-			if (isofficial);
-			else getGame(gid).setUnofficialMove(mvcmd);
-		}
-		
-		String[] tpcmds = new String[mvcmd.length];
-		boolean usecastling = false;
-		boolean usepawning = false;
-		boolean usehintsforside = false;
-		int pci = -1;
-		for (int x = 0; x < mvcmd.length; x++)
-		{
-			if (mvcmd[x].charAt(0) == '+') tpcmds[x] = "CREATE";
-			else if (mvcmd[x].charAt(0) == '-') tpcmds[x] = "DELETE";
-			else if (mvcmd[x].charAt(1) == 'L' || mvcmd[x].charAt(1) == 'R')
-			{
-				if (mvcmd[x].charAt(2) == 'P')
-				{
-					tpcmds[x] = "PAWNING";
-					usepawning = true;
-					pci = x;
-				}
-				else
-				{
-					tpcmds[x] = "CASTLEING";
-					usecastling = true;
-					pci = x;
-				}
-			}
-			else if (mvcmd[x].charAt(0) == 'T') tpcmds[x] = "PROMOTION";
-			else if (mvcmd[x].indexOf("TO") == 5) tpcmds[x] = "MOVE";
-			else if (mvcmd[x].indexOf("HINTS") == 5 || mvcmd[x].indexOf("HINTS") == 1)
-			{
-				tpcmds[x] = "HINTS";
-				usehintsforside = (mvcmd[x].indexOf("HINTS") == 1);
-			}
-			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!");
-			System.out.println("tpcmds[" + x + "] = " + tpcmds[x]);
-		}//end of x for loop
-		System.out.println("usecastling = " + usecastling);
-		System.out.println("usepawning = " + usepawning);
-		System.out.println("usehintsforside = " + usehintsforside);
-		
-		if (usecastling || usepawning)
-		{
-			if (pci < 0 || mvcmd.length - 1 < pci)
-			{
-				throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
-			}
-			//else;//do nothing
-		}
-		else
-		{
-			if (pci < 0 || mvcmd.length - 1 < pci);
-			else throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
-		}
-		
-		//get the direction
-		boolean useleftforcandp = false;
-		if (usecastling || usepawning) useleftforcandp = (mvcmd[pci].charAt(1) == 'L');
-		//else;//do nothing
-		System.out.println("useleftforcandp = " + useleftforcandp);
-		
-		ArrayList<ChessPiece> mpclist = getAllPiecesWithGameID(gid);
-		if (usecastling || usepawning)
-		{
-			if (usepawning)
-			{
-				//needs to be called on the pawn
-				//extract the location of that pawn
-				//get the piece
-				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[pci].substring(4, 6), iswhitedown), mpclist);
-				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
-				else
-				{
-					if (isundo)
-					{
-						pn.setLoc(convertStringLocToRowCol(mvcmd[pci].substring(8), iswhitedown));
-						pn.decrementMoveCount();
-						System.out.println("MOVED THE PAWN BACK!");
-						ChessPiece cp = new ChessPiece(getLongHandType(mvcmd[pci + 1].substring(2, 4)),
-							getLongHandColor("" + mvcmd[pci + 1].charAt(1)),
-							convertStringLocToRowCol(mvcmd[pci + 1].substring(4, 6), iswhitedown), gid,
-							Integer.parseInt(mvcmd[pci + 1].substring(7, mvcmd[pci + 1].indexOf("MS"))), true);
-						System.out.println("CREATED: " + cp + "!");
-						int prevrw = -1;
-						if (cp.getColor().equals("WHITE")) prevrw = 6;
-						else prevrw = 1;
-						String mymvcmd = getShortHandColor(cp.getColor()) + getShortHandType(cp.getType()) +
-							convertRowColToStringLoc(prevrw, cp.getCol(), WHITE_MOVES_DOWN_RANKS) + "TO" +
-							convertRowColToStringLoc(cp.getRow(), cp.getCol(), WHITE_MOVES_DOWN_RANKS);
-						System.out.println("UNDOPAWNING: mymvcmd = " + mymvcmd);
-						getGame(gid).setLastSetLocMove(mymvcmd);
-					}
-					else pn.pawnLeftOrRight(useleftforcandp, mpclist, false);
-				}
-			}
-			else
-			{
-				//castling
-				//extract the color
-				if (isundo)
-				{
-					ChessPiece mkg = getCurrentSideKing(getLongHandColor("" + mvcmd[pci].charAt(0)), mpclist);
-					if (mkg == null) throw new IllegalStateException("the king must be found!");
-					//else;//do nothing
-					int[] skgloc = convertStringLocToRowCol(mvcmd[pci + 2].substring(3, 5), iswhitedown);
-					if (mkg.getRow() == skgloc[0] && mkg.getCol() == skgloc[1]);
-					else throw new IllegalStateException("Our king should be at the starting location, but it was not!");
-					mkg.setLoc(convertStringLocToRowCol(mvcmd[pci + 2].substring(7), iswhitedown));
-					mkg.decrementMoveCount();
-					System.out.println("MOVED THE KING BACK!");
-					ChessPiece mcsl = getPieceAt(convertStringLocToRowCol(mvcmd[pci + 1].substring(3, 5),
-						iswhitedown), mpclist);
-					if (mcsl == null)
-					{
-						throw new IllegalStateException("Since we just moved it the piece must exist, but now it does not!");
-					}
-					//else;//do nothing
-					if ((mcsl.getType().equals("CASTLE") || mcsl.getType().equals("ROOK")) &&
-						mcsl.getColor().equals(mkg.getColor()))
-					{
-						//do nothing valid
-					}
-					else
-					{
-						throw new IllegalStateException("Since we just moved it, it must be at that given location " +
-							"and must be type and color of piece that we are looking for, but it was not!");
-					}
-					mcsl.setLoc(convertStringLocToRowCol(mvcmd[pci + 1].substring(7), iswhitedown));
-					System.out.println("MOVED THE CASTLE BACK!");
-				}
-				else sideCastleLeftOrRight(getLongHandColor("" + mvcmd[pci].charAt(0)), useleftforcandp, gid);
-			}
-			System.out.println("DONE MAKING THE FULL MOVE!");
-			return;
-		}
-		//else;//do nothing proceed below
-		
-		//now the order matters
-		for (int x = 0; x < mvcmd.length; x++)
-		{
-			if (tpcmds[x].equals("CREATE"))
-			{
-				ChessPiece cp = new ChessPiece(getLongHandType(mvcmd[x].substring(2, 4)),
-					getLongHandColor("" + mvcmd[x].charAt(1)),
-					convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid,
-					Integer.parseInt(mvcmd[x].substring(7, mvcmd[x].indexOf("MS"))), true);
-				//need to update the piece list...
-				System.out.println("TOTAL PIECES: " + mpclist.size());
-				
-				mpclist = getAllPiecesWithGameID(gid);
-				
-				System.out.println("TOTAL PIECES: " + mpclist.size());
-				System.out.println("CREATED: " + cp + "!");
-			}
-			else if (tpcmds[x].equals("DELETE"))
-			{
-				//extract the location
-				removePieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid);
-				
-				//need to update the piece list...
-				System.out.println("TOTAL PIECES: " + mpclist.size());
-				
-				mpclist = getAllPiecesWithGameID(gid);
-				
-				System.out.println("TOTAL PIECES: " + mpclist.size());
-				System.out.println("DELETED THE PIECE!");
-			}
-			else if (tpcmds[x].equals("PROMOTION"))
-			{
-				System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
-				System.out.println("slocstr = mvcmd[" + x + "].substring(4, 6) = " + mvcmd[x].substring(4, 6));
-				System.out.println("iswhitedown = " + iswhitedown);
-				
-				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), mpclist);
-				System.out.println("pn = " + pn);
-				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
-				else
-				{
-					if (isundo)
-					{
-						if (pn.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(1))) &&
-							pn.getType().equals(getLongHandType(mvcmd[x].substring(2, 4))))
-						{
-							//do nothing this is the piece at the expected location
-						}
-						else
-						{
-							throw new IllegalStateException("Since we just moved this piece, this must be the same " +
-								"color and type at the expected location, but it was not!");
-						}
-						
-						if (getLongHandType(mvcmd[x].substring(10)).equals("PAWN"));
-						else throw new IllegalStateException("THE NEW TYPE MUST BE PAWN FOR DEMOTION, BUT IT WAS NOT!");
-						
-						pn.setType("PAWN");
-						System.out.println("DEMOTED BACK TO PAWN!");
-					}
-					else
-					{
-						pn.promotePawnTo(getLongHandType(mvcmd[x].substring(10)));
-						System.out.println("PROMOTED THE PAWN!");
-					}
-				}
-			}
-			else if (tpcmds[x].equals("MOVE"))
-			{
-				ChessPiece cp = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(3, 5), iswhitedown), mpclist);
-				System.out.println("cp = " + cp);
-				
-				if (cp == null) throw new IllegalStateException("THE PIECE MUST NOT BE NULL!");
-				//else;//do nothing
-				if (cp.getType().equals(getLongHandType(mvcmd[x].substring(1, 3))) &&
-					cp.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(0))))
-				{
-					cp.setLoc(convertStringLocToRowCol(mvcmd[x].substring(7), iswhitedown));
-					if (isundo) cp.decrementMoveCount();
-					else cp.incrementMoveCount();
-					System.out.println("MOVED THE PIECE TO THE NEW LOCATION!");
-				}
-				else throw new IllegalStateException("THE PIECE WE ARE MOVING MUST BE THE SAME TYPE AND COLOR!");
-			}
-			else if (tpcmds[x].equals("HINTS"))
-			{
-				if (usehintsforside)
-				{
-					ArrayList<ChessPiece> mycpcs = filterListByColor(mpclist, getLongHandColor("" + mvcmd[x].charAt(0)));
-					//System.out.println("mycpcs = " + mycpcs);
-					int numpcs = getNumItemsInList(mycpcs);
-					if (numpcs < 1) throw new IllegalStateException("there must be at least a king on the pieces list!");
-					else
-					{
-						System.out.println("ALL THE HINTS ARE:");
-						for (int p = 0; p < numpcs; p++)
-						{
-							int[][] mypcmvlocs = mycpcs.get(p).getPieceCanMoveToLocs();
-							System.out.println();
-							System.out.println("HINTS ARE:");
-							System.out.println(mycpcs.get(p) + " CAN MOVE TO:");
-							printLocsArray(mypcmvlocs, "mypcmvlocs", mycpcs.get(p));
-							System.out.println("DONE SHOWING HINTS FOR THE PIECE # " + (p + 1) + "/" + numpcs + "!");
-						}
-						System.out.println("DONE SHOWING ALL THE HINTS!");
-						System.out.println();
-					}
-				}
-				else
-				{
-					ChessPiece cp = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(3, 5), iswhitedown), mpclist);
-					if (cp == null) throw new IllegalStateException("THE PIECE MUST NOT BE NULL!");
-					//else;//do nothing
-					if (cp.getType().equals(getLongHandType(mvcmd[x].substring(1, 3))) &&
-						cp.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(0))))
-					{
-						int[][] mvlocs = cp.getPieceCanMoveToLocs();
-						System.out.println();
-						System.out.println("HINTS ARE:");
-						System.out.println(cp + " CAN MOVE TO:");
-						printLocsArray(mvlocs, "mvlocs", cp);
-						System.out.println("DONE SHOWING THE HINTS!");
-						System.out.println();
-					}
-					else throw new IllegalStateException("THE PIECE WE ARE MOVING MUST BE THE SAME TYPE AND COLOR!");
-				}
-			}
-			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!"); 
-		}//end of x for loop
-		System.out.println("DONE MAKING THE FULL MOVE!");
-		System.out.println();
-	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
-	{
-		makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, false);
-	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo)
-	{
-		makeLocalShortHandMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
-	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid)
-	{
-		makeLocalShortHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
-	}
-	public static void makeLocalLongHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
-		boolean isofficial)
-	{
-		makeLocalShortHandMove(getShortHandMoves(mvcmd), gid, isundo, iswhitedown, isofficial);
-	}
-	public static void makeLocalLongHandMove(String[] mvcmd, int gid)
-	{
-		makeLocalLongHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
-	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean isshorthand, boolean iswhitedown,
-		boolean isofficial)
-	{
-		System.out.println("CALLING SHORT OR LONG HAND MOVE with: iswhitedown = " + iswhitedown);
-		if (isshorthand) makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
-		else makeLocalLongHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
-	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isofficial)
-	{
-		makeLocalMove(mvcmd, gid, isundo, true, iswhitedown, isofficial);
-	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
-	{
-		makeLocalMove(mvcmd, gid, isundo, iswhitedown, false);
-	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo)
-	{
-		makeLocalMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
-	}
-	public static void makeLocalMove(String[] mvcmd, int gid)
-	{
-		makeLocalMove(mvcmd, gid, false);
 	}
 	
 	
@@ -8134,7 +7720,482 @@ class ChessPiece {
 	}
 	
 	
+	//THE EXECUTOR EXECUTES THE COMMANDS GENERATED ABOVE
+	
+	//EXECUTES THE COMMANDS ABOVE ON THE LOCAL BOARD ONLY
+	//ONLY EXECUTES COMMANDS IN SHORT HAND NOTATION
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
+		boolean isofficial)
+	{
+		if (mvcmd == null || mvcmd.length < 1) return;
+		//else;//do nothing
+		
+		//CASTLING NOTATION
+		//WHITE LEFT CASTLE *** USE THIS NOTATION BECAUSE WE CAN GENERATE THE OTHERS
+		//WLCE: (DISPLAY TO USER ONLY)
+		//WCEA8TOD8
+		//WKGE8TOC8
+		//
+		//PAWNING NOTATION
+		//WHITE LEFT PAWN at: current_loc to: next_loc
+		//-BPN??W?MS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
+		//WLPNB4TOA3 (DISPLAY TO THE USER)
+		//0123456789
+		//
+		//PROMOTION NOTATION:
+		//TURN COLOR PAWN at: STRINGLOC into: OTHERTYPE
+		//TURN BLACK PAWN at: H8 into: QUEEN
+		//TBPNH8INTOQN
+		//012345678901
+		//0         1
+		//
+		//SHORT HAND MOVE TO EXAMPLES
+		//WHITE PAWN at: A5 to: A6
+		//WPNA5TOA6
+		//WCEA5TOA6
+		//WQNA5TOA6
+		//WKGA5TOA6
+		//WKTA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
+		//WBPA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
+		//012345678
+		//
+		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
+		//SHORT HAND EXAMPLES
+		//-BPNA6W2MS (MUST BE DONE FIRST)
+		//WCEA5TOA6 (DISPLAY TO THE USER)
+		//
+		//- FOR DELETE
+		//+ FOR CREATE
+		//
+		//TO UNDO DIFFERENT TYPES OF COMMANDS:
+		//
+		//FOR A DELETE COMMAND:
+		//-BPN??W?MS (BEFORE UNDO)
+		//+BPN??W?MS (AFTER UNDO) (THE ONLY DIFFERENCE IS INSTEAD OF A - WE NOW HAVE A +)
+		//0123456789
+		//
+		//DELETE <COLOR> <TYPE> at: STRINGLOC with <MOVE_COUNT> move(s)!
+		//CREATE <COLOR> <TYPE> at: STRINGLOC with <MOVE_COUNT> move(s)!
+		//
+		//FOR A MOVETO COMMAND:
+		//WCEA5TOA6
+		//   old new
+		//UNDOWCEA6TOA5 (and decrement the move count)
+		//       new old
+		//
+		//<COLOR> <TYPE> at: STRINGLOC to: STRINGLOC
+		//
+		//TO UNDO CASTLING:
+		//ADD UNDO IN FRONT OF ALL OF IT
+		//THEN SWAP THE LOCATIONS ON THE MOVES ONLY DECREMENT KING MOVE COUNT
+		//UNDOWLCE: (DISPLAY TO USER ONLY)
+		//UNDOWCEA8TOD8
+		//UNDOWKGE8TOC8 (decrements the move count for the king only because we only incremented that for the king)
+		//
+		//TO UNDO PAWNING OR A CAPTURE:
+		//FIRST SWAP THE TWO PARTS OF THE MOVE
+		//ADD UNDO TO THE MOVE ITSELF
+		//FOR THE DELETE CHANGE IT TO CREATE OR - TO + AND VISE-VERSAS IF APPLICABLE
+		//
+		//UNDOWLPNA3TOB4 (decrements the move count)
+		//+BPN??W?MS
+		//
+		//TO UNDO A CAPTURE:
+		//
+		//UNDO THE MOVE FIRST:
+		//UNDOWCEA6TOA5 (decrements the move count)
+		//+BPN??W?MS
+		
+		System.out.println();
+		System.out.println("BEGIN EXECUTING THE MOVE COMMAND NOW:");
+		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
+		System.out.println();
+		System.out.println("isundo = " + isundo);
+		
+		if (isundo)
+		{
+			String[] nwmvs = new String[mvcmd.length];
+			boolean fndundo = false;
+			for (int x = 0; x < mvcmd.length; x++)
+			{
+				if (mvcmd[x].indexOf("UNDO") == 0)
+				{
+					nwmvs[x] = mvcmd[x].substring(4);
+					if (fndundo);
+					else fndundo = true;
+				}
+				else nwmvs[x] = "" + mvcmd[x];
+			}
+			System.out.println("fndundo = " + fndundo);
+			
+			if (fndundo)
+			{
+				//clear the unofficial move
+				if (isofficial);
+				else getGame(gid).setUnofficialMove(null);
+				
+				makeLocalMove(nwmvs, gid, isundo);
+				
+				//add the move to the last undone move...
+				//do we add the generated undo move OR do we add the move we are undoing?
+				//the generated move comes into this and yes it can be reversed to get the current one.
+				//add the move we are undoing...
+				String[] oldmvwithundo = genUndoMoveToShortHandCommand(nwmvs);
+				if (oldmvwithundo == null)
+				{
+					if (mvcmd == null);
+					else throw new IllegalStateException("old move is not the required length!");
+				}
+				else
+				{
+					if (oldmvwithundo.length == mvcmd.length);
+					else throw new IllegalStateException("old move is not the required length!");
+				}
+				String[] oldmv = new String[mvcmd.length];
+				for (int x = 0; x < oldmvwithundo.length; x++)
+				{
+					if (oldmvwithundo[x].indexOf("UNDO") == 0) oldmv[x] = oldmvwithundo[x].substring(4);
+					else oldmv[x] = "" + oldmvwithundo[x];
+					System.out.println("oldmv[" + x + "] = " + oldmv[x]);
+				}
+				if (isofficial);
+				else getGame(gid).setLastUndoneMove(oldmv);
+				return;
+			}
+			//else;//do nothing safe to proceed below
+		}
+		else
+		{
+			//set this as the new unofficial move
+			if (isofficial);
+			else getGame(gid).setUnofficialMove(mvcmd);
+		}
+		
+		String[] tpcmds = new String[mvcmd.length];
+		boolean usecastling = false;
+		boolean usepawning = false;
+		boolean usehintsforside = false;
+		int pci = -1;
+		for (int x = 0; x < mvcmd.length; x++)
+		{
+			if (mvcmd[x].charAt(0) == '+') tpcmds[x] = "CREATE";
+			else if (mvcmd[x].charAt(0) == '-') tpcmds[x] = "DELETE";
+			else if (mvcmd[x].charAt(1) == 'L' || mvcmd[x].charAt(1) == 'R')
+			{
+				if (mvcmd[x].charAt(2) == 'P')
+				{
+					tpcmds[x] = "PAWNING";
+					usepawning = true;
+					pci = x;
+				}
+				else
+				{
+					tpcmds[x] = "CASTLEING";
+					usecastling = true;
+					pci = x;
+				}
+			}
+			else if (mvcmd[x].charAt(0) == 'T') tpcmds[x] = "PROMOTION";
+			else if (mvcmd[x].indexOf("TO") == 5) tpcmds[x] = "MOVE";
+			else if (mvcmd[x].indexOf("HINTS") == 5 || mvcmd[x].indexOf("HINTS") == 1)
+			{
+				tpcmds[x] = "HINTS";
+				usehintsforside = (mvcmd[x].indexOf("HINTS") == 1);
+			}
+			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!");
+			System.out.println("tpcmds[" + x + "] = " + tpcmds[x]);
+		}//end of x for loop
+		System.out.println("usecastling = " + usecastling);
+		System.out.println("usepawning = " + usepawning);
+		System.out.println("usehintsforside = " + usehintsforside);
+		
+		if (usecastling || usepawning)
+		{
+			if (pci < 0 || mvcmd.length - 1 < pci)
+			{
+				throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
+			}
+			//else;//do nothing
+		}
+		else
+		{
+			if (pci < 0 || mvcmd.length - 1 < pci);
+			else throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
+		}
+		
+		//get the direction
+		boolean useleftforcandp = false;
+		if (usecastling || usepawning) useleftforcandp = (mvcmd[pci].charAt(1) == 'L');
+		//else;//do nothing
+		System.out.println("useleftforcandp = " + useleftforcandp);
+		
+		ArrayList<ChessPiece> mpclist = getAllPiecesWithGameID(gid);
+		if (usecastling || usepawning)
+		{
+			if (usepawning)
+			{
+				//needs to be called on the pawn
+				//extract the location of that pawn
+				//get the piece
+				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[pci].substring(4, 6), iswhitedown), mpclist);
+				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
+				else
+				{
+					if (isundo)
+					{
+						pn.setLoc(convertStringLocToRowCol(mvcmd[pci].substring(8), iswhitedown));
+						pn.decrementMoveCount();
+						System.out.println("MOVED THE PAWN BACK!");
+						ChessPiece cp = new ChessPiece(getLongHandType(mvcmd[pci + 1].substring(2, 4)),
+							getLongHandColor("" + mvcmd[pci + 1].charAt(1)),
+							convertStringLocToRowCol(mvcmd[pci + 1].substring(4, 6), iswhitedown), gid,
+							Integer.parseInt(mvcmd[pci + 1].substring(7, mvcmd[pci + 1].indexOf("MS"))), true);
+						System.out.println("CREATED: " + cp + "!");
+						int prevrw = -1;
+						if (cp.getColor().equals("WHITE")) prevrw = 6;
+						else prevrw = 1;
+						String mymvcmd = getShortHandColor(cp.getColor()) + getShortHandType(cp.getType()) +
+							convertRowColToStringLoc(prevrw, cp.getCol(), WHITE_MOVES_DOWN_RANKS) + "TO" +
+							convertRowColToStringLoc(cp.getRow(), cp.getCol(), WHITE_MOVES_DOWN_RANKS);
+						System.out.println("UNDOPAWNING: mymvcmd = " + mymvcmd);
+						getGame(gid).setLastSetLocMove(mymvcmd);
+					}
+					else pn.pawnLeftOrRight(useleftforcandp, mpclist, false);
+				}
+			}
+			else
+			{
+				//castling
+				//extract the color
+				if (isundo)
+				{
+					ChessPiece mkg = getCurrentSideKing(getLongHandColor("" + mvcmd[pci].charAt(0)), mpclist);
+					if (mkg == null) throw new IllegalStateException("the king must be found!");
+					//else;//do nothing
+					int[] skgloc = convertStringLocToRowCol(mvcmd[pci + 2].substring(3, 5), iswhitedown);
+					if (mkg.getRow() == skgloc[0] && mkg.getCol() == skgloc[1]);
+					else throw new IllegalStateException("Our king should be at the starting location, but it was not!");
+					mkg.setLoc(convertStringLocToRowCol(mvcmd[pci + 2].substring(7), iswhitedown));
+					mkg.decrementMoveCount();
+					System.out.println("MOVED THE KING BACK!");
+					ChessPiece mcsl = getPieceAt(convertStringLocToRowCol(mvcmd[pci + 1].substring(3, 5),
+						iswhitedown), mpclist);
+					if (mcsl == null)
+					{
+						throw new IllegalStateException("Since we just moved it the piece must exist, but now it does not!");
+					}
+					//else;//do nothing
+					if ((mcsl.getType().equals("CASTLE") || mcsl.getType().equals("ROOK")) &&
+						mcsl.getColor().equals(mkg.getColor()))
+					{
+						//do nothing valid
+					}
+					else
+					{
+						throw new IllegalStateException("Since we just moved it, it must be at that given location " +
+							"and must be type and color of piece that we are looking for, but it was not!");
+					}
+					mcsl.setLoc(convertStringLocToRowCol(mvcmd[pci + 1].substring(7), iswhitedown));
+					System.out.println("MOVED THE CASTLE BACK!");
+				}
+				else sideCastleLeftOrRight(getLongHandColor("" + mvcmd[pci].charAt(0)), useleftforcandp, gid);
+			}
+			
+			//clear the last undone move
+			if (isundo || isofficial);
+			else getGame(gid).setLastUndoneMove(null);
+			
+			System.out.println("DONE MAKING THE FULL MOVE!");
+			return;
+		}
+		//else;//do nothing proceed below
+		
+		//now the order matters
+		for (int x = 0; x < mvcmd.length; x++)
+		{
+			if (tpcmds[x].equals("CREATE"))
+			{
+				ChessPiece cp = new ChessPiece(getLongHandType(mvcmd[x].substring(2, 4)),
+					getLongHandColor("" + mvcmd[x].charAt(1)),
+					convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid,
+					Integer.parseInt(mvcmd[x].substring(7, mvcmd[x].indexOf("MS"))), true);
+				//need to update the piece list...
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				
+				mpclist = getAllPiecesWithGameID(gid);
+				
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				System.out.println("CREATED: " + cp + "!");
+			}
+			else if (tpcmds[x].equals("DELETE"))
+			{
+				//extract the location
+				removePieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), gid);
+				
+				//need to update the piece list...
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				
+				mpclist = getAllPiecesWithGameID(gid);
+				
+				System.out.println("TOTAL PIECES: " + mpclist.size());
+				System.out.println("DELETED THE PIECE!");
+			}
+			else if (tpcmds[x].equals("PROMOTION"))
+			{
+				System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
+				System.out.println("slocstr = mvcmd[" + x + "].substring(4, 6) = " + mvcmd[x].substring(4, 6));
+				System.out.println("iswhitedown = " + iswhitedown);
+				
+				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), mpclist);
+				System.out.println("pn = " + pn);
+				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
+				else
+				{
+					if (isundo)
+					{
+						if (pn.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(1))) &&
+							pn.getType().equals(getLongHandType(mvcmd[x].substring(2, 4))))
+						{
+							//do nothing this is the piece at the expected location
+						}
+						else
+						{
+							throw new IllegalStateException("Since we just moved this piece, this must be the same " +
+								"color and type at the expected location, but it was not!");
+						}
+						
+						if (getLongHandType(mvcmd[x].substring(10)).equals("PAWN"));
+						else throw new IllegalStateException("THE NEW TYPE MUST BE PAWN FOR DEMOTION, BUT IT WAS NOT!");
+						
+						pn.setType("PAWN");
+						System.out.println("DEMOTED BACK TO PAWN!");
+					}
+					else
+					{
+						pn.promotePawnTo(getLongHandType(mvcmd[x].substring(10)));
+						System.out.println("PROMOTED THE PAWN!");
+					}
+				}
+			}
+			else if (tpcmds[x].equals("MOVE"))
+			{
+				ChessPiece cp = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(3, 5), iswhitedown), mpclist);
+				System.out.println("cp = " + cp);
+				
+				if (cp == null) throw new IllegalStateException("THE PIECE MUST NOT BE NULL!");
+				//else;//do nothing
+				if (cp.getType().equals(getLongHandType(mvcmd[x].substring(1, 3))) &&
+					cp.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(0))))
+				{
+					cp.setLoc(convertStringLocToRowCol(mvcmd[x].substring(7), iswhitedown));
+					if (isundo) cp.decrementMoveCount();
+					else cp.incrementMoveCount();
+					System.out.println("MOVED THE PIECE TO THE NEW LOCATION!");
+				}
+				else throw new IllegalStateException("THE PIECE WE ARE MOVING MUST BE THE SAME TYPE AND COLOR!");
+			}
+			else if (tpcmds[x].equals("HINTS"))
+			{
+				if (usehintsforside)
+				{
+					ArrayList<ChessPiece> mycpcs = filterListByColor(mpclist, getLongHandColor("" + mvcmd[x].charAt(0)));
+					//System.out.println("mycpcs = " + mycpcs);
+					int numpcs = getNumItemsInList(mycpcs);
+					if (numpcs < 1) throw new IllegalStateException("there must be at least a king on the pieces list!");
+					else
+					{
+						System.out.println("ALL THE HINTS ARE:");
+						for (int p = 0; p < numpcs; p++)
+						{
+							int[][] mypcmvlocs = mycpcs.get(p).getPieceCanMoveToLocs();
+							System.out.println();
+							System.out.println("HINTS ARE:");
+							System.out.println(mycpcs.get(p) + " CAN MOVE TO:");
+							printLocsArray(mypcmvlocs, "mypcmvlocs", mycpcs.get(p));
+							System.out.println("DONE SHOWING HINTS FOR THE PIECE # " + (p + 1) + "/" + numpcs + "!");
+						}
+						System.out.println("DONE SHOWING ALL THE HINTS!");
+						System.out.println();
+					}
+				}
+				else
+				{
+					ChessPiece cp = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(3, 5), iswhitedown), mpclist);
+					if (cp == null) throw new IllegalStateException("THE PIECE MUST NOT BE NULL!");
+					//else;//do nothing
+					if (cp.getType().equals(getLongHandType(mvcmd[x].substring(1, 3))) &&
+						cp.getColor().equals(getLongHandColor("" + mvcmd[x].charAt(0))))
+					{
+						int[][] mvlocs = cp.getPieceCanMoveToLocs();
+						System.out.println();
+						System.out.println("HINTS ARE:");
+						System.out.println(cp + " CAN MOVE TO:");
+						printLocsArray(mvlocs, "mvlocs", cp);
+						System.out.println("DONE SHOWING THE HINTS!");
+						System.out.println();
+					}
+					else throw new IllegalStateException("THE PIECE WE ARE MOVING MUST BE THE SAME TYPE AND COLOR!");
+				}
+			}
+			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!"); 
+		}//end of x for loop
+		
+		//clear the last undone move
+		if (isundo || isofficial);
+		else getGame(gid).setLastUndoneMove(null);
+		
+		System.out.println("DONE MAKING THE FULL MOVE!");
+		System.out.println();
+	}
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
+	{
+		makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, false);
+	}
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo)
+	{
+		makeLocalShortHandMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
+	}
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid)
+	{
+		makeLocalShortHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
+	}
+	public static void makeLocalLongHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
+		boolean isofficial)
+	{
+		makeLocalShortHandMove(getShortHandMoves(mvcmd), gid, isundo, iswhitedown, isofficial);
+	}
+	public static void makeLocalLongHandMove(String[] mvcmd, int gid)
+	{
+		makeLocalLongHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean isshorthand, boolean iswhitedown,
+		boolean isofficial)
+	{
+		System.out.println("CALLING SHORT OR LONG HAND MOVE with: iswhitedown = " + iswhitedown);
+		if (isshorthand) makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
+		else makeLocalLongHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isofficial)
+	{
+		makeLocalMove(mvcmd, gid, isundo, true, iswhitedown, isofficial);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
+	{
+		makeLocalMove(mvcmd, gid, isundo, iswhitedown, false);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo)
+	{
+		makeLocalMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
+	}
+	public static void makeLocalMove(String[] mvcmd, int gid)
+	{
+		makeLocalMove(mvcmd, gid, false);
+	}
+	
+	
 	//PAWN SPECIAL METHODS
+	
+	//PAWN PROMOTION METHODS
 	
 	public static boolean canPawnBePromotedAt(int nrval, int ncval, String clrval, String tpval)
 	{
@@ -8189,6 +8250,8 @@ class ChessPiece {
 		else throw new IllegalStateException("CANNOT PROMOTE THE PAWN!");
 	}
 	
+	
+	//PAWNING METHODS
 	
 	public boolean canPawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs, boolean bpassimnxtmv)
 	{
@@ -8719,6 +8782,7 @@ class ChessPiece {
 	{
 		return (canSideCastleLeft(clrval, gid) || canSideCastleRight(clrval, gid));
 	}
+	//non-static version convenience methods
 	public boolean canCastleLeftOrRight(boolean useleft)
 	{
 		if (getType().equals("CASTLE") || getType().equals("ROOK") || getType().equals("KING"));

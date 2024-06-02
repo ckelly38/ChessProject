@@ -5,7 +5,7 @@ class ChessGame {
 	private int gameID = -1;
 	private boolean completed = false;
 	private int moveindex = -1;
-	//private String[] LAST_UNDONE_MOVE = null;
+	private String[] LAST_UNDONE_MOVE = null;
 	//private String[] LAST_REDONE_MOVE = null;
 	private ArrayList<String[]> OFFICIAL_MOVES = null;
 	private String[] UNOFFICIAL_MOVE = null;
@@ -359,6 +359,22 @@ class ChessGame {
 		else throw new IllegalStateException("THE UNOFFICIAL MOVE MUST BE EMPTY!");
 	}
 	
+	public void setLastUndoneMove(String[] mymvcmd)
+	{
+		if (mymvcmd == null || mymvcmd.length < 1) LAST_UNDONE_MOVE = null;
+		else
+		{
+			if (LAST_UNDONE_MOVE == null || LAST_UNDONE_MOVE.length < 1)
+			{
+				LAST_UNDONE_MOVE = new String[mymvcmd.length];
+				for (int n = 0; n < mymvcmd.length; n++) LAST_UNDONE_MOVE[n] = "" + mymvcmd[n];
+			}
+			else throw new IllegalStateException("YOU NEED TO CLEAR THE LAST UNDONE MOVE FIRST!");
+		}
+	}
+	
+	//if there is an UNOFFICIAL_MOVE use it; OTHERWISE the last OFFICIAL_MOVE will be used
+	//then we take the move from above and call the method to undo it and return the result 
 	public String[] genCommandToUndoLastMadeMove()
 	{
 		//take the unofficial move
@@ -375,6 +391,19 @@ class ChessGame {
 		}
 		else mymv = UNOFFICIAL_MOVE;
 		return ChessPiece.genUndoMoveToShortHandCommand(mymv);
+	}
+	
+	//returns a copy of the LAST_UNDONE_MOVE
+	public String[] genCommandToRedoLastUndoneMove()
+	{
+		String[] mymv = null;
+		if (LAST_UNDONE_MOVE == null || LAST_UNDONE_MOVE.length < 1);
+		else
+		{
+			mymv = new String[LAST_UNDONE_MOVE.length];
+			for (int x = 0; x < LAST_UNDONE_MOVE.length; x++) mymv[x] = "" + LAST_UNDONE_MOVE[x];
+		}
+		return mymv;
 	}
 	
 	public void stepForward()
