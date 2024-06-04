@@ -13,6 +13,9 @@ class ChessGame {
 	private boolean bresigned = false;
 	private boolean whitewins = false;
 	private boolean blackwins = false;
+	private boolean istied = false;
+	private boolean whitewantsdraw = false;
+	private boolean blackwantsdraw = false;
 	public static ArrayList<ChessGame> all = new ArrayList<ChessGame>();
 	
 	public static String[][] convertStringArrayToMultidim(String[] sarr)
@@ -204,6 +207,34 @@ class ChessGame {
 		}
 	}
 	
+	public static void noMovesAfterResigning(String[][] myoffmvs, boolean val)
+	{
+		if (myoffmvs == null || myoffmvs.length < 1) return;
+		else
+		{
+			String[] tps = ChessPiece.getSideTypesForMoves(myoffmvs);
+			if (tps.length == myoffmvs.length);
+			else throw new IllegalStateException("myoffmvs must be the same size as the command types!");
+			for (int n = 0; n < myoffmvs.length; n++)
+			{
+				if (tps[n].equals("RESIGN"))
+				{
+					if (n + 1 < myoffmvs.length) throw new IllegalStateException("NO MOVES ALLOWED AFTER RESIGNING!");
+					//else;//do nothing
+				}
+			}//end of n for loop
+			//System.out.println("THERE ARE NO MOVES AFTER RESIGNING OR NO RESIGNATION AT ALL FOUND (VALID)!");
+		}
+	}
+	public static void noMovesAfterResigning(ArrayList<String[]> mvslist)
+	{
+		noMovesAfterResigning(convertArrayListStrArrToStringArr(mvslist), false);
+	}
+	public void noMovesAfterResigning()
+	{
+		noMovesAfterResigning(OFFICIAL_MOVES);
+	}
+	
 	public static String getSideTurn(String[][] myoffmvs, boolean val)
 	{
 		//get last side to make an actual move
@@ -262,6 +293,8 @@ class ChessGame {
 		{
 			//right here validate it
 			colorsForMovesAlternate(myoffmvs, false);
+			//make sure no commands after resigning
+			noMovesAfterResigning(myoffmvs, false);
 			
 			if (this.OFFICIAL_MOVES == null) this.OFFICIAL_MOVES = new ArrayList<String[]>();
 			else if (numofmvs < 1);
@@ -272,10 +305,7 @@ class ChessGame {
 				else
 				{
 					String[] mynwstrarr = new String[myoffmvs[x].length];
-					for (int r = 0; r < myoffmvs[x].length; r++)
-					{
-						mynwstrarr[r] = "" + myoffmvs[x][r];
-					}
+					for (int r = 0; r < myoffmvs[x].length; r++) mynwstrarr[r] = "" + myoffmvs[x][r];
 					this.OFFICIAL_MOVES.add(mynwstrarr);
 				}
 			}
@@ -319,6 +349,7 @@ class ChessGame {
 				
 				OFFICIAL_MOVES.add(mycp);
 				colorsForMovesAlternate();
+				noMovesAfterResigning();
 			}
 		}
 	}
@@ -367,7 +398,11 @@ class ChessGame {
 			if (LAST_UNDONE_MOVE == null || LAST_UNDONE_MOVE.length < 1)
 			{
 				LAST_UNDONE_MOVE = new String[mymvcmd.length];
-				for (int n = 0; n < mymvcmd.length; n++) LAST_UNDONE_MOVE[n] = "" + mymvcmd[n];
+				for (int n = 0; n < mymvcmd.length; n++)
+				{
+					LAST_UNDONE_MOVE[n] = "" + mymvcmd[n];
+					System.out.println("LAST_UNDONE_MOVE[" + n + "] = " + LAST_UNDONE_MOVE[n]);
+				}
 			}
 			else throw new IllegalStateException("YOU NEED TO CLEAR THE LAST UNDONE MOVE FIRST!");
 		}
@@ -475,13 +510,13 @@ class ChessGame {
 		else for (int x = 0; x < numofmvs; x++) this.stepForward();
 	}
 	
-	public void setColorWins(String clrval, boolean nwval)
+	//NOT DONE WITH THE COMMUNICATE WITH THE SERVER PART YET
+	public void completeGameAndCommunicateWithTheServer(String msg)
 	{
-		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("color cannot be null or empty!");
-		else if (clrval.equals("WHITE")) whitewins = nwval;
-		else if (clrval.equals("BLACK")) blackwins = nwval;
-		else throw new IllegalStateException("invalid color (" + clrval + ") found and used here!");
-		completed = true;
+		this.completed = true;
+		this.moveindex = this.OFFICIAL_MOVES.size() - 1;
+		System.out.println(msg);
+		System.out.println("GAME IS COMPLETED: " + this.isCompleted());
 		
 		//make the command
 		//add official move then
@@ -490,13 +525,61 @@ class ChessGame {
 		//communicate with the server and tell them that the game is completed and send all the data back
 	}
 	
+	public void setIsTied(boolean nwval)
+	{
+		if (nwval)
+		{
+			this.istied = true;
+			this.completeGameAndCommunicateWithTheServer("TIE!");
+		}
+		else this.istied = false;
+	}
+	
+	public void setColorWins(String clrval, boolean nwval)
+	{
+		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("color cannot be null or empty!");
+		else if (clrval.equals("WHITE")) whitewins = nwval;
+		else if (clrval.equals("BLACK")) blackwins = nwval;
+		else throw new IllegalStateException("invalid color (" + clrval + ") found and used here!");
+		if (nwval) this.completeGameAndCommunicateWithTheServer("" + clrval + " WINS!");
+		//else;//do nothing
+	}
+	
 	public void setColorResigns(String clrval, boolean nwval)
 	{
 		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("color cannot be null or empty!");
-		else if (clrval.equals("WHITE")) wresigned = nwval;
-		else if (clrval.equals("BLACK")) bresigned = nwval;
+		else if (clrval.equals("WHITE")) this.wresigned = nwval;
+		else if (clrval.equals("BLACK")) this.bresigned = nwval;
 		else throw new IllegalStateException("invalid color (" + clrval + ") found and used here!");
-		if (nwval) setColorWins(ChessPiece.getOppositeColor(clrval), true);
+		if (nwval)
+		{
+			System.out.println(clrval + " RESIGNED!");
+			this.setColorWins(ChessPiece.getOppositeColor(clrval), true);
+		}
 		//else;//do nothing no resignation made
+	}
+	
+	public void setColorWantsADraw(String clrval, boolean nwval)
+	{
+		if (clrval == null || clrval.length() < 1)
+		{
+			throw new IllegalStateException("illegal color (" + clrval + ") found and used here!");
+		}
+		else
+		{
+			if (clrval.equals("WHITE")) this.whitewantsdraw = nwval;
+			else if (clrval.equals("BLACK")) this.blackwantsdraw = nwval;
+			else throw new IllegalStateException("illegal color (" + clrval + ") found and used here!");
+			if (this.whitewantsdraw && this.blackwantsdraw) setIsTied(true);
+			//else;//do nothing
+		}
+	}
+	public void setBlackWantsADraw(boolean nwval)
+	{
+		setColorWantsADraw("BLACK", nwval);
+	}
+	public void setWhiteWantsADraw(boolean nwval)
+	{
+		setColorWantsADraw("WHITE", nwval);
 	}
 }

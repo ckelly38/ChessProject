@@ -1756,9 +1756,6 @@ class ChessPiece {
 	//NEED TO KNOW WHOSE TURN IT IS AND
 	//NEED TO PREVENT THE OTHER SIDE FROM MOVING UNTIL WE TELL THEM IT IS THEIR TURN
 	//NEED A WAY TO AGREE UPON A TIE OR DRAW (STALEMATE)
-	//NEED A WAY TO SURRENDER OR RESIGN
-	//NEED A WAY TO UNDO OR REDO A MOVE
-	//NEED A WAY TO STEP THROUGH A FINISHED GAME
 	//NEED A WAY TO TELL THE OTHER COMPUTER: IT IS THEIR TURN, WHAT MOVES WERE MADE, AND HOW THE GAME ENDS,
 	//WHAT TO DO AFTER THE GAME ENDS?
 	//NEED A WAY TO COMMUNICATE WITH MY SERVER
@@ -1783,14 +1780,16 @@ class ChessPiece {
 	
 	//TO UNDO AN OFFICIAL MOVE:
 	//MAKE IT THE UNOFFICIAL_MOVE
-	//CLEAR LAST_REDONE_MOVE.
+	//CLEAR LAST_REDONE_MOVE (N/A).
 	
 	//TO REDO AN UNDONE MOVE:
 	//TAKE THE LAST_UNDONE_MOVE AND MAKE IT THE UNOFFICIAL_MOVE
+	//THEN MAKE THE UNOFFICIAL_MOVE AND
+	//CLEAR LAST_UNDONE_MOVE
 	
 	//TO MAKE AN UNOFFICIAL_MOVE OFFICIAL:
 	//ADD IT TO THE LIST_OF_OFFICIAL_MOVES.
-	//CLEAR LAST_REDONE_MOVE.
+	//CLEAR LAST_REDONE_MOVE (N/A).
 	
 	
 	//WHEN WE EXECUTE COMMANDS,
@@ -5490,12 +5489,20 @@ class ChessPiece {
 			{
 				return getShortHandColor(wd.substring(0, wd.length() - 1)) + wd.charAt(wd.length() - 1);
 			}
+			else if (wd.equals("SET") || wd.equals("set")) return "S";
 			else if (wd.equals("into:") || wd.equals("INTO:")) return "INTO";
 			else if (wd.equals("TURN") || wd.equals("turn")) return "T";
+			else if (wd.equals("TIE:") || wd.equals("tie:")) return "T";
 			else if (wd.equals("to:") || wd.equals("TO:")) return "TO";
 			else if (wd.equals("WITH") || wd.equals("with")) return "W";
+			else if (wd.equals("WANTS") || wd.equals("wants")) return "W";
 			else if (wd.equals("LEFT") || wd.equals("left")) return "L";
 			else if (wd.equals("RIGHT") || wd.equals("right")) return "R";
+			else if (wd.equals("RESIGNS") || wd.equals("resigns") ||
+				wd.equals("SURRENDERS") || wd.equals("surrenders"))
+			{
+				return "RESIGNS";
+			}
 			else if (wd.equals("move(s)!") || wd.equals("move(s)") || wd.equals("moves!") || wd.equals("moves") ||
 				wd.equals("move!") || wd.equals("move"))
 			{
@@ -5632,6 +5639,7 @@ class ChessPiece {
 		else if (mv.charAt(0) == 'W') nwmv += "WHITE ";
 		else if (mv.charAt(0) == 'B') nwmv += "BLACK ";
 		else if (mv.charAt(0) == 'T') nwmv += "TURN ";
+		else if (mv.charAt(0) == 'S') nwmv += "SET ";
 		else if (mv.indexOf("UNDO") == 0)
 		{
 			String retstr = "UNDO " + convertShortHandMoveToLongVersion(mv.substring(4));
@@ -5643,23 +5651,28 @@ class ChessPiece {
 		
 		String shtp = null;
 		int ei = -1;
-		if (mv.charAt(0) == '-' || mv.charAt(0) == '+' || mv.charAt(0) == 'T')
+		boolean usetpat = true;
+		if (mv.charAt(0) == '-' || mv.charAt(0) == '+' || mv.charAt(0) == 'T' || mv.charAt(0) == 'S')
 		{
 			//next will be color
 			if (mv.charAt(1) == 'W') nwmv += "WHITE ";
 			else if (mv.charAt(1) == 'B') nwmv += "BLACK ";
 			else throw new IllegalStateException("ILLEGAL SECOND CHARACTER FOR THE MOVE!");
 			
-			if (mv.charAt(2) == 'L' || mv.charAt(2) == 'R')
+			if (mv.charAt(0) == 'S') usetpat = false;
+			else
 			{
-				ei = 5;
-				if (mv.charAt(2) == 'L') nwmv += "LEFT ";
-				else nwmv += "RIGHT ";
+				if (mv.charAt(2) == 'L' || mv.charAt(2) == 'R')
+				{
+					ei = 5;
+					if (mv.charAt(2) == 'L') nwmv += "LEFT ";
+					else nwmv += "RIGHT ";
+				}
+				else ei = 4;
+				
+				//next will be type
+				shtp = mv.substring(ei - 2, ei);
 			}
-			else ei = 4;
-			
-			//next will be type
-			shtp = mv.substring(ei - 2, ei);
 		}
 		else
 		{
@@ -5680,20 +5693,26 @@ class ChessPiece {
 			System.out.println("nwmv = " + nwmv);
 			return "" + nwmv;
 		}
-		else nwmv += getLongHandType(shtp) + " at: " + mv.substring(ei, ei + 2) + " ";
+		else if (usetpat) nwmv += getLongHandType(shtp) + " at: " + mv.substring(ei, ei + 2) + " ";
+		else nwmv += " WANTS TIE: " + mv.charAt(mv.length() - 1);
 		//System.out.println("NEW nwmv = " + nwmv);
-		//System.out.println("mv.charAt(ei + 2=" + (ei + 2) + ") = " + mv.charAt(ei + 2));
-		//System.out.println("mv.substring(ei + 6) = " + mv.substring(ei + 6));
-		
-		//mv.substring(ei + 2, ei + 4)
-		if (mv.charAt(ei + 2) == 'T') nwmv += "to: " + mv.substring(ei + 4);
-		else if (mv.charAt(ei + 2) == 'W') nwmv += "with " + mv.substring(ei + 3, mv.length() - 2) + " move(s)!";
-		else if (mv.charAt(ei + 2) == 'I') nwmv += "into: " + getLongHandType(mv.substring(ei + 6)); 
-		else
+		if (usetpat)
 		{
-			throw new IllegalStateException("ILLEGAL CHARACTER FOUND AT POSITION FAILED TO CONVERT SHORT HAND " +
-				"MOVE TO LONG HAND VERSION!");
+			//System.out.println("mv.charAt(ei + 2=" + (ei + 2) + ") = " + mv.charAt(ei + 2));
+			//System.out.println("mv.substring(ei + 6) = " + mv.substring(ei + 6));
+			
+			//mv.substring(ei + 2, ei + 4)
+			if (mv.charAt(ei + 2) == 'T') nwmv += "to: " + mv.substring(ei + 4);
+			else if (mv.charAt(ei + 2) == 'W') nwmv += "with " + mv.substring(ei + 3, mv.length() - 2) + " move(s)!";
+			else if (mv.charAt(ei + 2) == 'I') nwmv += "into: " + getLongHandType(mv.substring(ei + 6)); 
+			else
+			{
+				throw new IllegalStateException("ILLEGAL CHARACTER FOUND AT POSITION FAILED TO CONVERT SHORT HAND " +
+					"MOVE TO LONG HAND VERSION!");
+			}
 		}
+		//else;//do nothing for set tie command
+		
 		//System.out.print("FINAL ");
 		System.out.println("nwmv = " + nwmv);
 		return "" + nwmv;
@@ -5715,8 +5734,9 @@ class ChessPiece {
 	
 	//GEN-MOVETO METHODS
 	
-	//INDIVIDUAL MOVE TO COMMANDS (MOVETO, CASTLING, PAWNING, CREATE OR DELETE, HINTS, PROMOTION)
+	//INDIVIDUAL MOVE TO COMMANDS (MOVETO, CASTLING, PAWNING, CREATE OR DELETE, HINTS, PROMOTION, RESIGNATION, TIEDESIRE)
 	
+	//CMD_TYPE COLOR TYPE at: LOC_STRING with NUM move(s)!
 	public static String genLongOrShortHandDeleteOrCreateCommand(String clr, String tp, int r, int c, int mvscnt,
 		boolean usecreate, boolean useshort)
 	{
@@ -5768,6 +5788,7 @@ class ChessPiece {
 		}
 	}
 	
+	//COLOR TYPE at: START_LOC_STRING to: END_LOC_STRING
 	public static String genLongOrShortHandMoveCommandOnlyString(String clr, String tp, int cr, int cc, int nr, int nc,
 		boolean usedir, boolean useleft, boolean useshort)
 	{
@@ -5821,6 +5842,7 @@ class ChessPiece {
 		}
 	}
 	
+	//TURN PAWN at: LOC_STRING into: NEW_TYPE
 	public static String genLongOrShortHandPawnPromotionCommand(String clr, int nr, int nc, String ptpval, boolean useshort)
 	{
 		String[] myvptps = {"QUEEN", "BISHOP", "CASTLE", "ROOK", "KNIGHT"};
@@ -5848,6 +5870,8 @@ class ChessPiece {
 		return propwncmd;
 	}
 	
+	//COLOR HINTS
+	//COLOR TYPE at: LOC_STRING HINTS
 	public static String genLongOrShortHandHintsCommandForPieceOrSide(String clr, String tp, int cr, int cc,
 		boolean useside, boolean useshort)
 	{
@@ -5869,12 +5893,48 @@ class ChessPiece {
 		return cmd;
 	}
 	
+	//COLOR RESIGNS
+	public static String genLongOrShortHandResignCommand(String clr, boolean useshort)
+	{
+		//WHITE RESIGNS
+		//BLACK RESIGNS
+		//WRESIGNS
+		//BRESIGNS
+		//0123456789012
+		//0         1
+		String myclr = null;
+		if (useshort) myclr = getShortHandColor(clr);
+		else myclr = "" + clr + " ";
+		return "" + myclr + "RESIGNS";
+		//return "" + myclr + "SURRENDERS";
+	}
+	
+	//SET COLOR WANTS TIE: VALUE
+	public static String genLongOrShortHandTieDesireCommand(String clr, boolean val, boolean useshort)
+	{
+		String myclr = null;
+		if (useshort) myclr = getShortHandColor(clr);
+		else myclr = "" + clr + " ";
+		String fpart = null;
+		if (useshort) fpart = "S";
+		else fpart = "SET ";
+		String myboolval = null;
+		if (val) myboolval = "1";
+		else myboolval = "0";
+		String midstr = null;
+		if (useshort) midstr = "WT";
+		else midstr = "WANTS TIE: ";
+		return "" + fpart + myclr + midstr + myboolval;
+	}
+	
+	//DELETE OTHER_COLOR PAWN at: LOC_STRING with NUM move(s)!
+	//COLOR DIR_STRING PAWN at: START_LOC_STRING to: END_LOC_STRING
 	public static String[] genPawningMoveToCommand(String clr, int crval, int ccval, int nrval, int ncval,
 		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean bpassimnxtmv)
 	{
 		//PAWNING NOTATION
 		//WHITE LEFT PAWN at: current_loc to: next_loc
-		//-BPWN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
+		//-BPN??W?MVS (CAN BE DONE AFTER, BUT SHOULD NOT BE)
 		//WLPNB4TOA3 (DISPLAY TO THE USER)
 		//
 		
@@ -5900,6 +5960,9 @@ class ChessPiece {
 		return getShortHandMoves(mvcmd);
 	}
 	
+	//COLOR DIR_STRING CASTLE:
+	//COLOR CASTLE at: START_LOC_STRING to: END_LOC_STRING
+	//COLOR KING at: START_LOC_STRING to: END_LOC_STRING
 	public static String[] genCastlingMoveToCommand(String clr, boolean useleft, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -5933,6 +5996,7 @@ class ChessPiece {
 		mvcmd[2] = "" + kgmvcmd;
 		return getShortHandMoves(mvcmd);
 	}
+	
 	
 	//MAIN HINT METHODS SIMILAR TO GEN MOVE TO
 	
@@ -6002,6 +6066,27 @@ class ChessPiece {
 		return genHintsCommandForSide(getColor());
 	}
 	
+	//result array will only have one item on it
+	public static String[] getFullResignationCommand(String clr)
+	{
+		String cmd = genLongOrShortHandResignCommand(clr, false);
+		System.out.println("cmd = " + cmd);
+		String[] htscmd = new String[1];
+		htscmd[0] = "" + cmd;
+		return getShortHandMoves(htscmd);
+	}
+	
+	//result array will only have one item on it
+	public static String[] getFullTieCommand(String clr, boolean val, boolean useshort)
+	{
+		String cmd = genLongOrShortHandTieDesireCommand(clr, val, useshort);
+		System.out.println("cmd = " + cmd);
+		String[] htscmd = new String[1];
+		htscmd[0] = "" + cmd;
+		return getShortHandMoves(htscmd);
+	}
+	
+	
 	//COMMAND TYPE METHODS
 	
 	public static String getTypeOfMoveCommand(String usrcmd)
@@ -6013,6 +6098,12 @@ class ChessPiece {
 		//else;//do nothing
 		if (usrcmd.charAt(0) == '+') return "CREATE";
 		else if (usrcmd.charAt(0) == '-') return "DELETE";
+		else if (usrcmd.charAt(0) == 'S') return "TIEDESIRE";
+		else if (0 < usrcmd.indexOf("RESIGNS") && usrcmd.indexOf("RESIGNS") < usrcmd.length() &&
+			(usrcmd.length() == 8 || usrcmd.length() == 13))
+		{
+			return "RESIGN";
+		}
 		else if (usrcmd.charAt(1) == 'L' || usrcmd.charAt(1) == 'R')
 		{
 			if (usrcmd.charAt(2) == 'P') return "PAWNING";
@@ -6028,7 +6119,7 @@ class ChessPiece {
 	{
 		String[] tps = new String[mycmd.length];
 		for (int x = 0; x < mycmd.length; x++) tps[x] = getTypeOfMoveCommand(mycmd[x]);
-		String[] mysmtps = {"CASTLEING", "PAWNING", "PROMOTION", "HINTS"};
+		String[] mysmtps = {"CASTLEING", "PAWNING", "PROMOTION", "HINTS", "RESIGN", "TIEDESIRE"};
 		for (int x = 0; x < mycmd.length; x++)
 		{
 			if (itemIsOnGivenList(tps[x], mysmtps)) return "" + tps[x];
@@ -6156,10 +6247,10 @@ class ChessPiece {
 				else
 				{
 					//System.out.println("mytps[" + n + "] = " + mytps[n]);
-					String[] clrzeroimytps = {"CASTLEING", "PAWNING", "HINTS", "MOVE"};
+					String[] clrzeroimytps = {"CASTLEING", "PAWNING", "HINTS", "MOVE", "RESIGN"};
 					int clrci = -1;
 					if (itemIsOnGivenList(mytps[n], clrzeroimytps)) clrci = 0;
-					else clrci = 1;
+					else clrci = 1;//promotion
 					myclrs[n] = getLongHandColor("" + mymvs[n][mvi].charAt(clrci));
 					//System.out.println("myclrs[" + n + "] = " + myclrs[n]);
 				}
@@ -6191,6 +6282,10 @@ class ChessPiece {
 		//WKGA5TOA6
 		//WKTA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
 		//WBPA5TOA6 (NOT LEGAL, BUT EXAMPLE ONLY)
+		
+		//RESIGN NOTATION:
+		//WHITE RESIGNS
+		//WRESIGNS
 		
 		//SUPPOSE A CAPTURE WERE TO BE MADE LET US SAY A BLACK PAWN IS AT A6 AND WE CAN KILL IT
 		//SHORT HAND EXAMPLES
@@ -6428,6 +6523,7 @@ class ChessPiece {
 	{
 		return genMoveToCommand(cp, nloc, gid, ignorelist, addpcs, false, "QUEEN");
 	}
+	//non-static version convenience method
 	public String[] genMoveToCommand(int[] nloc, int[][] ignorelist, ArrayList<ChessPiece> addpcs,
 		boolean usecslingasmv, String ptpval)
 	{
@@ -6562,6 +6658,22 @@ class ChessPiece {
 		myretstr += promvcmdonly.substring(0, 2) + promvcmdonly.substring(10) +
 			promvcmdonly.substring(4, 10) + promvcmdonly.substring(2, 4);
 		return myretstr;
+	}
+	
+	public static String genUndoMoveToCommandForResignationCommand(String mvcmdonly, boolean redoit)
+	{
+		if (redoit) return "" + mvcmdonly;
+		else return "UNDO" + mvcmdonly;
+	}
+	
+	public static String genUndoMoveToCommandForTieDesireCommand(String mvcmdonly, boolean redoit)
+	{
+		String fpart = mvcmdonly.substring(0, mvcmdonly.length() - 1);
+		String valstr = null;
+		if (mvcmdonly.charAt(mvcmdonly.length() - 1) == '0') valstr = "1";
+		else if (mvcmdonly.charAt(mvcmdonly.length() - 1) == '1') valstr = "0";
+		else throw new IllegalStateException("invalid value found and used here!");
+		return fpart + valstr;
 	}
 	
 	public static String[] genUndoMoveToShortHandCommand(String[] mvcmd, boolean redoit, boolean remundo)
@@ -6750,7 +6862,10 @@ class ChessPiece {
 				//add undo in front of it for starters
 				//it will most likely be a move to command
 				//might be pawning or changing types
-				undomvs[0] = genUndoMoveToCommandForMoveCommand(mvcmd[0], redoit);
+				String cmdtp = getTypeOfMoveCommand(mvcmd[0]);
+				if (cmdtp.equals("RESIGN")) undomvs[0] = genUndoMoveToCommandForResignationCommand(mvcmd[0], redoit);
+				else if (cmdtp.equals("TIEDESIRE")) undomvs[0] = genUndoMoveToCommandForTieDesireCommand(mvcmd[0], redoit);
+				else undomvs[0] = genUndoMoveToCommandForMoveCommand(mvcmd[0], redoit);
 			}
 		}
 		else
@@ -6895,6 +7010,13 @@ class ChessPiece {
 			System.out.println("nwusrcmd = " + nwusrcmd);
 			
 			resstr[0] = "" + nwusrcmd;
+			System.out.println("resstr[0] = " + resstr[0]);
+			return resstr;
+		}
+		else if (cmdtp.equals("RESIGN"))
+		{
+			String[] resstr = new String[1];
+			resstr[0] = "" + usrcmd;
 			System.out.println("resstr[0] = " + resstr[0]);
 			return resstr;
 		}
@@ -7194,7 +7316,12 @@ class ChessPiece {
 			for (int x = 0; x < mvcmds.length; x++)
 			{
 				tpcmds[x] = getTypeOfMoveCommand(mvcmds[x]);
-				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING")) numskp++;
+				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING") || tpcmds[x].equals("TIEDESIRE") ||
+					tpcmds[x].equals("RESIGN"))
+				{
+					numskp++;
+				}
+				//else;//do nothing
 			}
 			int[][] ignorelist = new int[mvcmds.length - numskp][2];
 			int igi = 0;
@@ -7257,7 +7384,12 @@ class ChessPiece {
 			for (int x = 0; x < mvcmds.length; x++)
 			{
 				tpcmds[x] = getTypeOfMoveCommand(mvcmds[x]);
-				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING")) numskp++;
+				if (tpcmds[x].equals("HINTS") || tpcmds[x].equals("CASTLEING") || tpcmds[x].equals("TIEDESIRE") ||
+					tpcmds[x].equals("RESIGN"))
+				{
+					numskp++;
+				}
+				//else;//do nothing
 			}
 			
 			ArrayList<ChessPiece> addpcs = null;
@@ -7566,6 +7698,15 @@ class ChessPiece {
 		//BPNH8HINTS
 		//0123456789
 		
+		//RESIGNATION NOTATION:
+		//WRESIGNS
+		//01234567
+		
+		//TIE DESIRE NOTATION:
+		//SWWT0
+		//SBWT1
+		//01234
+		
 		//CREATE OR DELETE NOTATIONS: (YOU ARE DONE, JUST RETURN IT)
 		//-BPN??W?MS
 		//+BPN??W?MS
@@ -7643,7 +7784,7 @@ class ChessPiece {
 						resstr[x] = "" + nwusrcmd;
 						System.out.println("resstr[" + x + "] = " + resstr[x]);
 					}
-					else if (cmdtps[x].equals("CASTLEING"))
+					else if (cmdtps[x].equals("CASTLEING") || cmdtps[x].equals("TIEDESIRE") || cmdtps[x].equals("RESIGN"))
 					{
 						//CASTLING NOTATION:
 						//WLCE:
@@ -7735,6 +7876,20 @@ class ChessPiece {
 		//WLCE: (DISPLAY TO USER ONLY)
 		//WCEA8TOD8
 		//WKGE8TOC8
+		//
+		//RESIGNATION NOTATION:
+		//WHITE RESIGNS
+		//WRESIGNS
+		//
+		//TIE DESIRE NOTATION:
+		//SET WHITE WANTS TIE: 1
+		//
+		//HINTS NOTATION:
+		//WHITE HINTS
+		//WHINTS
+		//WHITE TYPE at: current_loc HINTS
+		//WHITE PAWN at: A4 HINTS
+		//WPNA4HINTS
 		//
 		//PAWNING NOTATION
 		//WHITE LEFT PAWN at: current_loc to: next_loc
@@ -7880,6 +8035,12 @@ class ChessPiece {
 		{
 			if (mvcmd[x].charAt(0) == '+') tpcmds[x] = "CREATE";
 			else if (mvcmd[x].charAt(0) == '-') tpcmds[x] = "DELETE";
+			else if (0 < mvcmd[x].indexOf("RESIGNS") && mvcmd[x].indexOf("RESIGNS") < mvcmd[x].length() &&
+				(mvcmd[x].length() == 8 || mvcmd[x].length() == 13))
+			{
+				tpcmds[x] = "RESIGN";//?
+			}
+			else if (mvcmd[x].charAt(0) == 'S') tpcmds[x] = "TIEDESIRE";
 			else if (mvcmd[x].charAt(1) == 'L' || mvcmd[x].charAt(1) == 'R')
 			{
 				if (mvcmd[x].charAt(2) == 'P')
@@ -7913,14 +8074,14 @@ class ChessPiece {
 		{
 			if (pci < 0 || mvcmd.length - 1 < pci)
 			{
-				throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
+				throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLEING OR PAWNING!");
 			}
 			//else;//do nothing
 		}
 		else
 		{
 			if (pci < 0 || mvcmd.length - 1 < pci);
-			else throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLING!");
+			else throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLEING OR PAWNING!");
 		}
 		
 		//get the direction
@@ -8002,8 +8163,8 @@ class ChessPiece {
 			}
 			
 			//clear the last undone move
-			if (isundo || isofficial);
-			else getGame(gid).setLastUndoneMove(null);
+			//if (isundo || isofficial);
+			//else getGame(gid).setLastUndoneMove(null);
 			
 			System.out.println("DONE MAKING THE FULL MOVE!");
 			return;
@@ -8137,12 +8298,38 @@ class ChessPiece {
 					else throw new IllegalStateException("THE PIECE WE ARE MOVING MUST BE THE SAME TYPE AND COLOR!");
 				}
 			}
+			else if (tpcmds[x].equals("TIEDESIRE"))
+			{
+				boolean mybool = false;
+				if (mvcmd[x].charAt(mvcmd[x].length() - 1) == '0') mybool = false;
+				else mybool = true;
+				getGame(gid).setColorWantsADraw(getLongHandColor("" + mvcmd[x].charAt(1)), mybool);
+			}
+			else if (tpcmds[x].equals("RESIGN"))
+			{
+				if (isundo)
+				{
+					System.out.println("RESIGNING AUTOMATICALLY ENDS THE GAME! THE COMPLETION " +
+						"OF THE GAME WILL NOT BE UNDONE! SO YOU CAN VIEW THE MOVES MADE!");
+				}
+				else
+				{
+					//clear the last undone move
+					if (isundo || isofficial);
+					else getGame(gid).setLastUndoneMove(null);
+					
+					getGame(gid).makeUnofficialMoveOfficial();
+					getGame(gid).setColorResigns(getLongHandColor("" + mvcmd[x].charAt(0)), true);
+					if (x + 1 < mvcmd.length) throw new IllegalStateException("RESIGNING MUST BE THE LAST COMMAND!");
+					//else;//do nothing
+				}
+			}
 			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!"); 
 		}//end of x for loop
 		
 		//clear the last undone move
-		if (isundo || isofficial);
-		else getGame(gid).setLastUndoneMove(null);
+		//if (isundo || isofficial);
+		//else getGame(gid).setLastUndoneMove(null);
 		
 		System.out.println("DONE MAKING THE FULL MOVE!");
 		System.out.println();

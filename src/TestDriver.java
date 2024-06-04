@@ -23,6 +23,7 @@ public class TestDriver {
     	//testColorsForMovesAlternateViaStepingForwardThroughGame(2);
     	//testOtherColorsAlternateViaStepingForwardThroughGame(2);
     	//testFourMoveCheckMateBlackViaStepingForwardThroughGame(2);
+    	//testResignationViaStepingForwardThroughGame(2);
     	
     	ChessPiece.setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
@@ -58,6 +59,7 @@ public class TestDriver {
     	//testConvertingLocations();
     	//testCanMoveToLocs(gid, null, null);
     	
+    	//testResignation(gid);
     	//testPawning(gid, true);
     	//setUpBoardForPawnPromotion(gid, true);
     	//setUpBoardForCastlingWhiteRight(gid, true);
@@ -515,6 +517,25 @@ public class TestDriver {
     		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
     }
     
+    public static void testResignationViaStepingForwardThroughGame(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		boolean iswhitedown = true;
+    	String[] myunoffmvs = new String[5];
+    	myunoffmvs[0] = "WPNTOE6";
+    	myunoffmvs[1] = "BPNTOF3";
+    	myunoffmvs[2] = "WQNTOH4";
+    	myunoffmvs[3] = "BRESIGNS";
+    	myunoffmvs[4] = "WPNTOA5";
+    	//myunoffmvs[5] = "BPNTOA3";
+    	ChessPiece.setUpBoard(gid);
+    	ChessPiece.printBoard(gid);
+    	testStepForwardAndBackwardThroughAGame(
+    		ChessPiece.genFullMoveCommands(myunoffmvs, gid, null, iswhitedown, true), gid, false);
+    }
+    
     
     //TEST MOVE TO LOCS METHODS
     
@@ -623,6 +644,48 @@ public class TestDriver {
     }
     
     //SET UP BOARD METHODS
+    
+    public static void testResignation(int gid)
+    {
+    	if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
+		//else;//do nothing
+		
+		//WPN E7 -> E6; WQN D8 -> H4; OWPN A7 -> A5;
+		//BPN F2 -> F3; BLACK RESIGNS; BPN A2 -> A3;
+		
+		boolean iswhitedown = true;
+    	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7", iswhitedown), gid);
+    	driverMakeMove(wpn, "E6", iswhitedown);
+    	
+    	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F2", iswhitedown), gid);
+    	driverMakeMove(bpn, "F3", iswhitedown);
+    	
+    	ChessPiece wqn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("D8", iswhitedown), gid);
+    	driverMakeMove(wqn, "H4", iswhitedown);
+    	ChessPiece.printBoard(gid);
+    	
+    	String[] rsgmv = ChessPiece.getFullResignationCommand("BLACK");
+    	ChessPiece.makeLocalShortHandMove(rsgmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	
+    	boolean tstcrash = false;
+    	if (tstcrash)
+    	{
+    		ChessPiece owpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
+	    	driverMakeMove(owpn, "A5", iswhitedown);
+	    	
+	    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
+	    	driverMakeMove(obpn, "A3", iswhitedown);
+    	}
+    	else
+    	{
+    		ChessPiece.getGame(gid).stepBackward();
+    		ChessPiece.getGame(gid).stepBackward();
+    		ChessPiece.printBoard(gid);
+    		ChessPiece.getGame(gid).stepForward();
+    		ChessPiece.printBoard(gid);
+    	}
+    }
+    
     //SET UP BOARD PAWN PROMOTION
     
     public static void setUpBoardForPawnPromotion(int gid)
@@ -1955,6 +2018,16 @@ public class TestDriver {
     	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
     	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
     	ChessPiece.printBoard(gid);
+    	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
+    	
+    	boolean tstdrawcmd = true;
+    	if (tstdrawcmd)
+    	{
+    		ChessPiece.makeLocalMove(
+    			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown);
+    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	}
+    	//else;//do nothing
     	
     	boolean tstrdoundocmds = true;
     	if (tstrdoundocmds)
@@ -1963,7 +2036,9 @@ public class TestDriver {
     		System.out.println("TEST REDO COMMAND:");
 	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToRedoLastUndoneMove(), gid);
 	    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+	    	ChessPiece.getGame(gid).setLastUndoneMove(null);
 	    	ChessPiece.printBoard(gid);
+	    	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
 	    	System.out.println();
 	    	
 	    	System.out.println("TEST UNDO COMMAND:");
@@ -1971,6 +2046,16 @@ public class TestDriver {
 	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToUndoLastMadeMove(), gid, true, iswhitedown);
 	    	ChessPiece.printBoard(gid);
 	    	System.out.println();
+    	}
+    	//else;//do nothing
+    	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
+    	
+    	boolean otstdrawcmd = false;
+    	if (otstdrawcmd)
+    	{
+    		ChessPiece.makeLocalMove(
+    			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown);
+    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	}
     	//else;//do nothing
     	
