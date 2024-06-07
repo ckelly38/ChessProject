@@ -1755,10 +1755,10 @@ class ChessPiece {
 	
 	//NEED TO KNOW WHOSE TURN IT IS AND
 	//NEED TO PREVENT THE OTHER SIDE FROM MOVING UNTIL WE TELL THEM IT IS THEIR TURN
-	//NEED A WAY TO AGREE UPON A TIE OR DRAW (STALEMATE)
+	//NEED A WAY TO COMMUNICATE WITH MY SERVER:
 	//NEED A WAY TO TELL THE OTHER COMPUTER: IT IS THEIR TURN, WHAT MOVES WERE MADE, AND HOW THE GAME ENDS,
 	//WHAT TO DO AFTER THE GAME ENDS?
-	//NEED A WAY TO COMMUNICATE WITH MY SERVER
+	
 	
 	//HOW TO STEP THROUGH A COMPLETED GAME (ONLY COMPLETED GAMES):
 	//WHAT DOES BACK AND NEXT DO? INCREASE OR DECREASE THE STEP_COUNTER/INDEX.
@@ -1806,6 +1806,60 @@ class ChessPiece {
 	//CHECK TO SEE IF THE GAME ENDS IN AN AUTO-STALEMATE
 	//WE NEED TO CHECK TO SEE IF THERE ARE PAWNS FOR THAT SIDE THAT HAVE MADE IT TO THE OTHER SIDE AND
 	//-NEED PROMOTED AND TO PROMOTE THEM
+	
+	public static void advanceTurnIfPossible(String sidemoved, boolean undoifincheck,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	{
+		//make sure the side that just moved is not in check
+		//if they are in check and it can be undone undo it
+		//if they choose surrender, ends the game
+		//check to see if it is checkmate
+		
+		if (isSideInCheck(sidemoved, ignorelist, addpcs, gid))
+		{
+			if (undoifincheck)
+			{
+				//force the undo command on the last made move
+				throw new IllegalStateException("NOT DONE YET WITH ADVANCING THE TURN!");
+				
+				//then done with this method for the moment so return
+				//System.out.println("UNDID THE MOVE, NOT READY TO ADVANCE TURNS YET!");
+				//return;
+			}
+			else
+			{
+				//surrender unless checkmate
+				if (inCheckmate(sidemoved, ignorelist, addpcs, gid))
+				{
+					getGame(gid).setColorWins(getOppositeColor(sidemoved), true);
+				}
+				else getGame(gid).setColorResigns(sidemoved, true);
+			}
+		}
+		else
+		{
+			//if is checkmate -> end the game instead
+			//if is stalemate -> end the game instead
+			//else just advance the turn -> not over
+			
+			if (inCheckmate(getOppositeColor(sidemoved), ignorelist, addpcs, gid))
+			{
+				getGame(gid).setColorWins(sidemoved, true);
+			}
+			else
+			{
+				if (isStalemate(sidemoved, ignorelist, addpcs, gid))
+				{
+					getGame(gid).setIsTied(true);
+				}
+				else
+				{
+					//not sure what to do here?
+					throw new IllegalStateException("NOT DONE YET WITH ADVANCING THE TURN!");
+				}
+			}
+		}
+	}
 	
 	
 	//CHECKMATE: ONE SIDE IS IN CHECK AND CANNOT GET OUT OF IT
@@ -2353,6 +2407,11 @@ class ChessPiece {
 	}
 	
 	
+	//if no piece -> not added; if there is a piece and it is not on our list of types -> add it;
+	//if there is a piece and it is on our list of types and if the diff is more than one -> not added;
+	//if there is a piece and it is on our list of types and its diff is less than or equal to 1 ->
+	//-> if piece is not a pawn -> add it;
+	//-> if piece is a pawn and it moved forward 1 -> add it; otherwise -> not added 
 	private static boolean getCanAddPieceToGList(ChessPiece cp, String[] myvtps, int srval, int scval,
 		boolean initaddit, boolean usecdiff)
 	{
@@ -2457,6 +2516,7 @@ class ChessPiece {
 	}
 	
 	
+	//LOCATIONS GUARDED BY BISHOP (OR QUEEN)
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationOnSameDiagnal(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -2667,6 +2727,7 @@ class ChessPiece {
 		return getPiecesGuardingLocationOnSameDiagnal(loc, gid, null);
 	}
 	
+	//LOCATIONS GUARDED BY CASTLE (OR QUEEN)
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationOnSameRowOrCol(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -3027,6 +3088,8 @@ class ChessPiece {
 		return getPiecesGuardingLocationOnSameRowOrCol(loc, gid, null);
 	}
 	
+	
+	//MAIN GET PIECES GUARDING LOCATION METHOD
 	public static ArrayList<ChessPiece> getPiecesGuardingLocation(int rval, int cval, int gid, int[][] ignorelist,
 		ArrayList<ChessPiece> addpcs)
 	{
@@ -3126,6 +3189,7 @@ class ChessPiece {
 	}
 	
 	
+	//THE CURRENT SIDE PIECES GUARDING THE LOCATION
 	public static ArrayList<ChessPiece> getSidePiecesGuardingLocation(int rval, int cval, int gid, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -3173,6 +3237,8 @@ class ChessPiece {
 		else return getSidePiecesGuardingLocation(loc[0], loc[1], gid, ignorelist);
 	}
 	
+	
+	//THE ENEMY PIECES GUARDING THE LOCATION
 	public static ArrayList<ChessPiece> getEnemyPiecesGuardingLocation(int rval, int cval, int gid, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -3270,6 +3336,7 @@ class ChessPiece {
 		return isASideInCheck("WHITE", ignorelist, addpcs, gid);
 	}
 	
+	//CAN A GIVEN TYPE OF PIECE FOR A SIDE BE DIRECTLY ATTACKED
 	//asks if a certain color and kind of piece can be directly attacked
 	public static boolean isAtLeastOnePieceOfTypeForSideInCheck(String typeval, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
@@ -4121,6 +4188,9 @@ class ChessPiece {
 	{
 		return getPieceCanMoveToLocs(null, null);
 	}
+	
+	
+	//GET PIECE STARTING LOCATION FROM GIVEN DESIRED ENDING LOCATION FOR A DESIRED BOARD
 	
 	//this is given an end location and determines the starting location of the piece
 	//if more than one piece can move there the starting location is ambigious and will throw an error
@@ -5218,6 +5288,9 @@ class ChessPiece {
 		return doesSideHaveNoLegalMoves("BLACK", ignorelist, addpcs, gid);
 	}
 	
+	
+	//THESE CAPTURE METHODS ARE ERROR PRONE
+	
 	//how to determine if a situation comes down to just the free pieces?
 	//how to determine if a free piece is able to capture an enemy piece through a series of legal moves?
 	//-to move a piece on one board only, I could call setLoc which does not register the moves
@@ -5357,9 +5430,10 @@ class ChessPiece {
 		//we can do this by checking where each piece can possibly move to
 		//if enemy pieces reside at at least one location a capture is possible and not a stalemate.
 		
-		System.out.println("IS A CAPTURE POSSIBLE: " + isACapturePossible(ignorelist, addpcs, gid));
+		boolean cppossiblebmvs = isACapturePossible(ignorelist, addpcs, gid);
+		//System.out.println("IS A CAPTURE POSSIBLE: " + cppossiblebmvs);
 		
-		if (canASideCaptureAPieceIfEnemyStaysSame(sideclrtomv, ignorelist, addpcs, gid))
+		if (cppossiblebmvs || canASideCaptureAPieceIfEnemyStaysSame(sideclrtomv, ignorelist, addpcs, gid))
 		{
 			System.out.println("IT IS POSSIBLE FOR ONE SIDE TO MAKE A CAPTURE!");
 			return false;
@@ -7963,6 +8037,7 @@ class ChessPiece {
 		
 		System.out.println();
 		System.out.println("BEGIN EXECUTING THE MOVE COMMAND NOW:");
+		System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
 		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
 		System.out.println();
 		System.out.println("isundo = " + isundo);
@@ -8161,11 +8236,6 @@ class ChessPiece {
 				}
 				else sideCastleLeftOrRight(getLongHandColor("" + mvcmd[pci].charAt(0)), useleftforcandp, gid);
 			}
-			
-			//clear the last undone move
-			//if (isundo || isofficial);
-			//else getGame(gid).setLastUndoneMove(null);
-			
 			System.out.println("DONE MAKING THE FULL MOVE!");
 			return;
 		}
@@ -8209,6 +8279,7 @@ class ChessPiece {
 				
 				ChessPiece pn = getPieceAt(convertStringLocToRowCol(mvcmd[x].substring(4, 6), iswhitedown), mpclist);
 				System.out.println("pn = " + pn);
+				
 				if (pn == null) throw new IllegalStateException("THE PAWN MUST NOT BE NULL!");
 				else
 				{
@@ -8303,6 +8374,7 @@ class ChessPiece {
 				boolean mybool = false;
 				if (mvcmd[x].charAt(mvcmd[x].length() - 1) == '0') mybool = false;
 				else mybool = true;
+				getGame(gid).makeUnofficialMoveOfficial();
 				getGame(gid).setColorWantsADraw(getLongHandColor("" + mvcmd[x].charAt(1)), mybool);
 			}
 			else if (tpcmds[x].equals("RESIGN"))
@@ -8326,11 +8398,6 @@ class ChessPiece {
 			}
 			else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + mvcmd[x] + ")!"); 
 		}//end of x for loop
-		
-		//clear the last undone move
-		//if (isundo || isofficial);
-		//else getGame(gid).setLastUndoneMove(null);
-		
 		System.out.println("DONE MAKING THE FULL MOVE!");
 		System.out.println();
 	}

@@ -311,6 +311,7 @@ class ChessGame {
 			}
 			//colorsForMovesAlternate(this.OFFICIAL_MOVES);
 		}
+		//this.printAllOfficialMoves();
 	}
 	
 	public void setUnofficialMove(String[] mymvcmd)
@@ -344,12 +345,13 @@ class ChessGame {
 				String[] mycp = new String[mymvcmd.length];
 				for (int n = 0; n < mymvcmd.length; n++) mycp[n] = "" + mymvcmd[n];
 				
-				if (OFFICIAL_MOVES == null) OFFICIAL_MOVES = new ArrayList<String[]>();
+				if (this.OFFICIAL_MOVES == null) this.OFFICIAL_MOVES = new ArrayList<String[]>();
 				//else;//do nothing
 				
-				OFFICIAL_MOVES.add(mycp);
-				colorsForMovesAlternate();
-				noMovesAfterResigning();
+				this.OFFICIAL_MOVES.add(mycp);
+				this.colorsForMovesAlternate();
+				this.noMovesAfterResigning();
+				//this.printAllOfficialMoves();
 			}
 		}
 	}
@@ -404,7 +406,12 @@ class ChessGame {
 					System.out.println("LAST_UNDONE_MOVE[" + n + "] = " + LAST_UNDONE_MOVE[n]);
 				}
 			}
-			else throw new IllegalStateException("YOU NEED TO CLEAR THE LAST UNDONE MOVE FIRST!");
+			else
+			{
+				for (int x = 0; x < LAST_UNDONE_MOVE.length; x++) LAST_UNDONE_MOVE[x] = null;
+				LAST_UNDONE_MOVE = null;
+				//throw new IllegalStateException("YOU NEED TO CLEAR THE LAST UNDONE MOVE FIRST!");
+			}
 		}
 	}
 	
@@ -510,6 +517,30 @@ class ChessGame {
 		else for (int x = 0; x < numofmvs; x++) this.stepForward();
 	}
 	
+	public static void printAllMoves(String[][] mymvs)
+	{
+		if (mymvs == null || mymvs.length < 1) System.out.println("NO MOVES!");
+		else
+		{
+			for (int x = 0; x < mymvs.length; x++)
+			{
+				if (mymvs[x].length == 1) System.out.println("" + (x + 1) + ": " + mymvs[x][0]);
+				else
+				{
+					System.out.println("" + (x + 1) + ":");
+					for (int c = 0; c < mymvs[x].length; c++)
+					{
+						System.out.println("\t" + (c + 1) + ". " + mymvs[x][c]);
+					}
+				}
+			}
+		}
+	}
+	public void printAllOfficialMoves()
+	{
+		printAllMoves(convertArrayListStrArrToStringArr(OFFICIAL_MOVES));
+	}
+	
 	//NOT DONE WITH THE COMMUNICATE WITH THE SERVER PART YET
 	public void completeGameAndCommunicateWithTheServer(String msg)
 	{
@@ -517,6 +548,7 @@ class ChessGame {
 		this.moveindex = this.OFFICIAL_MOVES.size() - 1;
 		System.out.println(msg);
 		System.out.println("GAME IS COMPLETED: " + this.isCompleted());
+		this.printAllOfficialMoves();
 		
 		//make the command
 		//add official move then

@@ -431,7 +431,7 @@ public class TestDriver {
     	myunoffmvs[4] = "WPNB4TOB3";
     	myunoffmvs[5] = "BPNH4TOH5";
     	myunoffmvs[6] = "WHINTS";
-    	myunoffmvs[7] = "BPNH5TOH6";
+    	myunoffmvs[7] = "BPNH5TOH6";//errors out because white did not move
     	String[] promotps = new String[2];
     	promotps[0] = "CASTLE";
     	promotps[1] = "BISHOP";
@@ -2025,7 +2025,6 @@ public class TestDriver {
     	{
     		ChessPiece.makeLocalMove(
     			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown);
-    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	}
     	//else;//do nothing
     	
@@ -2050,19 +2049,19 @@ public class TestDriver {
     	//else;//do nothing
     	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
     	
-    	boolean otstdrawcmd = false;
+    	boolean otstdrawcmd = true;
     	if (otstdrawcmd)
     	{
     		ChessPiece.makeLocalMove(
-    			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown);
-    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    			ChessPiece.getFullTieCommand("WHITE", true, false), gid, false, iswhitedown);
     	}
-    	//else;//do nothing
-    	
-    	//make the other move
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
-    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
-    	ChessPiece.printBoard(gid);
+    	else
+    	{
+    		//make the other move
+    		ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
+    		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    		ChessPiece.printBoard(gid);
+    	}
     	//check the results
     	System.out.println("WHITE KING IS IN CHECK: " + wkg.inCheck());
     	System.out.println("BLACK KING IS IN CHECK: " + bkg.inCheck());
