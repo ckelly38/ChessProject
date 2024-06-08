@@ -33,7 +33,7 @@ class ChessGame {
 		if (numitems < 1);
 		else
 		{
-			for (int x = 0; x < all.size(); x++)
+			for (int x = 0; x < numitems; x++)
 			{
 				if (all.get(x).getGameID() == gid)
 				{
@@ -235,6 +235,8 @@ class ChessGame {
 		noMovesAfterResigning(OFFICIAL_MOVES);
 	}
 	
+	//IF NO OFFICIAL MOVES -> WHITE
+	//IF THERE ARE OFFICIAL MOVES -> NEXT COLOR WHITE -> BLACK; BLACK -> WHITE; OR ERRORS OUT ON INVALID COLOR
 	public static String getSideTurn(String[][] myoffmvs, boolean val)
 	{
 		//get last side to make an actual move
@@ -268,6 +270,12 @@ class ChessGame {
 	public String getSideTurn()
 	{
 		return getSideTurn(OFFICIAL_MOVES);
+	}
+	
+	public int getNumOfficialMoves()
+	{
+		if (this.OFFICIAL_MOVES == null) return 0;
+		else return this.OFFICIAL_MOVES.size();
 	}
 	
 	public void setOfficialMoves(String[][] myoffmvs)
@@ -435,17 +443,27 @@ class ChessGame {
 		return ChessPiece.genUndoMoveToShortHandCommand(mymv);
 	}
 	
+	//returns a copy of the given move
+	public String[] genCopyOfStringArray(String[] myinmv)
+	{
+		String[] mymv = null;
+		if (myinmv == null || myinmv.length < 1);
+		else
+		{
+			mymv = new String[myinmv.length];
+			for (int x = 0; x < myinmv.length; x++) mymv[x] = "" + myinmv[x];
+		}
+		return mymv;
+	}
 	//returns a copy of the LAST_UNDONE_MOVE
 	public String[] genCommandToRedoLastUndoneMove()
 	{
-		String[] mymv = null;
-		if (LAST_UNDONE_MOVE == null || LAST_UNDONE_MOVE.length < 1);
-		else
-		{
-			mymv = new String[LAST_UNDONE_MOVE.length];
-			for (int x = 0; x < LAST_UNDONE_MOVE.length; x++) mymv[x] = "" + LAST_UNDONE_MOVE[x];
-		}
-		return mymv;
+		return genCopyOfStringArray(LAST_UNDONE_MOVE);
+	}
+	//returns a copy of the UNOFFICIAL_MOVE
+	public String[] genCopyOfUnofficialMove()
+	{
+		return genCopyOfStringArray(UNOFFICIAL_MOVE);
 	}
 	
 	public void stepForward()

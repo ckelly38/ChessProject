@@ -1804,26 +1804,42 @@ class ChessPiece {
 	//IF THEY CHOOSE UNDO: NEED TO LET THEM MOVE THEN RE-ENTER THIS METHOD.
 	//WE NEED TO CHECK TO SEE IF THE CURRENT SIDE KING IS STILL IN CHECK() IF SO, END GAME IMMEDIATELY CHECKMATE!
 	//CHECK TO SEE IF THE GAME ENDS IN AN AUTO-STALEMATE
-	//WE NEED TO CHECK TO SEE IF THERE ARE PAWNS FOR THAT SIDE THAT HAVE MADE IT TO THE OTHER SIDE AND
-	//-NEED PROMOTED AND TO PROMOTE THEM
+	//NOTE: PAWN PROMOTION TAKEN CARE OF WITH GEN MOVE TO COMMAND METHOD!!!
+	//--WE NEED TO CHECK TO SEE IF THERE ARE PAWNS FOR THAT SIDE THAT HAVE MADE IT TO THE OTHER SIDE AND (DONE)
+	//--NEED PROMOTED AND TO PROMOTE THEM (DONE)
+	//IF THE GAME HAS NOT ENDED, THEN WHAT????
 	
-	public static void advanceTurnIfPossible(String sidemoved, boolean undoifincheck,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//make sure the side that just moved is not in check
 		//if they are in check and it can be undone undo it
 		//if they choose surrender, ends the game
 		//check to see if it is checkmate
 		
+		//NUM OFFICIAL MOVES WILL BE AT LEAST ONE!
+		getGame(gid).makeUnofficialMoveOfficial();
+		
 		if (isSideInCheck(sidemoved, ignorelist, addpcs, gid))
 		{
 			if (undoifincheck)
 			{
+				System.out.println(getGame(gid).getSideTurn() + "'S TURN BEFORE UNDO!");
+				
 				//force the undo command on the last made move
-				throw new IllegalStateException("NOT DONE YET WITH ADVANCING THE TURN!");
+				//undo it
+		    	String[] myounmv = genFullMoveCommandFromDisplayedCommand("UNDO", gid);
+		    	//System.out.println("MY UNDO MOVE:");
+		    	convertAllShortHandMovesToLongVersion(myounmv);
+		    	
+		    	getGame(gid).makeLastOfficialMoveUnofficial();
+		    	
+		    	makeLocalMove(myounmv, gid, true, iswhitedown);
+		    	printBoard(gid);
+		    	System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
 				
 				//then done with this method for the moment so return
-				//System.out.println("UNDID THE MOVE, NOT READY TO ADVANCE TURNS YET!");
+				System.out.println("UNDID THE MOVE, NOT READY TO ADVANCE TURNS YET!");
 				//return;
 			}
 			else
@@ -1855,10 +1871,49 @@ class ChessPiece {
 				else
 				{
 					//not sure what to do here?
+					//WE HAVE JUST MOVED
+					//THE MOVE DOES NOT RESULT IN THE END OF THE GAME
+					//WHAT TO DO NOW?
+					//GOAL: PREVENT CURRENT SIDE FROM MOVING UNTIL WE SAY SO.
+					//WHAT WE NEED: TO KNOW THE OTHER SIDE'S MOVE.
+					//THE SERVER SENDS US THE OTHER SIDE'S MOVE.
+					//THEN IT MAKES IT ON THIS END...
+					
+					//PREVENT THE USER FROM EXECUTING COMMANDS FOR THE OTHER SIDE
+					//
+					//SEND THE COMMAND MADE AND YOUR SIDE TURN
+					//BLACK'S TURN AFTER:
+					//[THE, MOVE, MADE]
+					//
+					//NOW START THE THREAD THAT LISTENS FOR THEIR MOVE
+					
+					System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
 					throw new IllegalStateException("NOT DONE YET WITH ADVANCING THE TURN!");
 				}
 			}
 		}
+	}
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck)
+	{
+		advanceTurnIfPossible(sidemoved, gid, iswhitedown, undoifincheck, null, null);
+	}
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown)
+	{
+		advanceTurnIfPossible(sidemoved, gid, iswhitedown, true);
+	}
+	//default value for iswhitedown is WHITE_MOVES_DOWN_RANKS
+	public static void advanceTurnIfPossible(String sidemoved, int gid)
+	{
+		advanceTurnIfPossible(sidemoved, gid, WHITE_MOVES_DOWN_RANKS);
+	}
+	public static void advanceTurnIfPossible(int gid)
+	{
+		//get the color of the unofficial move before it is official
+		String[] myoffmvcp = getGame(gid).genCopyOfUnofficialMove();
+		String[][] mymvscp = new String[1][];
+		mymvscp[0] = myoffmvcp;
+		String[] clrsmvs = getSideColorsForMoves(mymvscp);
+		advanceTurnIfPossible(clrsmvs[0], gid);
 	}
 	
 	
@@ -2286,6 +2341,8 @@ class ChessPiece {
 	
 	
 	//DETECTS PIECES DIRECTLY ABLE TO ATTACK OR MOVE TO A LOCATION
+	
+	//LOCATIONS GUARDED BY KNIGHT
 	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationByAKnight(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -3336,7 +3393,9 @@ class ChessPiece {
 		return isASideInCheck("WHITE", ignorelist, addpcs, gid);
 	}
 	
+	
 	//CAN A GIVEN TYPE OF PIECE FOR A SIDE BE DIRECTLY ATTACKED
+	
 	//asks if a certain color and kind of piece can be directly attacked
 	public static boolean isAtLeastOnePieceOfTypeForSideInCheck(String typeval, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
@@ -4623,6 +4682,8 @@ class ChessPiece {
 	}
 	
 	
+	//ARE PIECES FREE TO MOVE AROUND
+	
 	//asks can piece at loc move around to another location other than the current location
 	//if no piece is at the loc returns false
 	public static boolean isPieceAtLocFreeToMoveAround(int sr, int sc, int[][] ignorelist,
@@ -4702,6 +4763,9 @@ class ChessPiece {
 	{
 		return getPiecesThatAreFreeToMove(ignorelist, addpcs, gid, false, false);
 	}
+	
+	
+	//WHERE ALL CAN A SIDE REACH METHODS
 	
 	public static int[][] getPieceMoveToLocsForLocs(int[][] smvlocs, String mytpval, String myclr,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
@@ -4919,6 +4983,9 @@ class ChessPiece {
 		}
 		return rlist;
 	}
+	
+	
+	//SPECIAL MOVES AND MAIN CAN MOVE TO METHODS
 	
 	
 	//DOES NOT TAKE INTO ACCOUNT PAWN PROMOTION AS BEING SPECIAL
@@ -6345,9 +6412,8 @@ class ChessPiece {
 	
 	//MAIN GEN MOVE TO COMMAND METHODS
 	
-	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval,
-		int gid, int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv, String ptpval,
-		boolean bpassimnxtmv)
+	public static String[] genMoveToCommand(String clr, String tp, int crval, int ccval, int nrval, int ncval, int gid,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs, boolean usecslingasmv, String ptpval, boolean bpassimnxtmv)
 	{
 		//SHORT HAND EXAMPLES
 		//WPNA5TOA6
@@ -6749,6 +6815,8 @@ class ChessPiece {
 		else throw new IllegalStateException("invalid value found and used here!");
 		return fpart + valstr;
 	}
+	
+	//MAIN UNDO COMMAND METHODS
 	
 	public static String[] genUndoMoveToShortHandCommand(String[] mvcmd, boolean redoit, boolean remundo)
 	{
@@ -8507,6 +8575,8 @@ class ChessPiece {
 	
 	//PAWNING METHODS
 	
+	//CAN PAWN METHODS
+	
 	public boolean canPawnLeftOrRight(boolean useleft, ArrayList<ChessPiece> allpcs, boolean bpassimnxtmv)
 	{
 		//if no pawns for one side -> false
@@ -8720,6 +8790,7 @@ class ChessPiece {
 		return canSidePawn(clrval, getAllPiecesWithGameID(gid));
 	}
 	
+	//GET ENEMY PAWN FOR PAWNING
 	
 	public ChessPiece getEnemyPawnForLeftOrRightPawning(boolean useleft, ArrayList<ChessPiece> allpcs, boolean bpassimnxtmv)
 	{
@@ -8761,6 +8832,8 @@ class ChessPiece {
 		return getEnemyPawnForRightPawning(getAllPiecesWithGameID(getGameID()));
 	}
 	
+	//GET ENEMY PAWN LOCATION FOR PAWNING
+	
 	public int[] getEnemyPawnLeftOrRightLocation(boolean useleft, ArrayList<ChessPiece> allpcs, boolean bpassimnxtmv)
 	{
 		ChessPiece ep = getEnemyPawnForLeftOrRightPawning(useleft, allpcs, bpassimnxtmv);
@@ -8797,6 +8870,8 @@ class ChessPiece {
 	{
 		return getEnemyPawnRightLocation(getAllPiecesWithGameID(getGameID()));
 	}
+	
+	//NEW PAWN LOCATION AFTER PAWNING FOR OUR PAWN
 	
 	public int[] getPawnLeftOrRightLocation(boolean useleft, ArrayList<ChessPiece> allpcs, boolean bpassimnxtmv)
 	{
@@ -8887,6 +8962,8 @@ class ChessPiece {
 	
 	
 	//CASTLING METHODS
+	
+	//CAN CASTLE METHODS
 	
 	public static boolean canSideCastleLeftOrRight(boolean useleft, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs, int gid)
@@ -9061,6 +9138,7 @@ class ChessPiece {
 		return (canCastleLeft() || canCastleRight());
 	}
 	
+	//NEW CASTLE OR KING LOCATION METHODS
 	
 	//returns an array with 2 integers both will be invalid if cannot castle that direction
 	public static int[] getLeftOrRightCastleSideNewCastleOrKingLoc(boolean useleft, boolean usekg, String clrval,
