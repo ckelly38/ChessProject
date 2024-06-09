@@ -154,7 +154,7 @@ class ChessPiece {
 		{
 			for (int x = 0; x < allpcs.size(); x++)
 			{
-				removePieceAt(allpcs.get(x).getRow(), allpcs.get(x).getCol(), gid);
+				removePieceAt(allpcs.get(x).getRow(), allpcs.get(x).getCol(), gid, true);
 			}
 			for (int x = 0; x < allpcs.size(); x++) allpcs.set(x, null);
 			allpcs.clear();
@@ -1564,6 +1564,9 @@ class ChessPiece {
 	
 	public static int[] getCountsForEachPieceTypeForASide(String[] pcstpcs)
 	{
+		if (pcstpcs == null) throw new IllegalStateException("there must be pieces on the list!");
+		//else;//do nothing
+		
 		//king, queen, castle (rook), bishop, knight, pawn
 		int[] pccnts = new int[6];
 		String[] mytps = {"KING", "QUEEN", "CASTLE", "BISHOP", "KNIGHT", "PAWN"};//ROOK
@@ -1724,8 +1727,10 @@ class ChessPiece {
 	//HOW TO REMOVE PIECES?
 	//WE NEED TO REMOVE THEM FROM THE LIST OF PIECES.
 	//WE NEED TO MAKE THEIR REFERENCES BE NULL.
-	public static void removePieceAt(int rval, int cval, int gid)
+	public static void removePieceAt(int rval, int cval, int gid, boolean clearboardcalled)
 	{
+		if (clearboardcalled);
+		else isBoardValid(gid);
 		int numpcs = getNumItemsInList(cps);
 		if (numpcs < 1);
 		else
@@ -1743,13 +1748,21 @@ class ChessPiece {
 			}
 		}
 	}
-	public static void removePieceAt(int[] loc, int gid)
+	public static void removePieceAt(int rval, int cval, int gid)
+	{
+		removePieceAt(rval, cval, gid, false);
+	}
+	public static void removePieceAt(int[] loc, int gid, boolean clearboardcalled)
 	{
 		if (loc == null || loc.length != 2)
 		{
 			throw new IllegalStateException("You need to provide the chess piece location!");
 		}
-		else removePieceAt(loc[0], loc[1], gid);
+		else removePieceAt(loc[0], loc[1], gid, clearboardcalled);
+	}
+	public static void removePieceAt(int[] loc, int gid)
+	{
+		removePieceAt(loc, gid, false);
 	}
 	
 	
@@ -1810,7 +1823,7 @@ class ChessPiece {
 	//IF THE GAME HAS NOT ENDED, THEN WHAT????
 	
 	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck,
-		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
+		boolean isuser, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//make sure the side that just moved is not in check
 		//if they are in check and it can be undone undo it
@@ -1834,7 +1847,7 @@ class ChessPiece {
 		    	
 		    	getGame(gid).makeLastOfficialMoveUnofficial();
 		    	
-		    	makeLocalMove(myounmv, gid, true, iswhitedown);
+		    	makeLocalMove(myounmv, gid, true, iswhitedown, isuser);
 		    	printBoard(gid);
 		    	System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
 				
@@ -1893,27 +1906,28 @@ class ChessPiece {
 			}
 		}
 	}
-	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck,
+		boolean isuser)
 	{
-		advanceTurnIfPossible(sidemoved, gid, iswhitedown, undoifincheck, null, null);
+		advanceTurnIfPossible(sidemoved, gid, iswhitedown, undoifincheck, isuser, null, null);
 	}
-	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean isuser)
 	{
-		advanceTurnIfPossible(sidemoved, gid, iswhitedown, true);
+		advanceTurnIfPossible(sidemoved, gid, iswhitedown, true, isuser);
 	}
 	//default value for iswhitedown is WHITE_MOVES_DOWN_RANKS
-	public static void advanceTurnIfPossible(String sidemoved, int gid)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean isuser)
 	{
-		advanceTurnIfPossible(sidemoved, gid, WHITE_MOVES_DOWN_RANKS);
+		advanceTurnIfPossible(sidemoved, gid, WHITE_MOVES_DOWN_RANKS, isuser);
 	}
-	public static void advanceTurnIfPossible(int gid)
+	public static void advanceTurnIfPossible(int gid, boolean isuser)
 	{
 		//get the color of the unofficial move before it is official
 		String[] myoffmvcp = getGame(gid).genCopyOfUnofficialMove();
 		String[][] mymvscp = new String[1][];
 		mymvscp[0] = myoffmvcp;
 		String[] clrsmvs = getSideColorsForMoves(mymvscp);
-		advanceTurnIfPossible(clrsmvs[0], gid);
+		advanceTurnIfPossible(clrsmvs[0], gid, isuser);
 	}
 	
 	
@@ -2340,9 +2354,9 @@ class ChessPiece {
 	}
 	
 	
-	//DETECTS PIECES DIRECTLY ABLE TO ATTACK OR MOVE TO A LOCATION
+	//DETECTS PIECES DIRECTLY ABLE TO ATTACK OR MOVE TO A LOCATION METHODS
 	
-	//LOCATIONS GUARDED BY KNIGHT
+	//LOCATIONS GUARDED BY KNIGHT METHODS
 	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationByAKnight(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
@@ -2573,7 +2587,8 @@ class ChessPiece {
 	}
 	
 	
-	//LOCATIONS GUARDED BY BISHOP (OR QUEEN)
+	//LOCATIONS GUARDED BY BISHOP (OR QUEEN) METHODS
+	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationOnSameDiagnal(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -2784,7 +2799,8 @@ class ChessPiece {
 		return getPiecesGuardingLocationOnSameDiagnal(loc, gid, null);
 	}
 	
-	//LOCATIONS GUARDED BY CASTLE (OR QUEEN)
+	//LOCATIONS GUARDED BY CASTLE (OR QUEEN) METHODS
+	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocationOnSameRowOrCol(int rval, int cval, int gid,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -3146,7 +3162,8 @@ class ChessPiece {
 	}
 	
 	
-	//MAIN GET PIECES GUARDING LOCATION METHOD
+	//MAIN GET PIECES GUARDING LOCATION METHODS
+	
 	public static ArrayList<ChessPiece> getPiecesGuardingLocation(int rval, int cval, int gid, int[][] ignorelist,
 		ArrayList<ChessPiece> addpcs)
 	{
@@ -3246,7 +3263,8 @@ class ChessPiece {
 	}
 	
 	
-	//THE CURRENT SIDE PIECES GUARDING THE LOCATION
+	//THE CURRENT SIDE PIECES GUARDING THE LOCATION METHODS
+	
 	public static ArrayList<ChessPiece> getSidePiecesGuardingLocation(int rval, int cval, int gid, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -3295,7 +3313,8 @@ class ChessPiece {
 	}
 	
 	
-	//THE ENEMY PIECES GUARDING THE LOCATION
+	//THE ENEMY PIECES GUARDING THE LOCATION METHODS
+	
 	public static ArrayList<ChessPiece> getEnemyPiecesGuardingLocation(int rval, int cval, int gid, String clrval,
 		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
@@ -5356,7 +5375,7 @@ class ChessPiece {
 	}
 	
 	
-	//THESE CAPTURE METHODS ARE ERROR PRONE
+	//THESE CAPTURE METHODS ARE NOT ERROR FREE DUE TO ASSUMPTIONS THEY OPERATE WITH
 	
 	//how to determine if a situation comes down to just the free pieces?
 	//how to determine if a free piece is able to capture an enemy piece through a series of legal moves?
@@ -5503,7 +5522,15 @@ class ChessPiece {
 		if (cppossiblebmvs || canASideCaptureAPieceIfEnemyStaysSame(sideclrtomv, ignorelist, addpcs, gid))
 		{
 			System.out.println("IT IS POSSIBLE FOR ONE SIDE TO MAKE A CAPTURE!");
-			return false;
+			
+			//IF THIS IS THE LAST MOVE IN A COMPLETED GAME AND THE GAME ENDED IN A TIE OR DRAW THEN -> yes
+			//OTHERWISE -> no
+			//System.out.println("getGame(gid).isCompleted() = " + getGame(gid).isCompleted());
+			//System.out.println("getGame(gid).isTied() = " + getGame(gid).isTied());
+			//System.out.println("getGame(gid).isLastMove() = " + getGame(gid).isLastMove());
+			
+			if (getGame(gid).isCompleted() && getGame(gid).isTied() && getGame(gid).isLastMove()) return true;
+			else return false;
 		}
 		else
 		{
@@ -6758,6 +6785,7 @@ class ChessPiece {
 	{
 		if (cdelmvcmdonly == null || cdelmvcmdonly.length() < 10 || 12 < cdelmvcmdonly.length())
 		{
+			System.out.println("cdelmvcmdonly = " + cdelmvcmdonly);
 			throw new IllegalStateException("illegal create or delete command found and used here!");
 		}
 		//else;//do nothing
@@ -6774,11 +6802,17 @@ class ChessPiece {
 			else mc = "+";
 			return "" + mc + cdelmvcmdonly.substring(1);
 		}
-		else throw new IllegalStateException("illegal create or delete command found and used here!");
+		else
+		{
+			System.out.println("cdelmvcmdonly = " + cdelmvcmdonly);
+			throw new IllegalStateException("illegal create or delete command found and used here!");
+		}
 	}
 	
 	public static String genUndoMoveToCommandForPromotionCommand(String promvcmdonly, boolean redoit)
 	{
+		if (promvcmdonly == null)
+		
 		if (promvcmdonly == null || promvcmdonly.length() != 12)
 		{
 			System.out.println("promvcmdonly = " + promvcmdonly);
@@ -8007,7 +8041,8 @@ class ChessPiece {
 	
 	//EXECUTES THE COMMANDS ABOVE ON THE LOCAL BOARD ONLY
 	//ONLY EXECUTES COMMANDS IN SHORT HAND NOTATION
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
+	///*
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isuser,
 		boolean isofficial)
 	{
 		if (mvcmd == null || mvcmd.length < 1) return;
@@ -8109,6 +8144,26 @@ class ChessPiece {
 		for (int x = 0; x < mvcmd.length; x++) System.out.println("mvcmd[" + x + "] = " + mvcmd[x]);
 		System.out.println();
 		System.out.println("isundo = " + isundo);
+		System.out.println("isuser = " + isuser);
+		
+		final String mypcsclr = getGame(gid).getMyColor();
+		System.out.println("mypcsclr = " + mypcsclr);
+		
+		if (isundo);
+		else
+		{
+			if (isuser)
+			{
+				if (mypcsclr.equals("BOTH"));//do nothing just proceed can move all of the pieces
+				else
+				{
+					//do something here...
+					throw new IllegalStateException("NOT DONE YET!");
+				}
+			}
+			//else;//do nothing can move all of the pieces so just proceed
+		}
+		
 		
 		if (isundo)
 		{
@@ -8132,13 +8187,13 @@ class ChessPiece {
 				if (isofficial);
 				else getGame(gid).setUnofficialMove(null);
 				
-				makeLocalMove(nwmvs, gid, isundo);
+				makeLocalShortHandMove(nwmvs, gid, isundo, iswhitedown, isuser, isofficial);
 				
 				//add the move to the last undone move...
 				//do we add the generated undo move OR do we add the move we are undoing?
 				//the generated move comes into this and yes it can be reversed to get the current one.
 				//add the move we are undoing...
-				String[] oldmvwithundo = genUndoMoveToShortHandCommand(nwmvs);
+				String[] oldmvwithundo = genUndoMoveToShortHandCommand(nwmvs, true, false);//redoit, remundo
 				if (oldmvwithundo == null)
 				{
 					if (mvcmd == null);
@@ -8469,51 +8524,52 @@ class ChessPiece {
 		System.out.println("DONE MAKING THE FULL MOVE!");
 		System.out.println();
 	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isuser)
 	{
-		makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, false);
+		makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isuser, false);
 	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo)
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isundo, boolean isuser)
 	{
-		makeLocalShortHandMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
+		makeLocalShortHandMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS, isuser);
 	}
-	public static void makeLocalShortHandMove(String[] mvcmd, int gid)
+	public static void makeLocalShortHandMove(String[] mvcmd, int gid, boolean isuser)
 	{
-		makeLocalShortHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
+		makeLocalShortHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, isuser, false);
 	}
-	public static void makeLocalLongHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown,
+	public static void makeLocalLongHandMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isuser,
 		boolean isofficial)
 	{
-		makeLocalShortHandMove(getShortHandMoves(mvcmd), gid, isundo, iswhitedown, isofficial);
+		makeLocalShortHandMove(getShortHandMoves(mvcmd), gid, isundo, iswhitedown, isuser, isofficial);
 	}
-	public static void makeLocalLongHandMove(String[] mvcmd, int gid)
+	public static void makeLocalLongHandMove(String[] mvcmd, int gid, boolean isuser)
 	{
-		makeLocalLongHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, false);
+		makeLocalLongHandMove(mvcmd, gid, false, WHITE_MOVES_DOWN_RANKS, isuser, false);
 	}
 	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean isshorthand, boolean iswhitedown,
-		boolean isofficial)
+		boolean isuser, boolean isofficial)
 	{
 		System.out.println("CALLING SHORT OR LONG HAND MOVE with: iswhitedown = " + iswhitedown);
-		if (isshorthand) makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
-		else makeLocalLongHandMove(mvcmd, gid, isundo, iswhitedown, isofficial);
+		if (isshorthand) makeLocalShortHandMove(mvcmd, gid, isundo, iswhitedown, isuser, isofficial);
+		else makeLocalLongHandMove(mvcmd, gid, isundo, iswhitedown, isuser, isofficial);
 	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isofficial)
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isuser,
+		boolean isofficial)
 	{
-		makeLocalMove(mvcmd, gid, isundo, true, iswhitedown, isofficial);
+		makeLocalMove(mvcmd, gid, isundo, true, iswhitedown, isuser, isofficial);
 	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown)
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean iswhitedown, boolean isuser)
 	{
-		makeLocalMove(mvcmd, gid, isundo, iswhitedown, false);
+		makeLocalMove(mvcmd, gid, isundo, iswhitedown, isuser, false);
 	}
-	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo)
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isundo, boolean isuser)
 	{
-		makeLocalMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS);
+		makeLocalMove(mvcmd, gid, isundo, WHITE_MOVES_DOWN_RANKS, isuser);
 	}
-	public static void makeLocalMove(String[] mvcmd, int gid)
+	public static void makeLocalMove(String[] mvcmd, int gid, boolean isuser)
 	{
-		makeLocalMove(mvcmd, gid, false);
+		makeLocalMove(mvcmd, gid, false, isuser);
 	}
-	
+	//*/
 	
 	//PAWN SPECIAL METHODS
 	

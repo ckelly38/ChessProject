@@ -14,8 +14,9 @@ public class TestDriver {
     	// TODO, add your application code
     	System.out.println("Hello World!");
     	int gid = 1;
-    	ChessGame game = new ChessGame(1);
+    	ChessGame game = new ChessGame(1, "WHITE");
     	//ChessGame og = new ChessGame(1);//error
+    	//ChessGame mog = new ChessGame(2, "WHITE");
     	//testPawnPromotionViaStepingForwardThroughGame(2);
     	//testMovingPiecesAmbiguityViaStepingForwardThroughGame(2);
     	//testCastlingViaStepingForwardThroughGame(2);
@@ -23,7 +24,7 @@ public class TestDriver {
     	//testColorsForMovesAlternateViaStepingForwardThroughGame(2);
     	//testOtherColorsAlternateViaStepingForwardThroughGame(2);
     	//testFourMoveCheckMateBlackViaStepingForwardThroughGame(2);
-    	//testResignationViaStepingForwardThroughGame(2);
+    	//testResignationViaStepingForwardThroughGame(2);//error
     	
     	ChessPiece.setUpBoard(gid);
     	System.out.println("DONE SETTING UP THE BOARD!");
@@ -62,20 +63,20 @@ public class TestDriver {
     	//testResignation(gid);
     	//testPawning(gid, true);
     	//setUpBoardForPawnPromotion(gid, true);
-    	//setUpBoardForCastlingWhiteRight(gid, true);
+    	setUpBoardForCastlingWhiteRight(gid, true);
     	//setUpBoardWithKnightCheckingKing(gid, true);
     	//CHECKMATE TESTS
     	//setUpBoardWithFourMoveCheckMate(gid, true);
     	//setUpBoardWithTwoMoveCheckMateBlack(gid, true);
     	//setUpBoardWithTwoMoveCheckMateWhite(gid, true);
-    	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);
-    	//setUpBoardWhiteCheckmateAfterManyMoves(gid);
+    	//setUpBoardCheckmateKingBishopVSameDiffColorSquares(gid);//no moving there
+    	//setUpBoardWhiteCheckmateAfterManyMoves(gid);//no moving there
     	//STALEMATE TESTS
     	//setUpBoardWithKingVKingAndStuckPawnsWithoutMovingThere(gid);
-    	//setUpBoardWithBlockedPawnsAndBishops(gid);
-    	//setUpBoardWhiteStalemateAfterManyMoves(gid);
-    	setUpBoardWhiteStalemateKingAndQueenVsKing(gid);
-    	//AUTO STALEMATES
+    	//setUpBoardWithBlockedPawnsAndBishops(gid);//no moving there
+    	//setUpBoardWhiteStalemateAfterManyMoves(gid);//no moving there
+    	//setUpBoardWhiteStalemateKingAndQueenVsKing(gid);
+    	//AUTO STALEMATES (ALL WITHOUT MOVING THERE)
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 0, 1);
     	//setUpBoardWithKingAndBishopsVKingBishops(gid, 1, 0);
@@ -322,7 +323,7 @@ public class TestDriver {
     		}
     	}
     	
-    	ChessGame og = new ChessGame(gid, tstmvs, isdone);
+    	ChessGame og = new ChessGame(gid, tstmvs, isdone, "BOTH");
     	//setUpBoard(gid);
     	//og.stepBackward();//error
     	if (isdone)
@@ -528,7 +529,7 @@ public class TestDriver {
     	myunoffmvs[1] = "BPNTOF3";
     	myunoffmvs[2] = "WQNTOH4";
     	myunoffmvs[3] = "BRESIGNS";
-    	myunoffmvs[4] = "WPNTOA5";
+    	myunoffmvs[4] = "WPNTOA5";//error
     	//myunoffmvs[5] = "BPNTOA3";
     	ChessPiece.setUpBoard(gid);
     	ChessPiece.printBoard(gid);
@@ -622,25 +623,26 @@ public class TestDriver {
     
     //DRIVER MAKE MOVE
     
-    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown, String ptpval)
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown, boolean isuser, String ptpval)
     {
     	ChessPiece.makeLocalShortHandMove(
     		cp.genMoveToCommand(ChessPiece.convertStringLocToRowCol(elocstr, iswhitedown), ptpval), cp.getGameID(), false,
-    		ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    		ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	cp.getGame().makeUnofficialMoveOfficial();
     }
-    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown)
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown, boolean isuser)
     {
-    	driverMakeMove(cp, elocstr, iswhitedown, "QUEEN");
+    	driverMakeMove(cp, elocstr, iswhitedown, isuser, "QUEEN");
     }
-    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, String ptpval)
+    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, boolean isuser,
+    	String ptpval)
     {
     	ChessPiece cp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol(slocstr, iswhitedown), gid);
-    	driverMakeMove(cp, elocstr, iswhitedown, ptpval);
+    	driverMakeMove(cp, elocstr, iswhitedown, isuser, ptpval);
     }
-    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown)
+    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, boolean isuser)
     {
-    	driverMakeMove(gid, slocstr, elocstr, iswhitedown, "QUEEN");
+    	driverMakeMove(gid, slocstr, elocstr, iswhitedown, isuser, "QUEEN");
     }
     
     //SET UP BOARD METHODS
@@ -654,27 +656,28 @@ public class TestDriver {
 		//BPN F2 -> F3; BLACK RESIGNS; BPN A2 -> A3;
 		
 		boolean iswhitedown = true;
+		boolean isuser = false;
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7", iswhitedown), gid);
-    	driverMakeMove(wpn, "E6", iswhitedown);
+    	driverMakeMove(wpn, "E6", iswhitedown, isuser);
     	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F2", iswhitedown), gid);
-    	driverMakeMove(bpn, "F3", iswhitedown);
+    	driverMakeMove(bpn, "F3", iswhitedown, isuser);
     	
     	ChessPiece wqn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("D8", iswhitedown), gid);
-    	driverMakeMove(wqn, "H4", iswhitedown);
+    	driverMakeMove(wqn, "H4", iswhitedown, isuser);
     	ChessPiece.printBoard(gid);
     	
     	String[] rsgmv = ChessPiece.getFullResignationCommand("BLACK");
-    	ChessPiece.makeLocalShortHandMove(rsgmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	ChessPiece.makeLocalShortHandMove(rsgmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	
     	boolean tstcrash = false;
     	if (tstcrash)
     	{
     		ChessPiece owpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
-	    	driverMakeMove(owpn, "A5", iswhitedown);
+	    	driverMakeMove(owpn, "A5", iswhitedown, isuser);
 	    	
 	    	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
-	    	driverMakeMove(obpn, "A3", iswhitedown);
+	    	driverMakeMove(obpn, "A3", iswhitedown, isuser);
     	}
     	else
     	{
@@ -697,28 +700,29 @@ public class TestDriver {
     	//WPN AT A7 -> A5 -> B4 -> B3 -> B2 -> A1;
     	//BPN AT B2 -> B4; OBPN AT H2 -> H4 -> H5 -> H6;
     	boolean iswhitedown = true;
+    	boolean isuser = false;
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
-    	driverMakeMove(wpn, "A5", iswhitedown);
+    	driverMakeMove(wpn, "A5", iswhitedown, isuser);
     	//wpn.genMoveToCommand(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	//wpn.setLoc(ChessPiece.convertStringLocToRowCol("A5", iswhitedown));
     	//wpn.setMoveCount(wpn.getMoveCount() + 1);
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
-    	driverMakeMove(bpn, "B4", iswhitedown);
+    	driverMakeMove(bpn, "B4", iswhitedown, isuser);
     	
     	ChessPiece.printBoard(gid);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
-    	driverMakeMove(wpn, "B4", iswhitedown);
+    	driverMakeMove(wpn, "B4", iswhitedown, isuser);
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	
     	ChessPiece.printBoard(gid);
     	System.out.println(ChessPiece.isBoardValid(gid));
     	
     	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("H2", iswhitedown), gid);
-    	driverMakeMove(obpn, "H4", iswhitedown);
-    	driverMakeMove(wpn, "B3", iswhitedown);
-    	driverMakeMove(obpn, "H5", iswhitedown);
-    	driverMakeMove(wpn, "B2", iswhitedown);
-    	driverMakeMove(obpn, "H6", iswhitedown);
+    	driverMakeMove(obpn, "H4", iswhitedown, isuser);
+    	driverMakeMove(wpn, "B3", iswhitedown, isuser);
+    	driverMakeMove(obpn, "H5", iswhitedown, isuser);
+    	driverMakeMove(wpn, "B2", iswhitedown, isuser);
+    	driverMakeMove(obpn, "H6", iswhitedown, isuser);
     	
     	boolean tstmovandpromote = false;
     	String mymvploc = null;
@@ -743,7 +747,7 @@ public class TestDriver {
     	String[] myredmv = ChessPiece.genRedoMoveToShortHandCommand(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myunmv);
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
-    	//ChessPiece.makeLocalMove(wpn.genHintsCommandForSide(), gid, false);
+    	//ChessPiece.makeLocalMove(wpn.genHintsCommandForSide(), gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	
     	boolean tstlclmv = true;
     	if (tstlclmv)
@@ -759,8 +763,8 @@ public class TestDriver {
     		System.out.println("**ChessPiece.WHITE_MOVES_DOWN_RANKS = " + ChessPiece.WHITE_MOVES_DOWN_RANKS);
     		System.out.println();
     		
-    		ChessPiece.makeLocalMove(fullmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
-    		//ChessPiece.makeLocalMove(mymv, gid, false);
+    		ChessPiece.makeLocalMove(fullmv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
+    		//ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
@@ -779,14 +783,14 @@ public class TestDriver {
 	    	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		
     		ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
-    		ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    		ChessPiece.makeLocalMove(myunmv, gid, true, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		ChessPiece.printBoard(gid);
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     		
-    		ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    		ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     		
     		System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
@@ -814,16 +818,16 @@ public class TestDriver {
     	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	
-    	driverMakeMove(obpn, "G7", iswhitedown);
+    	driverMakeMove(obpn, "G7", iswhitedown, isuser);
     	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	
-    	driverMakeMove(wpn, "B1", iswhitedown);
+    	driverMakeMove(wpn, "B1", iswhitedown, isuser);
     	ChessPiece.printBoard(gid);
     	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	
-    	driverMakeMove(obpn, "H8", iswhitedown, "QUEEN");
+    	driverMakeMove(obpn, "H8", iswhitedown, isuser, "QUEEN");
     	
     	System.out.println("TOTAL NUMBER OF PIECES: " + ChessPiece.getNumItemsInList(ChessPiece.cps));
     	
@@ -907,20 +911,21 @@ public class TestDriver {
     	
     	//BPN AT B2 -> B4 -> B5; WPN AT A7 -> A5; WKT AT G8 -> H6 -> F5
     	boolean iswhitedown = true;
+    	boolean isuser = false;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
-    	driverMakeMove(wkt, "H6", iswhitedown);
+    	driverMakeMove(wkt, "H6", iswhitedown, isuser);
     	//ChessPiece.makeLocalShortHandMove(
     	//	wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown)), gid, false,
     	//	ChessPiece.WHITE_MOVES_DOWN_RANKS);
     	//wkt.getGame(gid).makeUnofficialMoveOfficial();
     	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B2", iswhitedown), gid);
-    	driverMakeMove(bpn, "B4", iswhitedown);
-    	driverMakeMove(wkt, "F5", iswhitedown);
-    	driverMakeMove(bpn, "B5", iswhitedown);
+    	driverMakeMove(bpn, "B4", iswhitedown, isuser);
+    	driverMakeMove(wkt, "F5", iswhitedown, isuser);
+    	driverMakeMove(bpn, "B5", iswhitedown, isuser);
     	
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A7", iswhitedown), gid);
-    	driverMakeMove(wpn, "A5", iswhitedown);
+    	driverMakeMove(wpn, "A5", iswhitedown, isuser);
     	
     	ChessPiece.printBoard(gid);
     	//now test pawning methods here
@@ -938,13 +943,13 @@ public class TestDriver {
     	String oscmd = "BPNB5TOA6";
     	String myscmd = oscmd;//scmd
     	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", iswhitedown, false);
-    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown);
+    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown, isuser);
     	//ChessPiece.makeLocalMove(mymv, gid, false);
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	//bpn.pawnLeft();
     	ChessPiece.printBoard(gid);
     	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
-    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    	ChessPiece.makeLocalMove(myunmv, gid, true, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	ChessPiece.printBoard(gid);
     	
     	ChessPiece.getGame(gid).setUnofficialMove(mymv);
@@ -1031,24 +1036,25 @@ public class TestDriver {
 		
     	//WKT AT G8 -> H6; WPN AT E7 -> E6; WBP AT F8 -> C5
     	boolean iswhitedown = true;
+    	boolean isuser = true;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
-    	driverMakeMove(wkt, "H6", iswhitedown);
+    	driverMakeMove(wkt, "H6", iswhitedown, isuser);
     	//wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
     	//wkt.setLoc(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));
     	//wkt.setMoveCount(wkt.getMoveCount() + 1);
     	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
-    	driverMakeMove(bpn, "A4", iswhitedown);
+    	driverMakeMove(bpn, "A4", iswhitedown, isuser);
     	
     	ChessPiece wpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("E7", iswhitedown), gid);
-    	driverMakeMove(wpn, "E6", iswhitedown);
-    	driverMakeMove(bpn, "A5", iswhitedown);
+    	driverMakeMove(wpn, "E6", iswhitedown, isuser);
+    	driverMakeMove(bpn, "A5", iswhitedown, isuser);
     	
     	ChessPiece wbp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("F8", iswhitedown), gid);
-    	driverMakeMove(wbp, "C5", iswhitedown);
+    	driverMakeMove(wbp, "C5", iswhitedown, isuser);
     	
     	ChessPiece obpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G2", iswhitedown), gid);
-    	driverMakeMove(obpn, "G4", iswhitedown);
+    	driverMakeMove(obpn, "G4", iswhitedown, isuser);
     	
     	//actually test the castling information here now...
     	System.out.println("WHITE CAN CASTLE: " + ChessPiece.canSideCastle("WHITE", gid));
@@ -1068,14 +1074,14 @@ public class TestDriver {
     	String oscmd = "WKGE8TOG8";
     	String myscmd = oscmd;//scmd
     	String[] fullmv = ChessPiece.genFullMoveCommandFromDisplayedCommand(myscmd, gid, "QUEEN", iswhitedown, false);
-    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown);
-    	//ChessPiece.makeLocalMove(mymv, gid, false);
+    	ChessPiece.makeLocalMove(fullmv, gid, false, iswhitedown, isuser);
+    	//ChessPiece.makeLocalMove(mymv, gid, false, iswhitedown, isuser);
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	//ChessPiece.whiteCastleRight(gid, null, null);//move count will be automatically incremented in this method
     	ChessPiece.printBoard(gid);
     	
     	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
-    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    	ChessPiece.makeLocalMove(myunmv, gid, true, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	
     	ChessPiece.printBoard(gid);
     	ChessPiece.getGame(gid).setUnofficialMove(mymv);
@@ -1131,19 +1137,20 @@ public class TestDriver {
 		
     	//White Knight at B8 -> C6 -> E5 -> (F3 OR D3)
     	boolean iswhitedown = true;
+    	boolean isuser = false;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("B8", iswhitedown), gid);
     	String[] mymv = wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
     	String[] myunmv = ChessPiece.genUndoMoveToShortHandCommand(mymv);
     	//wkt.setLoc(ChessPiece.convertStringLocToRowCol("C6", iswhitedown));
     	//wkt.setMoveCount(wkt.getMoveCount() + 1);
-    	ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS);
+    	ChessPiece.makeLocalMove(mymv, gid, false, ChessPiece.WHITE_MOVES_DOWN_RANKS, isuser);
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	
     	ChessPiece bpn = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("A2", iswhitedown), gid);
-    	driverMakeMove(bpn, "A4", iswhitedown);
-    	driverMakeMove(wkt, "E5", iswhitedown);
-    	driverMakeMove(bpn, "A5", iswhitedown);
-    	driverMakeMove(wkt, "F3", iswhitedown);
+    	driverMakeMove(bpn, "A4", iswhitedown, isuser);
+    	driverMakeMove(wkt, "E5", iswhitedown, isuser);
+    	driverMakeMove(bpn, "A5", iswhitedown, isuser);
+    	driverMakeMove(wkt, "F3", iswhitedown, isuser);
     	ChessPiece.printBoard(gid);
     	//now test check and figure out how to get out of it
     	ChessPiece wkg = ChessPiece.getCurrentSideKing("WHITE", gid);
@@ -1257,24 +1264,25 @@ public class TestDriver {
 		//BPN AT A2 -> A4 -> A5 -> A6
     	
     	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	boolean isuser = false;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown);//E6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown, isuser);//E6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 0, gid);//A2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false, iswhitedown);//A4
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(3, 0), gid, false, iswhitedown, isuser);//A4
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(5, 5), gid, false, iswhitedown, isuser);//F6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false, iswhitedown);//A5
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(4, 0), gid, false, iswhitedown, isuser);//A5
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece wbp = ChessPiece.getPieceAt(7, 5, gid);//F8
-    	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false, iswhitedown);//C5
+    	ChessPiece.makeLocalShortHandMove(wbp.genMoveToCommand(4, 2), gid, false, iswhitedown, isuser);//C5
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(5, 0), gid, false, iswhitedown, isuser);//A6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false, iswhitedown);//F2
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(1, 5), gid, false, iswhitedown, isuser);//F2
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
@@ -1353,21 +1361,22 @@ public class TestDriver {
 		//else;//do nothing
 		
     	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	boolean isuser = false;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 4, gid);//E7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown);//E6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 4), gid, false, iswhitedown, isuser);//E6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 5, gid);//F2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false, iswhitedown);//F3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 5), gid, false, iswhitedown, isuser);//F3
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 0, gid);//A7
-    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false, iswhitedown);//A6
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(5, 0), gid, false, iswhitedown, isuser);//A6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece obpn = ChessPiece.getPieceAt(1, 6, gid);//G2
-    	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false, iswhitedown);//G4
+    	ChessPiece.makeLocalShortHandMove(obpn.genMoveToCommand(3, 6), gid, false, iswhitedown, isuser);//G4
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	//ChessPiece.printBoard(gid);
     	ChessPiece wqn = ChessPiece.getPieceAt(7, 3, gid);//D8
-    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false, iswhitedown);//H4
+    	ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(3, 7), gid, false, iswhitedown, isuser);//H4
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
@@ -1428,17 +1437,18 @@ public class TestDriver {
     	//BPN AT E2 -> E3; BQN AT D1 -> H5
     	
     	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	boolean isuser = false;
     	ChessPiece wpn = ChessPiece.getPieceAt(6, 5, gid);//F7
-    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false, iswhitedown);//F6
+    	ChessPiece.makeLocalShortHandMove(wpn.genMoveToCommand(5, 5), gid, false, iswhitedown, isuser);//F6
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bpn = ChessPiece.getPieceAt(1, 4, gid);//E2
-    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false, iswhitedown);//E3
+    	ChessPiece.makeLocalShortHandMove(bpn.genMoveToCommand(2, 4), gid, false, iswhitedown, isuser);//E3
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece owpn = ChessPiece.getPieceAt(6, 6, gid);//G7
-    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false, iswhitedown);//G5
+    	ChessPiece.makeLocalShortHandMove(owpn.genMoveToCommand(4, 6), gid, false, iswhitedown, isuser);//G5
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece bqn = ChessPiece.getPieceAt(0, 3, gid);//D1
-    	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false, iswhitedown);//H5
+    	ChessPiece.makeLocalShortHandMove(bqn.genMoveToCommand(4, 7), gid, false, iswhitedown, isuser);//H5
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
     	//test check mate and check detection here and methods determinging where a piece can move to
@@ -1985,6 +1995,7 @@ public class TestDriver {
     	ChessPiece.printBoard(gid);
     	//now program the move(s)
     	boolean iswhitedown = ChessPiece.WHITE_MOVES_DOWN_RANKS;
+    	boolean isuser = false;
     	ChessPiece wqn = ChessPiece.getPieceAt(6, 3, gid);//D7
     	
     	String[] mymv = wqn.genMoveToCommand(6, 2);
@@ -1995,7 +2006,7 @@ public class TestDriver {
     	//ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);//error no move to pull from
     	ChessPiece.convertAllShortHandMovesToLongVersion(myredmv);
     	
-    	ChessPiece.makeLocalShortHandMove(mymv, gid, false, iswhitedown);//C7
+    	ChessPiece.makeLocalShortHandMove(mymv, gid, false, iswhitedown, isuser);//C7
     	//ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
     	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     	ChessPiece.printBoard(gid);
@@ -2016,15 +2027,18 @@ public class TestDriver {
     	ChessPiece.convertAllShortHandMovesToLongVersion(myounmv);
     	
     	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
-    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown);
+    	ChessPiece.makeLocalMove(myunmv, gid, true, iswhitedown, isuser);
+    	//ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+    	ChessPiece.getGame(gid).clearUnofficialMove();
     	ChessPiece.printBoard(gid);
     	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
     	
+    	boolean dodrawtests = true;
     	boolean tstdrawcmd = true;
-    	if (tstdrawcmd)
+    	if (tstdrawcmd && dodrawtests)
     	{
     		ChessPiece.makeLocalMove(
-    			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown);
+    			ChessPiece.getFullTieCommand("BLACK", true, false), gid, false, iswhitedown, isuser);
     	}
     	//else;//do nothing
     	
@@ -2033,7 +2047,7 @@ public class TestDriver {
     	{
     		System.out.println();
     		System.out.println("TEST REDO COMMAND:");
-	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToRedoLastUndoneMove(), gid);
+    		ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToRedoLastUndoneMove(), gid, isuser);
 	    	ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
 	    	ChessPiece.getGame(gid).setLastUndoneMove(null);
 	    	ChessPiece.printBoard(gid);
@@ -2042,7 +2056,9 @@ public class TestDriver {
 	    	
 	    	System.out.println("TEST UNDO COMMAND:");
 	    	ChessPiece.getGame(gid).makeLastOfficialMoveUnofficial();
-	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToUndoLastMadeMove(), gid, true, iswhitedown);
+	    	ChessPiece.makeLocalMove(ChessPiece.getGame(gid).genCommandToUndoLastMadeMove(), gid, true, iswhitedown, isuser);
+	    	//ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
+	    	ChessPiece.getGame(gid).clearUnofficialMove();
 	    	ChessPiece.printBoard(gid);
 	    	System.out.println();
     	}
@@ -2050,15 +2066,15 @@ public class TestDriver {
     	System.out.println(ChessPiece.getGame(gid).getSideTurn() + "'S TURN!");
     	
     	boolean otstdrawcmd = true;
-    	if (otstdrawcmd)
+    	if (otstdrawcmd && dodrawtests)
     	{
     		ChessPiece.makeLocalMove(
-    			ChessPiece.getFullTieCommand("WHITE", true, false), gid, false, iswhitedown);
+    			ChessPiece.getFullTieCommand("WHITE", true, false), gid, false, iswhitedown, isuser);
     	}
     	else
     	{
     		//make the other move
-    		ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown);//B7
+    		ChessPiece.makeLocalShortHandMove(wqn.genMoveToCommand(6, 1), gid, false, iswhitedown, isuser);//B7
     		ChessPiece.getGame(gid).makeUnofficialMoveOfficial();
     		ChessPiece.printBoard(gid);
     	}
