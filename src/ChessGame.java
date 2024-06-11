@@ -62,6 +62,11 @@ class ChessGame {
 		this(gid, "BOTH");
 	}
 	
+	public int getGameID()
+	{
+		return this.gameID;
+	}
+	
 	public static ChessGame getGame(int gid)
 	{
 		if (gid < 1) throw new IllegalStateException("GAME ID must be at least 1!");
@@ -80,10 +85,9 @@ class ChessGame {
 			throw new IllegalStateException("GAME with ID (" + gid + ") not found!");
 		}
 	}
-	
-	public int getGameID()
+	public ChessGame getGame()
 	{
-		return this.gameID;
+		return getGame(this.getGameID());
 	}
 	
 	public void setMyColor(String val)
@@ -101,6 +105,25 @@ class ChessGame {
 		else throw new IllegalStateException("my color must be BOTH, WHITE, OR BLACK ONLY!");
 	}
 	
+	public static boolean doesColorAMatchColorB(String clrvala, String clrvalb)
+	{
+		ChessPiece.colorIsValid(clrvala);
+		ChessPiece.colorIsValid(clrvalb);
+		if (clrvala.equals(clrvalb)) return true;
+		else
+		{
+			if (((clrvala.equals("WHITE") || clrvala.equals("BLACK")) && clrvalb.equals("BOTH")) ||
+				((clrvalb.equals("WHITE") || clrvalb.equals("BLACK")) && clrvala.equals("BOTH")))
+			{
+				return true;
+			}
+			else return false;
+		}
+	}
+	public boolean doesColorMatchMyColor(String clrval)
+	{
+		return doesColorAMatchColorB(clrval, getMyColor());
+	}
 	
 	public boolean isCompleted()
 	{

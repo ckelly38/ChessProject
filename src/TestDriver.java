@@ -634,16 +634,30 @@ public class TestDriver {
     {
     	driverMakeMove(cp, elocstr, iswhitedown, isuser, "QUEEN");
     }
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown, String ptpval)
+    {
+    	driverMakeMove(cp, elocstr, iswhitedown, cp.getGame().doesColorMatchMyColor(cp.getColor()), ptpval);
+    }
+    public static void driverMakeMove(ChessPiece cp, String elocstr, boolean iswhitedown)
+    {
+    	driverMakeMove(cp, elocstr, iswhitedown, "QUEEN");
+    }
     public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, boolean isuser,
     	String ptpval)
     {
     	ChessPiece cp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol(slocstr, iswhitedown), gid);
     	driverMakeMove(cp, elocstr, iswhitedown, isuser, ptpval);
     }
+    public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, String ptpval)
+    {
+    	ChessPiece cp = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol(slocstr, iswhitedown), gid);
+    	driverMakeMove(cp, elocstr, iswhitedown, ptpval);
+    }
     public static void driverMakeMove(int gid, String slocstr, String elocstr, boolean iswhitedown, boolean isuser)
     {
     	driverMakeMove(gid, slocstr, elocstr, iswhitedown, isuser, "QUEEN");
     }
+    
     
     //SET UP BOARD METHODS
     
@@ -1036,7 +1050,7 @@ public class TestDriver {
 		
     	//WKT AT G8 -> H6; WPN AT E7 -> E6; WBP AT F8 -> C5
     	boolean iswhitedown = true;
-    	boolean isuser = true;
+    	boolean isuser = false;
     	ChessPiece wkt = ChessPiece.getPieceAt(ChessPiece.convertStringLocToRowCol("G8", iswhitedown), gid);
     	driverMakeMove(wkt, "H6", iswhitedown, isuser);
     	//wkt.genMoveToCommand(ChessPiece.convertStringLocToRowCol("H6", iswhitedown));

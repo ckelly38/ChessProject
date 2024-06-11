@@ -260,6 +260,7 @@ class ChessPiece {
 	}
 	
 	
+	//NOTE: VALID COLORS LIST DOES NOT INCLUDE BOTH
 	public static String[] getValidTypesOrColors(boolean useclrs)
 	{
 		String[] marr = null;
@@ -410,6 +411,7 @@ class ChessPiece {
 	{
 		return getShortHandType(getType());
 	}
+	//NOTE: DOES NOT INCLUDE BOTH
 	public static String getShortHandColor(String clrval)
 	{
 		if (clrval == null || clrval.length() < 1) throw new IllegalStateException("NULL OR EMPTY COLOR NOT ALLOWED HERE!");
@@ -427,6 +429,7 @@ class ChessPiece {
 		else if (clrval.equals("B")) return "BLACK";
 		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
 	}
+	//NOTE: DOES NOT INCLUDE BOTH
 	public static String getOppositeColor(String clrval)
 	{
 		if (clrval == null) throw new IllegalStateException("THE COLOR MUST NOT BE NULL!");
@@ -434,6 +437,22 @@ class ChessPiece {
 		else if (clrval.equals("BLACK")) return "WHITE";
 		else throw new IllegalStateException("INVALID COLOR (" + clrval + ") FOUND AND USED HERE!");
 	}
+	//throws an exception if the the colors are not valid
+	//allows both by default
+	public static void colorIsValid(String clrval, boolean allowbth)
+	{
+		if (clrval == null || clrval.length() != 5) throw new IllegalStateException("INVALID LENGTH FOR THE COLOR!");
+		else
+		{
+			if (clrval.equals("WHITE") || clrval.equals("BLACK") || (allowbth && clrval.equals("BOTH")));
+			else throw new IllegalStateException("INVALID COLOR!");
+		}
+	}
+	public static void colorIsValid(String clrval)
+	{
+		colorIsValid(clrval, true);
+	}
+	
 	
 	//MOVE COUNT METHODS
 	
@@ -8148,22 +8167,7 @@ class ChessPiece {
 		
 		final String mypcsclr = getGame(gid).getMyColor();
 		System.out.println("mypcsclr = " + mypcsclr);
-		
-		if (isundo);
-		else
-		{
-			if (isuser)
-			{
-				if (mypcsclr.equals("BOTH"));//do nothing just proceed can move all of the pieces
-				else
-				{
-					//do something here...
-					throw new IllegalStateException("NOT DONE YET!");
-				}
-			}
-			//else;//do nothing can move all of the pieces so just proceed
-		}
-		
+		System.out.println();
 		
 		if (isundo)
 		{
@@ -8280,6 +8284,23 @@ class ChessPiece {
 		{
 			if (pci < 0 || mvcmd.length - 1 < pci);
 			else throw new IllegalStateException("ILLEGAL VALUE FOR PCI BECAUSE WE ARE CASTLEING OR PAWNING!");
+		}
+		
+		if (isundo || !isuser || mypcsclr.equals("BOTH"));//do nothing just proceed can move all of the pieces
+		else
+		{
+			String[][] tempmvs = new String[1][];
+			tempmvs[0] = mvcmd;
+			String mycmdclr = getSideColorsForMoves(tempmvs)[0];
+			System.out.println("mypcsclr = " + mypcsclr);
+			System.out.println("mycmdclr = " + mycmdclr);
+			
+			colorIsValid(mycmdclr);
+			colorIsValid(mypcsclr);
+			
+			//if piece color is the same as the main command color
+			if (mypcsclr.equals(mycmdclr) && (mycmdclr.equals("WHITE") || mycmdclr.equals("BLACK")));
+			else throw new IllegalStateException("NOT ALLOWED TO MOVE THIS PIECE OR ILLEGAL PIECES COLOR OBTAINED!");
 		}
 		
 		//get the direction
