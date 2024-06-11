@@ -64,6 +64,7 @@ class ChessPiece {
 	{
 		return 0 + this.gameID;
 	}
+	
 	public static ChessGame getGame(int gid)
 	{
 		return ChessGame.getGame(gid);
@@ -1841,7 +1842,7 @@ class ChessPiece {
 	//--NEED PROMOTED AND TO PROMOTE THEM (DONE)
 	//IF THE GAME HAS NOT ENDED, THEN WHAT????
 	
-	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck,
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean undoifincheck,
 		boolean isuser, int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
 		//make sure the side that just moved is not in check
@@ -1866,7 +1867,7 @@ class ChessPiece {
 		    	
 		    	getGame(gid).makeLastOfficialMoveUnofficial();
 		    	
-		    	makeLocalMove(myounmv, gid, true, iswhitedown, isuser);
+		    	makeLocalMove(myounmv, gid, true, WHITE_MOVES_DOWN_RANKS, isuser);
 		    	printBoard(gid);
 		    	System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
 				
@@ -1914,30 +1915,40 @@ class ChessPiece {
 					//PREVENT THE USER FROM EXECUTING COMMANDS FOR THE OTHER SIDE
 					//
 					//SEND THE COMMAND MADE AND YOUR SIDE TURN
-					//BLACK'S TURN AFTER:
+					//BLACK'S TURN AFTER: OR WHITE WINS AFTER: OR TIE AFTER:
 					//[THE, MOVE, MADE]
 					//
 					//NOW START THE THREAD THAT LISTENS FOR THEIR MOVE
 					
+					//if board is both colors, do not send any commands
+					//if server, do not send any commands
+					if (!isuser || getGame(gid).getMyColor().equals("BOTH"));
+					else
+					{
+						//send commands...
+					}
 					System.out.println(getGame(gid).getSideTurn() + "'S TURN!");
-					throw new IllegalStateException("NOT DONE YET WITH ADVANCING THE TURN!");
 				}
 			}
 		}
 	}
-	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean undoifincheck,
-		boolean isuser)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean undoifincheck,
+		int[][] ignorelist, ArrayList<ChessPiece> addpcs)
 	{
-		advanceTurnIfPossible(sidemoved, gid, iswhitedown, undoifincheck, isuser, null, null);
+		advanceTurnIfPossible(sidemoved, gid, undoifincheck,
+			getGame(gid).doesColorMatchMyColor(sidemoved), ignorelist, addpcs);
 	}
-	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean iswhitedown, boolean isuser)
+	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean undoifincheck, boolean isuser)
 	{
-		advanceTurnIfPossible(sidemoved, gid, iswhitedown, true, isuser);
+		advanceTurnIfPossible(sidemoved, gid, undoifincheck, isuser, null, null);
 	}
-	//default value for iswhitedown is WHITE_MOVES_DOWN_RANKS
 	public static void advanceTurnIfPossible(String sidemoved, int gid, boolean isuser)
 	{
-		advanceTurnIfPossible(sidemoved, gid, WHITE_MOVES_DOWN_RANKS, isuser);
+		advanceTurnIfPossible(sidemoved, gid, true, isuser);
+	}
+	public static void advanceTurnIfPossible(String sidemoved, int gid)
+	{
+		advanceTurnIfPossible(sidemoved, gid, true, getGame(gid).doesColorMatchMyColor(sidemoved));
 	}
 	public static void advanceTurnIfPossible(int gid, boolean isuser)
 	{
