@@ -418,20 +418,20 @@ class ChessGame {
 		if (mymvcmd == null || mymvcmd.length < 1) this.UNOFFICIAL_MOVE = null;
 		else
 		{
-			if (this.UNOFFICIAL_MOVE == null || this.UNOFFICIAL_MOVE.length < 1)
+			if (ChessPiece.getOverallTypeOfCommand(mymvcmd).equals("HINTS"));//do nothing
+			else
 			{
-				if (ChessPiece.getOverallTypeOfCommand(mymvcmd).equals("HINTS"));//do nothing
-				else
+				if (this.UNOFFICIAL_MOVE == null || this.UNOFFICIAL_MOVE.length < 1)
 				{
 					this.UNOFFICIAL_MOVE = new String[mymvcmd.length];
 					for (int n = 0; n < mymvcmd.length; n++) this.UNOFFICIAL_MOVE[n] = "" + mymvcmd[n];
 				}
-			}
-			else
-			{
-				this.printAllOfficialMoves();
-				this.printUnofficialMove();
-				throw new IllegalStateException("YOU NEED TO MAKE THE MOVE OFFICIAL FIRST OR CLEAR THE UNOFFICIAL MOVE!");
+				else
+				{
+					this.printAllOfficialMoves();
+					this.printUnofficialMove();
+					throw new IllegalStateException("YOU NEED TO MAKE THE MOVE OFFICIAL FIRST OR CLEAR THE UNOFFICIAL MOVE!");
+				}
 			}
 		}
 	}
