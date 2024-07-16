@@ -420,8 +420,12 @@ class ChessGame {
 		{
 			if (this.UNOFFICIAL_MOVE == null || this.UNOFFICIAL_MOVE.length < 1)
 			{
-				this.UNOFFICIAL_MOVE = new String[mymvcmd.length];
-				for (int n = 0; n < mymvcmd.length; n++) this.UNOFFICIAL_MOVE[n] = "" + mymvcmd[n];
+				if (ChessPiece.getOverallTypeOfCommand(mymvcmd).equals("HINTS"));//do nothing
+				else
+				{
+					this.UNOFFICIAL_MOVE = new String[mymvcmd.length];
+					for (int n = 0; n < mymvcmd.length; n++) this.UNOFFICIAL_MOVE[n] = "" + mymvcmd[n];
+				}
 			}
 			else
 			{
