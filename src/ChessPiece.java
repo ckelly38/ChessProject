@@ -6040,6 +6040,62 @@ class ChessPiece {
 		}
 	}
 	
+	//COLOR DIR PAWN at: START_LOC_STRING to: END_LOC_STRING
+	public static String genLongOrShortHandPawningCommand(String clr, int cr, int mcc, int nr, int nc,
+		boolean useleft, boolean useshort)
+	{
+		return ChessPiece.genLongOrShortHandMoveCommandOnlyString(clr, "PAWN", cr, mcc, nr, nc,
+			true, useleft, useshort);
+	}
+	public static String genLongOrShortHandPawningCommand(ChessPiece cp, int nr, int nc, boolean useleft,
+		String errmsg, boolean throwerr, boolean useshort)
+	{
+		if (cp == null);//error found
+		else
+		{
+			if (cp.getType().equals("PAWN"))
+			{
+				return ChessPiece.genLongOrShortHandPawningCommand(cp.getColor(), cp.getRow(),
+					cp.getCol(), nr, nc, useleft, useshort);
+			}
+			//else;//do nothing error found
+		}
+
+		if (throwerr)
+		{
+			if (errmsg == null || errmsg.length() < 1)
+			{
+				throw new IllegalStateException("the chess piece must be a PAWN!");
+			}
+			else throw new IllegalStateException(errmsg);
+		}
+		else return null;
+	}
+	
+	//COLOR DIR CASTLE:
+	public static String genLongOrShortHandCastelingCommand(String clr, boolean useleft, boolean useshort)
+	{
+		String myclr = null;
+		if (useshort) myclr = ChessPiece.getShortHandColor(clr);
+		else myclr = "" + clr + " ";
+		String mytp = "CASTLE";
+		if (useshort) mytp = ChessPiece.getShortHandType(mytp);
+		//else;//do nothing
+		
+		String dirstr = null;
+		if (useleft)
+		{
+			if (useshort) dirstr = "L";
+			else dirstr = "LEFT ";
+		}
+		else
+		{
+			if (useshort) dirstr = "R";
+			else dirstr = "RIGHT ";
+		}
+		return "" + myclr + dirstr + mytp + ":";
+	}
+	
 	//TURN PAWN at: LOC_STRING into: NEW_TYPE
 	public static String genLongOrShortHandPawnPromotionCommand(String clr, int nr, int nc, String ptpval, boolean useshort)
 	{
