@@ -7467,24 +7467,29 @@ class ChessPiece {
 				else throw new IllegalStateException("the current piece was not of the correct type and color!");
 			}
 			
-			if (cp.isMoveToASpecialMove(eloc[0], eloc[1], ignorelist, addpcs, bpassimnxtmv))
+			if (cp.canMoveTo(eloc[0], eloc[1], ignorelist, addpcs, bpassimnxtmv))
 			{
-				//determine if it is castling or pawning
-				//need the direction
-				//then can generate the correct command
-				//then call this method with the correct command
-				boolean usecsling = cp.getType().equals("KING");
-				boolean useleft = (eloc[1] < sloc[1]);
-				String dirstr = null;
-				if (useleft) dirstr = "L";
-				else dirstr = "R";
-				String nwcmd = null;
-				if (usecsling) nwcmd = "" + myclr + dirstr + "CE:";
-				else nwcmd = "" + myclr + dirstr + usrcmd.substring(1);
-				return genFullMoveCommandFromDisplayedCommand(nwcmd, gid, ptpval, ignorelist, addpcs,
-					iswhitedown, bpassimnxtmv);
+				if (cp.isMoveToASpecialMove(eloc[0], eloc[1], ignorelist, addpcs, bpassimnxtmv))
+				{
+					//determine if it is castling or pawning
+					//need the direction
+					//then can generate the correct command
+					//then call this method with the correct command
+					boolean usecsling = cp.getType().equals("KING");
+					boolean useleft = (eloc[1] < sloc[1]);
+					String dirstr = null;
+					if (useleft) dirstr = "L";
+					else dirstr = "R";
+					String nwcmd = null;
+					if (usecsling) nwcmd = "" + myclr + dirstr + "CE:";
+					else nwcmd = "" + myclr + dirstr + usrcmd.substring(1);
+					return genFullMoveCommandFromDisplayedCommand(nwcmd, gid, ptpval, ignorelist, addpcs,
+						iswhitedown, bpassimnxtmv);
+				}
+				//else;//do nothing safe to proceed
 			}
-			//else;//do nothing safe to proceed
+			else throw new IllegalStateException("THE PIECE WE ARE TRYING TO MOVE CANNOT MOVE THERE!");
+			
 			
 			boolean canpropawn = canPawnBePromotedAt(eloc[0], eloc[1], fullclr, cp.getType());
 			String propawncmd = null;
