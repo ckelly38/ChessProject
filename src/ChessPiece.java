@@ -6364,7 +6364,11 @@ class ChessPiece {
 			else return "CASTLEING";
 		}
 		else if (usrcmd.charAt(0) == 'T') return "PROMOTION";
-		else if (usrcmd.indexOf("TO") == 5 || usrcmd.indexOf("TO") == 3) return "MOVE";
+		else if (usrcmd.indexOf("TO") == 5 || usrcmd.indexOf("TO") == 3)
+		{
+			if (usrcmd.indexOf("INTO") == 7 || usrcmd.indexOf("INTO") == 9) return "MOVE-PROMOTE";
+			else return "MOVE";
+		}
 		else if (usrcmd.indexOf("HINTS") == 5 || usrcmd.indexOf("HINTS") == 1) return "HINTS";
 		else throw new IllegalStateException("ILLEGAL TYPE FOUND FOR COMMAND (" + usrcmd + ")!");
 	}
@@ -6390,7 +6394,7 @@ class ChessPiece {
 	
 	public static String[] getMoveCommandTypes()
 	{
-		String[] mvtps = {"MOVE", "CASTLEING", "PAWNING", "PROMOTION"};
+		String[] mvtps = {"MOVE", "CASTLEING", "PAWNING", "PROMOTION", "MOVE-PROMOTE"};
 		return mvtps;
 	}
 	public static boolean isCommandTypeAMoveCommand(String cmdtp)
@@ -7388,7 +7392,7 @@ class ChessPiece {
 			System.out.println("resstr[2] = " + resstr[2]);
 			return resstr;
 		}
-		else if (cmdtp.equals("MOVE"))
+		else if (cmdtp.equals("MOVE") || cmdtp.equals("MOVE-PROMOTE"))
 		{
 			//need to determine if the move is actually a special move
 			//need to determine if the move results in a capture
@@ -7413,9 +7417,15 @@ class ChessPiece {
 			int[] sloc = null;
 			int[] eloc = null;
 			int esi = -1;
+			String ptpvalfcmd = null;
 			if (usrcmd.indexOf("TO") == 3)
 			{
-				elocstr = usrcmd.substring(5);
+				//WPNTOA8INTOQN
+				//WPNTOA4
+				//0123456789012
+				//0         1
+				if (cmdtp.equals("MOVE-PROMOTE")) elocstr = usrcmd.substring(5, 7);
+				else elocstr = usrcmd.substring(5);
 				//calculate sloc from eloc;
 				eloc = convertStringLocToRowCol(elocstr, iswhitedown);
 				System.out.println("myclr = " + myclr);
@@ -7423,6 +7433,13 @@ class ChessPiece {
 				System.out.println("elocstr = " + elocstr);
 				System.out.println("eloc[0] = " + eloc[0]);
 				System.out.println("eloc[1] = " + eloc[1]);
+				
+				if (cmdtp.equals("MOVE-PROMOTE"))
+				{
+					ptpvalfcmd = ChessPiece.getLongHandType(usrcmd.substring(11));
+				}
+				//else;//do nothing
+				
 				sloc = getStartLocForPieceThatCanMoveTo(eloc[0], eloc[1], fullclr, getLongHandType(mytp),
 					ignorelist, addpcs, gid, false, bpassimnxtmv);
 				if (sloc == null)
@@ -7440,8 +7457,13 @@ class ChessPiece {
 			}
 			else
 			{
+				//WPNB7TOA8INTOQN
+				//WPNA2TOA4
+				//012345678901234
+				//0         1
 				slocstr = usrcmd.substring(3, 5);
-				elocstr = usrcmd.substring(7);
+				if (cmdtp.equals("MOVE-PROMOTE")) elocstr = usrcmd.substring(7, 9);
+				else elocstr = usrcmd.substring(7);
 				System.out.println("slocstr = " + slocstr);
 				System.out.println("elocstr = " + elocstr);
 				
@@ -7451,6 +7473,12 @@ class ChessPiece {
 				System.out.println("sloc[1] = " + sloc[1]);
 				System.out.println("eloc[0] = " + eloc[0]);
 				System.out.println("eloc[1] = " + eloc[1]);
+				
+				if (cmdtp.equals("MOVE-PROMOTE"))
+				{
+					ptpvalfcmd = ChessPiece.getLongHandType(usrcmd.substring(13));
+				}
+				//else;//do nothing
 				
 				nwusrcmd = usrcmd.substring(0, 3) + convertRowColToStringLoc(sloc[0], sloc[1], WHITE_MOVES_DOWN_RANKS) +
 					usrcmd.substring(5, 7) + convertRowColToStringLoc(eloc[0], eloc[1], WHITE_MOVES_DOWN_RANKS);
@@ -7499,7 +7527,10 @@ class ChessPiece {
 				
 				String[] myvptps = {"QUEEN", "BISHOP", "CASTLE", "ROOK", "KNIGHT"};
 				String myctpval = null;
-				if (itemIsOnGivenList(ptpval, myvptps))
+				String transptpval = null;
+				if (cmdtp.equals("MOVE-PROMOTE")) transptpval = ptpvalfcmd;
+				else transptpval = ptpval;
+				if (ChessPiece.itemIsOnGivenList(transptpval, myvptps))
 				{
 					if (ptpval.equals("ROOK")) myctpval = "CASTLE";
 					else myctpval = "" + ptpval;
