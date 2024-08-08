@@ -4140,7 +4140,7 @@ class ChessPiece {
 				else
 				{
 					numaddlocs++;
-					addpleft = true;
+					addpright = true;
 				}
 				//System.out.println("addpleft = " + addpleft);
 				//System.out.println("addpright = " + addpright);
